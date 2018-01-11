@@ -72,7 +72,7 @@ namespace TestLibNamespace.Northwestern
         }
 
         /// <summary>
-        /// Clones the distribution and shifts it by .
+        /// Clones the distribution and shifts it by a constant m/z value.
         /// </summary>
         /// <param name="shift">The shift.</param>
         /// <returns></returns>
