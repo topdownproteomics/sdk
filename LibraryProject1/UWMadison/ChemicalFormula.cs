@@ -169,14 +169,10 @@ namespace Chemistry
             }
         }
 
+        public Dictionary<Isotope, int> Isotopes { get; private set; }
+        public Dictionary<Element, int> Elements { get; private set; }
+
         #endregion Public Properties
-
-        #region Internal Properties
-
-        internal Dictionary<Isotope, int> Isotopes { get; private set; }
-        internal Dictionary<Element, int> Elements { get; private set; }
-
-        #endregion Internal Properties
 
         #region Public Methods
 
