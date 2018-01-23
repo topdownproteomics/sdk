@@ -626,7 +626,7 @@ namespace TestLibNamespace.Northwestern
         /// <summary>
         /// Decodes ints from the half bytes in bytes. Lossless reverse of encodeInt, although not symmetrical in input arguments.
         /// </summary>
-        private class IntDecoder
+        public class IntDecoder
         {
             public int pos = 0;
             public bool half = false;
