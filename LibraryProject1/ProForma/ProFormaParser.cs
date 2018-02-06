@@ -46,11 +46,16 @@ namespace TestLibNamespace.ProForma
 
         private ProFormaTag ProcessTag(string tag, int index)
         {
-            var cells = tag.Split(':');
-
             var descriptors = new List<ProFormaDescriptor>();
 
-            descriptors.Add(new ProFormaDescriptor(cells[0], cells[1]));
+            var descriptorText = tag.Split('|');
+
+            for (int i = 0; i < descriptorText.Length; i++)
+            {
+                var cells = descriptorText[i].Split(':');
+
+                descriptors.Add(new ProFormaDescriptor(cells[0], cells[1]));
+            }
 
             return new ProFormaTag(index, descriptors);
         }
