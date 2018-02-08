@@ -38,7 +38,7 @@ namespace TestProject1
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().Index);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.INFO, term.Tags.Single().Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaKey.INFO, term.Tags.Single().Descriptors.Single().Key);
             Assert.AreEqual("test", term.Tags.Single().Descriptors.Single().Value);
         }
 
@@ -56,9 +56,9 @@ namespace TestProject1
             Assert.AreEqual(5, tag.Index);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.MOD, tag.Descriptors.First().Key);
+            Assert.AreEqual(ProFormaKey.MOD, tag.Descriptors.First().Key);
             Assert.AreEqual("Methyl", tag.Descriptors.First().Value);
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.MASS, tag.Descriptors.Last().Key);
+            Assert.AreEqual(ProFormaKey.MASS, tag.Descriptors.Last().Key);
             Assert.AreEqual("+14.02", tag.Descriptors.Last().Value);
         }
 
@@ -73,7 +73,7 @@ namespace TestProject1
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().Index);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.MOD, term.Tags.Single().Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaKey.MOD, term.Tags.Single().Descriptors.Single().Key);
             Assert.AreEqual("Methyl", term.Tags.Single().Descriptors.Single().Value);
         }
 
@@ -91,9 +91,9 @@ namespace TestProject1
             Assert.AreEqual(5, tag.Index);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.MOD, tag.Descriptors.First().Key);
+            Assert.AreEqual(ProFormaKey.MOD, tag.Descriptors.First().Key);
             Assert.AreEqual("Methyl", tag.Descriptors.First().Value);
-            Assert.AreEqual(ProFormaDescriptor.ProFormaKey.MASS, tag.Descriptors.Last().Key);
+            Assert.AreEqual(ProFormaKey.MASS, tag.Descriptors.Last().Key);
             Assert.AreEqual("+14.02", tag.Descriptors.Last().Value);
         }
 

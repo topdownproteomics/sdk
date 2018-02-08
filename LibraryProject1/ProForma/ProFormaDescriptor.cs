@@ -2,6 +2,18 @@
 
 namespace TestLibNamespace.ProForma
 {
+
+    /// <summary>
+    /// Possible keys for a ProFormaDescriptor
+    /// </summary>
+    public enum ProFormaKey
+    {
+        MOD,
+        MASS,
+        FORMULA,
+        INFO
+    }
+
     /// <summary>
     /// Member of the tag. Could be a key-value pair, or a keyless entry.
     /// </summary>
@@ -49,21 +61,6 @@ namespace TestLibNamespace.ProForma
         public string Value { get; }
 
         #endregion Public Properties
-
-        #region Constants
-
-        /// <summary>
-        /// Possible keys for a ProFormaDescriptor
-        /// </summary>
-        public enum ProFormaKey
-        {
-            MOD,
-            MASS,
-            FORMULA,
-            INFO
-        }
-
-        #endregion Constants
 
     }
 }
