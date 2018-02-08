@@ -7,6 +7,9 @@ namespace TestLibNamespace.ProForma
     /// </summary>
     public class ProFormaTerm
     {
+
+        #region Constructor
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaTerm"/> class.
         /// </summary>
@@ -18,6 +21,10 @@ namespace TestLibNamespace.ProForma
             Tags = tags;
         }
 
+        #endregion Constructor
+
+        #region Public Properties
+
         /// <summary>
         /// Gets the amino acid sequence.
         /// </summary>
@@ -27,5 +34,8 @@ namespace TestLibNamespace.ProForma
         /// Gets the tags.
         /// </summary>
         public ICollection<ProFormaTag> Tags { get; }
+
+        #endregion Public Properties
+
     }
 }

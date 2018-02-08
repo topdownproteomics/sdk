@@ -9,6 +9,9 @@ namespace TestLibNamespace.ProForma
     /// </summary>
     public class ProFormaParser
     {
+
+        #region Public Method
+
         public ProFormaTerm ParseString(string proFormaString)
         {
             if (string.IsNullOrEmpty(proFormaString))
@@ -44,6 +47,10 @@ namespace TestLibNamespace.ProForma
             return new ProFormaTerm(sequence.ToString(), tags);
         }
 
+        #endregion Public Method
+
+        #region Private Method
+
         private ProFormaTag ProcessTag(string tag, int index)
         {
             var descriptors = new List<ProFormaDescriptor>();
@@ -52,12 +59,22 @@ namespace TestLibNamespace.ProForma
 
             for (int i = 0; i < descriptorText.Length; i++)
             {
-                var cells = descriptorText[i].Split(':');
+                int colon = descriptorText[i].IndexOf(':');
+                string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon);
+                string value = descriptorText[i].Substring(colon + 1); // values may have colons
 
-                descriptors.Add(new ProFormaDescriptor(cells[0], cells[1]));
+                if (key.Length > 0)
+                    descriptors.Add(new ProFormaDescriptor(key, value));
+                else if (value.Length > 0)
+                    descriptors.Add(new ProFormaDescriptor(value));
+                else
+                    throw new ProFormaParseException("Empty descriptor within tag " + tag);
             }
 
             return new ProFormaTag(index, descriptors);
         }
+
+        #endregion Private Method
+
     }
 }

@@ -7,6 +7,9 @@ namespace TestLibNamespace.ProForma
     /// </summary>
     public class ProFormaTag
     {
+
+        #region Constructor
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaTag"/> class.
         /// </summary>
@@ -18,6 +21,10 @@ namespace TestLibNamespace.ProForma
             Descriptors = descriptors;
         }
 
+        #endregion Constructor
+
+        #region Public Properties
+
         /// <summary>
         /// Gets the zero-based index in the sequence.
         /// </summary>
@@ -27,5 +34,8 @@ namespace TestLibNamespace.ProForma
         /// Gets the descriptors.
         /// </summary>
         public ICollection<ProFormaDescriptor> Descriptors { get; }
+
+        #endregion Public Properties
+
     }
 }
