@@ -8,10 +8,10 @@ namespace TestLibNamespace.ProForma
     /// </summary>
     public enum ProFormaKey
     {
-        MOD,
-        MASS,
-        FORMULA,
-        INFO
+        Mod,
+        Mass,
+        Formula,
+        Info
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ namespace TestLibNamespace.ProForma
         /// <param name="value"></param>
         public ProFormaDescriptor(string value)
         {
-            this.Key = ProFormaKey.MOD;
+            this.Key = ProFormaKey.Mod;
             this.Value = value;
         }
 
