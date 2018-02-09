@@ -6,8 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibraryProject1", "LibraryProject1\LibraryProject1.csproj", "{801007D3-801C-46CD-BEC0-CDAEC49B7D18}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{DB354E88-BF6E-44BF-AC78-B585F34E7D2A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{801007D3-801C-46CD-BEC0-CDAEC49B7D18} = {801007D3-801C-46CD-BEC0-CDAEC49B7D18}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkProject1", "BenchmarkProject1\BenchmarkProject1.csproj", "{E3900E67-68CA-4DB6-AFE1-B40E03C7DE56}"
+	ProjectSection(ProjectDependencies) = postProject
+		{801007D3-801C-46CD-BEC0-CDAEC49B7D18} = {801007D3-801C-46CD-BEC0-CDAEC49B7D18}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

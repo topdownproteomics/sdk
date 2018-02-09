@@ -41,7 +41,15 @@ namespace TestLibNamespace.ProForma
                 else if (inTag)
                     tag.Append(current);
                 else
+                {
+                    // Validate amino acid character
+                    if (!char.IsUpper(current))
+                        throw new ProFormaParseException($"{current} is not an upper case letter.");
+                    else if (current == 'X')
+                        throw new ProFormaParseException("X is not allowed.");
+
                     sequence.Append(current);
+                }
             }
 
             return new ProFormaTerm(sequence.ToString(), tags);
