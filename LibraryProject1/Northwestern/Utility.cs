@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace TestLibNamespace.Northwestern
 {
+    /// <summary>
+    /// Northwestern Utility functions.
+    /// </summary>
     public static class Utility
     {
         /// <summary>

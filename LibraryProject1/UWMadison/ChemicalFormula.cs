@@ -58,12 +58,19 @@ namespace Chemistry
 
         #region Public Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChemicalFormula"/> class.
+        /// </summary>
         public ChemicalFormula()
         {
             Isotopes = new Dictionary<Isotope, int>();
             Elements = new Dictionary<Element, int>();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChemicalFormula"/> class.
+        /// </summary>
+        /// <param name="capFormula">The cap formula.</param>
         public ChemicalFormula(ChemicalFormula capFormula)
         {
             Isotopes = new Dictionary<Isotope, int>(capFormula.Isotopes);
@@ -147,6 +154,9 @@ namespace Chemistry
             }
         }
 
+        /// <summary>
+        /// Gets the proton count.
+        /// </summary>
         public int ProtonCount
         {
             get
@@ -169,13 +179,25 @@ namespace Chemistry
             }
         }
 
+        /// <summary>
+        /// Gets the isotopes.
+        /// </summary>
         public Dictionary<Isotope, int> Isotopes { get; private set; }
+
+        /// <summary>
+        /// Gets the elements.
+        /// </summary>
         public Dictionary<Element, int> Elements { get; private set; }
 
         #endregion Public Properties
 
         #region Public Methods
 
+        /// <summary>
+        /// Combines the specified formulas.
+        /// </summary>
+        /// <param name="formulas">The formulas.</param>
+        /// <returns></returns>
         public static ChemicalFormula Combine(IEnumerable<IHasChemicalFormula> formulas)
         {
             ChemicalFormula returnFormula = new ChemicalFormula();
@@ -224,6 +246,11 @@ namespace Chemistry
             return f;
         }
 
+        /// <summary>
+        /// Neutrons the count.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Chemistry.TestLibException">Cannot know for sure what the number of neutrons is!</exception>
         public int NeutronCount()
         {
             if (Elements.Count > 0)
@@ -252,6 +279,10 @@ namespace Chemistry
             Add(item.ThisChemicalFormula);
         }
 
+        /// <summary>
+        /// Multiplies the chemical formula by the specified multiplier.
+        /// </summary>
+        /// <param name="multiplier">The multiplier.</param>
         public void Multiply(int multiplier)
         {
             List<Element> keys = new List<Element>(Elements.Keys);
@@ -290,6 +321,11 @@ namespace Chemistry
             Add(isotope, count);
         }
 
+        /// <summary>
+        /// Adds the specified element.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="count">The count.</param>
         public void Add(Element element, int count)
         {
             if (count == 0)
@@ -413,6 +449,13 @@ namespace Chemistry
             return CountWithIsotopes(element) != 0;
         }
 
+        /// <summary>
+        /// Determines whether [is subset of] [the specified formula].
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <returns>
+        ///   <c>true</c> if [is subset of] [the specified formula]; otherwise, <c>false</c>.
+        /// </returns>
         public bool IsSubsetOf(ChemicalFormula formula)
         {
             return formula.IsSupersetOf(this);
@@ -436,6 +479,14 @@ namespace Chemistry
             return true;
         }
 
+        /// <summary>
+        /// Determines whether [contains specific isotope] [the specified element].
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="atomicNumber">The atomic number.</param>
+        /// <returns>
+        ///   <c>true</c> if [contains specific isotope] [the specified element]; otherwise, <c>false</c>.
+        /// </returns>
         public bool ContainsSpecificIsotope(Element element, int atomicNumber)
         {
             return CountSpecificIsotopes(element, atomicNumber) != 0;
@@ -473,17 +524,36 @@ namespace Chemistry
             return isotopeCount + (Elements.TryGetValue(element, out int ElementCount) ? ElementCount : 0);
         }
 
+        /// <summary>
+        /// Counts the specific isotopes.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="massNumber">The mass number.</param>
+        /// <returns></returns>
         public int CountSpecificIsotopes(Element element, int massNumber)
         {
             Isotope isotope = element[massNumber];
             return CountSpecificIsotopes(isotope);
         }
 
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
         public override int GetHashCode()
         {
             return Tuple.Create(Isotopes.Sum(b => b.Key.AtomicMass * b.Value), Elements.Sum(b => b.Key.AverageMass * b.Value)).GetHashCode();
         }
 
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.
+        /// </returns>
         public bool Equals(ChemicalFormula other)
         {
             if (other == null) return false;

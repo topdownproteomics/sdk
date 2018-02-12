@@ -30,6 +30,10 @@ namespace UsefulProteomicsDatabases
     {
         #region Public Methods
 
+        /// <summary>
+        /// Loads from the specified element location.
+        /// </summary>
+        /// <param name="elementLocation">The element location.</param>
         public static void Load(string elementLocation)
         {
             using (StreamReader sr = new StreamReader(elementLocation))

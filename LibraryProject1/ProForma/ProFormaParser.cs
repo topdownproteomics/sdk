@@ -12,6 +12,15 @@ namespace TestLibNamespace.ProForma
 
         #region Public Method
 
+        /// <summary>
+        /// Parses the ProForma string.
+        /// </summary>
+        /// <param name="proFormaString">The pro forma string.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">proFormaString</exception>
+        /// <exception cref="ProFormaParseException">
+        /// X is not allowed.
+        /// </exception>
         public ProFormaTerm ParseString(string proFormaString)
         {
             if (string.IsNullOrEmpty(proFormaString))

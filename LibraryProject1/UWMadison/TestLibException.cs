@@ -17,13 +17,20 @@
 // License along with Chemistry Library. If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Runtime.Serialization;
 
 namespace Chemistry
 {
+    /// <summary>
+    /// Base exception for the library.
+    /// </summary>
+    /// <seealso cref="Exception" />
     [Serializable]
     public class TestLibException : Exception
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestLibException"/> class.
+        /// </summary>
+        /// <param name="message">The message that describes the error.</param>
         public TestLibException(string message) : base(message)
         {
         }

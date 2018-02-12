@@ -628,16 +628,36 @@ namespace TestLibNamespace.Northwestern
         /// </summary>
         public class IntDecoder
         {
+            /// <summary>
+            /// The position
+            /// </summary>
             public int pos = 0;
+
+            /// <summary>
+            /// The half byte flag
+            /// </summary>
             public bool half = false;
+
+            /// <summary>
+            /// The bytes
+            /// </summary>
             public byte[] bytes;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="IntDecoder"/> class.
+            /// </summary>
+            /// <param name="_bytes">The bytes.</param>
+            /// <param name="_pos">The position.</param>
             public IntDecoder(byte[] _bytes, int _pos)
             {
                 bytes = _bytes;
                 pos = _pos;
             }
 
+            /// <summary>
+            /// Get the next number given the current state.
+            /// </summary>
+            /// <returns></returns>
             public long next()
             {
                 int head;

@@ -5,4 +5,14 @@
     <RootNamespace>TestLibNamespace</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DocumentationFile>LibraryProject1.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="LibraryProject1.xml" />
+  </ItemGroup>
+
 </Project>
