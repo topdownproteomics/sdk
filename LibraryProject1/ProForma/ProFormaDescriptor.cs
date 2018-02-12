@@ -2,18 +2,6 @@
 
 namespace TestLibNamespace.ProForma
 {
-
-    /// <summary>
-    /// Possible keys for a ProFormaDescriptor
-    /// </summary>
-    public enum ProFormaKey
-    {
-        Mod,
-        Mass,
-        Formula,
-        Info
-    }
-
     /// <summary>
     /// Member of the tag. Could be a key-value pair, or a keyless entry.
     /// </summary>

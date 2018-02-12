@@ -20,6 +20,9 @@ using System;
 
 namespace Chemistry
 {
+    /// <summary>
+    /// Extension methods for converting to mass or m/z.
+    /// </summary>
     public static class ClassExtensions
     {
         #region Public Methods

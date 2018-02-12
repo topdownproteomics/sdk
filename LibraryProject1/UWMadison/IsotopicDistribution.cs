@@ -66,28 +66,61 @@ namespace Chemistry
 
         #region Public Properties
 
+        /// <summary>
+        /// Gets the masses.
+        /// </summary>
         public IEnumerable<double> Masses { get { return masses; } }
+
+        /// <summary>
+        /// Gets the intensities.
+        /// </summary>
         public IEnumerable<double> Intensities { get { return intensities; } }
 
         #endregion Public Properties
 
         #region Public Methods
 
+        /// <summary>
+        /// Gets the distribution.
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <returns></returns>
         public static IsotopicDistribution GetDistribution(ChemicalFormula formula)
         {
             return GetDistribution(formula, defaultFineResolution, defaultMinProbability, defaultMolecularWeightResolution);
         }
 
+        /// <summary>
+        /// Gets the distribution.
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <param name="fineResolution">The fine resolution.</param>
+        /// <returns></returns>
         public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution)
         {
             return GetDistribution(formula, fineResolution, defaultMinProbability, defaultMolecularWeightResolution);
         }
 
+        /// <summary>
+        /// Gets the distribution.
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <param name="fineResolution">The fine resolution.</param>
+        /// <param name="minProbability">The minimum probability.</param>
+        /// <returns></returns>
         public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution, double minProbability)
         {
             return GetDistribution(formula, fineResolution, minProbability, defaultMolecularWeightResolution);
         }
 
+        /// <summary>
+        /// Gets the distribution.
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <param name="fineResolution">The fine resolution.</param>
+        /// <param name="minProbability">The minimum probability.</param>
+        /// <param name="molecularWeightResolution">The molecular weight resolution.</param>
+        /// <returns></returns>
         public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution, double minProbability, double molecularWeightResolution)
         {
             var a = GetNewFineAndMergeResolutions(fineResolution);

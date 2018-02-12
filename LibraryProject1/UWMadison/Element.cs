@@ -98,6 +98,9 @@ namespace Chemistry
         /// </summary>
         public Isotope PrincipalIsotope { get; private set; }
 
+        /// <summary>
+        /// Gets the protons.
+        /// </summary>
         public int Protons
         {
             get
