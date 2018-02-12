@@ -98,6 +98,17 @@ namespace TestProject1
         }
 
         [Test]
+        [TestCase("PROTEOFXRM")]
+        [TestCase("PROTEOF@RM")]
+        [TestCase("proteoform")]
+        [TestCase("    ")]
+        [TestCase("----")]
+        public void BadInput(string proFormaString)
+        {
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
+        }
+
+        [Test]
         public void EmptyDescriptor()
         {
             const string proFormaString = "PRO[]TEOFORM";
