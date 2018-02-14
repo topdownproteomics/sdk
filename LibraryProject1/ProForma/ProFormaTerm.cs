@@ -15,7 +15,7 @@ namespace TestLibNamespace.ProForma
         /// </summary>
         /// <param name="sequence">The sequence.</param>
         /// <param name="tags">The tags.</param>
-        public ProFormaTerm(string sequence, ICollection<ProFormaTag> tags)
+        public ProFormaTerm(string sequence, IList<ProFormaTag> tags)
         {
             Sequence = sequence;
             Tags = tags;
@@ -33,7 +33,7 @@ namespace TestLibNamespace.ProForma
         /// <summary>
         /// Gets the tags.
         /// </summary>
-        public ICollection<ProFormaTag> Tags { get; }
+        public IList<ProFormaTag> Tags { get; }
 
         #endregion Public Properties
 

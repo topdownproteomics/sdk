@@ -30,6 +30,7 @@ namespace TestLibNamespace.ProForma
             var sequence = new StringBuilder();
             var tag = new StringBuilder();
             bool inTag = false;
+            string prefixTag = null;
 
             for (int i = 0; i < proFormaString.Length; i++)
             {
@@ -42,7 +43,14 @@ namespace TestLibNamespace.ProForma
                     if (tags == null)
                         tags = new List<ProFormaTag>();
 
-                    tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1));
+                    // Handle prefix tag
+                    if (sequence.Length == 0 && proFormaString[i + 1] == '+')
+                    {
+                        prefixTag = tag.ToString();
+                        i++; // Skip the + character
+                    }
+                    else
+                        tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1, prefixTag));
 
                     inTag = false;
                     tag.Clear();
@@ -68,7 +76,7 @@ namespace TestLibNamespace.ProForma
 
         #region Private Method
 
-        private ProFormaTag ProcessTag(string tag, int index)
+        private ProFormaTag ProcessTag(string tag, int index, string prefixTag)
         {
             var descriptors = new List<ProFormaDescriptor>();
 
