@@ -120,6 +120,9 @@ namespace TestProject1
             Assert.AreEqual("14", tag14.Descriptors.Single().Value);
         }
 
+        /// <summary>
+        /// Rule 6 with incompatible tag values. This is syntactically valid, but logically invalid. Pick up the error at the next level of validation.
+        /// </summary>
         [Test]
         public void Rule6_WithModificationNames()
         {
@@ -127,12 +130,20 @@ namespace TestProject1
             var term = _parser.ParseString(proFormaString);
 
             ProFormaTag tagMethyl = term.Tags[0];
-            Assert.AreEqual(ProFormaKey.Mod, tagMethyl.Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaKey.Mass, tagMethyl.Descriptors.Single().Key);
             Assert.AreEqual("Methyl", tagMethyl.Descriptors.Single().Value);
 
             ProFormaTag tag14 = term.Tags[1];
             Assert.AreEqual(ProFormaKey.Mass, tag14.Descriptors.Single().Key);
             Assert.AreEqual("14", tag14.Descriptors.Single().Value);
+        }
+
+        [Test]
+        public void Rule6_Invalid()
+        {
+            const string proFormaString = "[mass]+S[mod:Methyl]EQVE[14]NCE";
+
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
 
         [Test]

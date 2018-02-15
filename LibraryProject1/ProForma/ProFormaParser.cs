@@ -50,7 +50,9 @@ namespace TestLibNamespace.ProForma
                         i++; // Skip the + character
                     }
                     else
+                    {
                         tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1, prefixTag));
+                    }
 
                     inTag = false;
                     tag.Clear();
@@ -88,7 +90,14 @@ namespace TestLibNamespace.ProForma
                 string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon);
                 string value = descriptorText[i].Substring(colon + 1); // values may have colons
 
-                if (key.Length > 0)
+                if (!string.IsNullOrEmpty(prefixTag))
+                {
+                    if (key.Length > 0)
+                        throw new ProFormaParseException("Cannot use keys with a prefix key");
+
+                    descriptors.Add(new ProFormaDescriptor(prefixTag, value));
+                }
+                else if (key.Length > 0)
                     descriptors.Add(new ProFormaDescriptor(key, value));
                 else if (value.Length > 0)
                     descriptors.Add(new ProFormaDescriptor(value));
