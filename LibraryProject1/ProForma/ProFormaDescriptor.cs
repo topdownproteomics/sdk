@@ -21,6 +21,7 @@ namespace TestLibNamespace.ProForma
                 this.Key = parsedKey;
             else
                 throw new ProFormaParseException("The key " + key + " is not supported.");
+
             this.Value = value;
         }
 

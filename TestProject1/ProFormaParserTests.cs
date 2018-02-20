@@ -98,6 +98,55 @@ namespace TestProject1
         }
 
         [Test]
+        public void Rule6()
+        {
+            const string proFormaString = "[mass]+S[80]EQVE[14]NCE";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("SEQVENCE", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(2, term.Tags.Count);
+
+            ProFormaTag tag80 = term.Tags[0];
+            Assert.AreEqual(0, tag80.Index);
+            Assert.AreEqual(1, tag80.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mass, tag80.Descriptors.Single().Key);
+            Assert.AreEqual("80", tag80.Descriptors.Single().Value);
+
+            ProFormaTag tag14 = term.Tags[1];
+            Assert.AreEqual(4, tag14.Index);
+            Assert.AreEqual(1, tag14.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mass, tag14.Descriptors.Single().Key);
+            Assert.AreEqual("14", tag14.Descriptors.Single().Value);
+        }
+
+        /// <summary>
+        /// Rule 6 with incompatible tag values. This is syntactically valid, but logically invalid. Pick up the error at the next level of validation.
+        /// </summary>
+        [Test]
+        public void Rule6_WithModificationNames()
+        {
+            const string proFormaString = "[mass]+S[Methyl]EQVE[14]NCE";
+            var term = _parser.ParseString(proFormaString);
+
+            ProFormaTag tagMethyl = term.Tags[0];
+            Assert.AreEqual(ProFormaKey.Mass, tagMethyl.Descriptors.Single().Key);
+            Assert.AreEqual("Methyl", tagMethyl.Descriptors.Single().Value);
+
+            ProFormaTag tag14 = term.Tags[1];
+            Assert.AreEqual(ProFormaKey.Mass, tag14.Descriptors.Single().Key);
+            Assert.AreEqual("14", tag14.Descriptors.Single().Value);
+        }
+
+        [Test]
+        public void Rule6_Invalid()
+        {
+            const string proFormaString = "[mass]+S[mod:Methyl]EQVE[14]NCE";
+
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
+        }
+
+        [Test]
         [TestCase("PROTEOFXRM")]
         [TestCase("PROTEOF@RM")]
         [TestCase("proteoform")]
