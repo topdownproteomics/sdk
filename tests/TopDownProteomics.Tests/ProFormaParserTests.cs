@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Linq;
-using TestLibNamespace.ProForma;
+using TopDownProteomics.ProForma;
 
 namespace TestProject1
 {

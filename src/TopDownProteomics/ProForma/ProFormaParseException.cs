@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TestLibNamespace.ProForma
+namespace TopDownProteomics.ProForma
 {
     /// <summary>
     /// Base ProForma parsing exception.
@@ -9,29 +9,17 @@ namespace TestLibNamespace.ProForma
     public class ProFormaParseException
         : Exception
     {
-
-        #region Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaParseException"/> class.
         /// </summary>
         public ProFormaParseException()
-            : base()
-        {
-
-        }
+            : base() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaParseException"/> class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         public ProFormaParseException(string message)
-            : base(message)
-        {
-
-        }
-
-        #endregion Constructors
-
+            : base(message) { }
     }
 }
