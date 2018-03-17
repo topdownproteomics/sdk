@@ -56,7 +56,7 @@ namespace BenchmarkProject1
             }
             stopwatch.Stop();
 
-            Console.WriteLine("Elapsed time for UW Madison Isotopic Distribution Generation: " + stopwatch.Elapsed);
+            Console.WriteLine("Elapsed time for UofW Madison Isotopic Distribution Generation: " + stopwatch.Elapsed);
 
             // Time Northwestern
 

@@ -1,4 +1,4 @@
-﻿namespace TestLibNamespace.ProForma
+﻿namespace TopDownProteomics.ProForma
 {
     /// <summary>
     /// Possible keys for a ProFormaDescriptor

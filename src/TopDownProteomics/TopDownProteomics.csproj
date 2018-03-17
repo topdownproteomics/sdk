@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>TestLibNamespace</RootNamespace>
+    <RootNamespace>TopDownProteomics</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>LibraryProject1.xml</DocumentationFile>
+    <DocumentationFile>TopDownProteomics.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="LibraryProject1.xml" />
+    <None Remove="TopDownProteomics.xml" />
   </ItemGroup>
 
 </Project>

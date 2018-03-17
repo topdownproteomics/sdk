@@ -1,15 +1,12 @@
 ﻿using System;
 
-namespace TestLibNamespace.ProForma
+namespace TopDownProteomics.ProForma
 {
     /// <summary>
     /// Member of the tag. Could be a key-value pair, or a keyless entry.
     /// </summary>
     public class ProFormaDescriptor
     {
-
-        #region Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaDescriptor"/> class.
         /// </summary>
@@ -35,10 +32,6 @@ namespace TestLibNamespace.ProForma
             this.Value = value;
         }
 
-        #endregion Constructors
-
-        #region Public Properties
-
         /// <summary>
         /// Gets the key.
         /// </summary>
@@ -48,8 +41,5 @@ namespace TestLibNamespace.ProForma
         /// Gets the value.
         /// </summary>
         public string Value { get; }
-
-        #endregion Public Properties
-
     }
 }

@@ -52,8 +52,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LibraryProject1\LibraryProject1.csproj">
-      <Project>{801007D3-801C-46CD-BEC0-CDAEC49B7D18}</Project>
+    <ProjectReference Include="..\TopDownProteomics\TopDownProteomics.csproj">
+      <Project>{801007d3-801c-46cd-bec0-cdaec49b7d18}</Project>
       <Name>LibraryProject1</Name>
     </ProjectReference>
   </ItemGroup>

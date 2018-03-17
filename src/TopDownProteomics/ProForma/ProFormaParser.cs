@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TestLibNamespace.ProForma
+namespace TopDownProteomics.ProForma
 {
     /// <summary>
     /// Parser for the ProForma proteoform notation (link here to published manuscript)
     /// </summary>
     public class ProFormaParser
     {
-
-        #region Public Method
-
         /// <summary>
         /// Parses the ProForma string.
         /// </summary>
@@ -74,10 +71,6 @@ namespace TestLibNamespace.ProForma
             return new ProFormaTerm(sequence.ToString(), tags);
         }
 
-        #endregion Public Method
-
-        #region Private Method
-
         private ProFormaTag ProcessTag(string tag, int index, string prefixTag)
         {
             var descriptors = new List<ProFormaDescriptor>();
@@ -107,8 +100,5 @@ namespace TestLibNamespace.ProForma
 
             return new ProFormaTag(index, descriptors);
         }
-
-        #endregion Private Method
-
     }
 }
