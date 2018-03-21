@@ -24,9 +24,13 @@ namespace TopDownProteomics.ProForma
                 throw new ArgumentNullException(nameof(proFormaString));
 
             List<ProFormaTag> tags = null;
+            IList<ProFormaDescriptor> nTerminalDescriptors = null;
+            IList<ProFormaDescriptor> cTerminalDescriptors = null;
+
             var sequence = new StringBuilder();
             var tag = new StringBuilder();
             bool inTag = false;
+            bool inCTerminalTag = false;
             string prefixTag = null;
 
             for (int i = 0; i < proFormaString.Length; i++)
@@ -37,17 +41,26 @@ namespace TopDownProteomics.ProForma
                     inTag = true;
                 else if (current == ']')
                 {
-                    if (tags == null)
-                        tags = new List<ProFormaTag>();
-
-                    // Handle prefix tag
-                    if (sequence.Length == 0 && proFormaString[i + 1] == '+')
+                    // Handle terminal modifications and prefix tags
+                    if (inCTerminalTag)
+                    {
+                        cTerminalDescriptors = this.ProcessTag(tag.ToString(), prefixTag);
+                    }
+                    else if (sequence.Length == 0 && proFormaString[i + 1] == '-')
+                    {
+                        nTerminalDescriptors = this.ProcessTag(tag.ToString(), prefixTag);
+                        i++; // Skip the - character
+                    }
+                    else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
                     {
                         prefixTag = tag.ToString();
                         i++; // Skip the + character
                     }
                     else
                     {
+                        if (tags == null)
+                            tags = new List<ProFormaTag>();
+
                         tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1, prefixTag));
                     }
 
@@ -56,6 +69,13 @@ namespace TopDownProteomics.ProForma
                 }
                 else if (inTag)
                     tag.Append(current);
+                else if (current == '-')
+                {
+                    if (inCTerminalTag)
+                        throw new ProFormaParseException($"- at index {i} is not allowed.");
+
+                    inCTerminalTag = true;
+                }
                 else
                 {
                     // Validate amino acid character
@@ -68,13 +88,19 @@ namespace TopDownProteomics.ProForma
                 }
             }
 
-            return new ProFormaTerm(sequence.ToString(), tags);
+            return new ProFormaTerm(sequence.ToString(), nTerminalDescriptors, cTerminalDescriptors, tags);
         }
 
         private ProFormaTag ProcessTag(string tag, int index, string prefixTag)
         {
-            var descriptors = new List<ProFormaDescriptor>();
+            var descriptors = this.ProcessTag(tag, prefixTag);
 
+            return new ProFormaTag(index, descriptors);
+        }
+
+        private IList<ProFormaDescriptor> ProcessTag(string tag, string prefixTag)
+        {
+            var descriptors = new List<ProFormaDescriptor>();
             var descriptorText = tag.Split('|');
 
             for (int i = 0; i < descriptorText.Length; i++)
@@ -98,7 +124,7 @@ namespace TopDownProteomics.ProForma
                     throw new ProFormaParseException("Empty descriptor within tag " + tag);
             }
 
-            return new ProFormaTag(index, descriptors);
+            return descriptors;
         }
     }
 }

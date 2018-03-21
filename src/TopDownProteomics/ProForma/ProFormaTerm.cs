@@ -11,17 +11,32 @@ namespace TopDownProteomics.ProForma
         /// Initializes a new instance of the <see cref="ProFormaTerm"/> class.
         /// </summary>
         /// <param name="sequence">The sequence.</param>
+        /// <param name="nTerminalDescriptors">The n terminal descriptors.</param>
+        /// <param name="cTerminalDescriptors">The c terminal descriptors.</param>
         /// <param name="tags">The tags.</param>
-        public ProFormaTerm(string sequence, IList<ProFormaTag> tags)
+        public ProFormaTerm(string sequence, IList<ProFormaDescriptor> nTerminalDescriptors, 
+            IList<ProFormaDescriptor> cTerminalDescriptors, IList<ProFormaTag> tags)
         {
-            Sequence = sequence;
-            Tags = tags;
+            this.Sequence = sequence;
+            this.NTerminalDescriptors = nTerminalDescriptors;
+            this.CTerminalDescriptors = cTerminalDescriptors;
+            this.Tags = tags;
         }
 
         /// <summary>
         /// Gets the amino acid sequence.
         /// </summary>
         public string Sequence { get; }
+
+        /// <summary>
+        /// The optional N-Terminal descriptor.
+        /// </summary>
+        public IList<ProFormaDescriptor> NTerminalDescriptors { get; }
+
+        /// <summary>
+        /// The optional C-Terminal descriptor.
+        /// </summary>
+        public IList<ProFormaDescriptor> CTerminalDescriptors { get; }
 
         /// <summary>
         /// Gets the tags.

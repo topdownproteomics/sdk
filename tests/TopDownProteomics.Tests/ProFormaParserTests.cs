@@ -139,12 +139,128 @@ namespace TestProject1
         }
 
         [Test]
-        public void Rule6_Invalid()
+        public void Rule7()
         {
-            const string proFormaString = "[mass]+S[mod:Methyl]EQVE[14]NCE";
+            const string proFormaString = "[mass:-17.027]-SEQVENCE-[Amidation]";
+            var term = _parser.ParseString(proFormaString);
 
+            Assert.AreEqual("SEQVENCE", term.Sequence);
+            Assert.IsNull(term.Tags);
+            Assert.IsNotNull(term.NTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+            Assert.IsNotNull(term.CTerminalDescriptors);
+            Assert.AreEqual(1, term.CTerminalDescriptors.Count);
+
+            var nTerm = term.NTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Mass, nTerm.Key);
+            Assert.AreEqual("-17.027", nTerm.Value);
+
+            var cTerm = term.CTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Mod, cTerm.Key);
+            Assert.AreEqual("Amidation", cTerm.Value);
+        }
+
+        [Test]
+        public void Rule7andRule6()
+        {
+            const string proFormaString = "[mass]+[-17.027]-SEQ[14.05]VENCE";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("SEQVENCE", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNotNull(term.NTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            var nTerm = term.NTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Mass, nTerm.Key);
+            Assert.AreEqual("-17.027", nTerm.Value);
+
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(2, tag1.Index);
+            Assert.AreEqual(1, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Single().Key);
+            Assert.AreEqual("14.05", tag1.Descriptors.Single().Value);
+        }
+
+        /// <summary>
+        /// The order of the prefix tag and N-terminal tag doesn't matter.
+        /// </summary>
+        [Test]
+        public void Rule7andRule6Order()
+        {
+            const string proFormaString = "[Methyl]-[mass]+SEQ[14.05]VENCE";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("SEQVENCE", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNotNull(term.NTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            var nTerm = term.NTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
+            Assert.AreEqual("Methyl", nTerm.Value);
+
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(2, tag1.Index);
+            Assert.AreEqual(1, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Single().Key);
+            Assert.AreEqual("14.05", tag1.Descriptors.Single().Value);
+        }
+
+        [Test]
+        [TestCase("[mass]+S[mod:Methyl]EQVE[14]NCE")]
+        [TestCase("[mass]+[mod:Methyl]-SEQVENCE")]
+        //[TestCase("[Methyl]-[mass]+SEQ[14.05]VENCE")]
+        public void Rule6_7_Invalid(string proFormaString)
+        {
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
+
+        // Best Practice examples should be made into unit/integration tests
+        //[Acetyl]-S[Phospho|mass:79.966331]GRGK[Acetyl|Unimod:1|mass:42.010565]QGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKT[Unimod:21]ESHHKAKGK
+        //[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK
+        //MTLFQLREHWFVYKDDEKLTAFRNK[p-adenosine| N6-(phospho-5'-adenosine)-L-lysine (RESID)| RESID:AA0227| PSI-MOD:MOD:00232| N6AMPLys(PSI-MOD)]SMLFQRELRPNEEVTWK
+        //MTLFQLDEKLTA[mass:-37.995001|info:unknown modification]FRNKSMLFQRELRPNEEVTWK
+
+        //[Test]
+        //public void BestPractice_ii()
+        //{
+        //    const string proFormaString = "[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK";
+        //    var term = _parser.ParseString(proFormaString);
+
+        //    Assert.AreEqual("SGRGKQGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKTESHHKAKGK", term.Sequence);
+        //    Assert.IsNotNull(term.Tags);
+        //    Assert.AreEqual(3, term.Tags.Count);
+        //    Assert.IsNotNull(term.NTerminalDescriptors);
+        //    Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+        //    Assert.IsNull(term.CTerminalDescriptors);
+
+        //    var nTerm = term.NTerminalDescriptors[0];
+        //    Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
+        //    Assert.AreEqual("1", nTerm.Value);
+
+        //    ProFormaTag tag1 = term.Tags[0];
+        //    Assert.AreEqual(0, tag1.Index);
+        //    Assert.AreEqual(1, tag1.Descriptors.Count);
+        //    Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.Single().Key);
+        //    Assert.AreEqual("21", tag1.Descriptors.Single().Value);
+
+        //    ProFormaTag tag5 = term.Tags[1];
+        //    Assert.AreEqual(4, tag5.Index);
+        //    Assert.AreEqual(1, tag5.Descriptors.Count);
+        //    Assert.AreEqual(ProFormaKey.Mod, tag5.Descriptors.Single().Key);
+        //    Assert.AreEqual("1", tag5.Descriptors.Single().Value);
+
+        //    ProFormaTag tag44 = term.Tags[2];
+        //    Assert.AreEqual(43, tag44.Index);
+        //    Assert.AreEqual(1, tag44.Descriptors.Count);
+        //    Assert.AreEqual(ProFormaKey.Mod, tag44.Descriptors.Single().Key);
+        //    Assert.AreEqual("21", tag44.Descriptors.Single().Value);
+        //}
 
         [Test]
         [TestCase("PROTEOFXRM")]
