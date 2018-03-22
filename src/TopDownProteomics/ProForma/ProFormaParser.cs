@@ -53,6 +53,10 @@ namespace TopDownProteomics.ProForma
                     }
                     else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
                     {
+                        // Make sure the prefix came before the N-terminal modification
+                        if (nTerminalDescriptors != null)
+                            throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
+
                         prefixTag = tag.ToString();
                         i++; // Skip the + character
                     }
@@ -68,7 +72,9 @@ namespace TopDownProteomics.ProForma
                     tag.Clear();
                 }
                 else if (inTag)
+                {
                     tag.Append(current);
+                }
                 else if (current == '-')
                 {
                     if (inCTerminalTag)

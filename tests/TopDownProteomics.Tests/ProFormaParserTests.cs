@@ -184,37 +184,10 @@ namespace TestProject1
             Assert.AreEqual("14.05", tag1.Descriptors.Single().Value);
         }
 
-        /// <summary>
-        /// The order of the prefix tag and N-terminal tag doesn't matter.
-        /// </summary>
-        [Test]
-        public void Rule7andRule6Order()
-        {
-            const string proFormaString = "[Methyl]-[mass]+SEQ[14.05]VENCE";
-            var term = _parser.ParseString(proFormaString);
-
-            Assert.AreEqual("SEQVENCE", term.Sequence);
-            Assert.IsNotNull(term.Tags);
-            Assert.AreEqual(1, term.Tags.Count);
-            Assert.IsNotNull(term.NTerminalDescriptors);
-            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
-            Assert.IsNull(term.CTerminalDescriptors);
-
-            var nTerm = term.NTerminalDescriptors[0];
-            Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
-            Assert.AreEqual("Methyl", nTerm.Value);
-
-            ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(2, tag1.Index);
-            Assert.AreEqual(1, tag1.Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Single().Key);
-            Assert.AreEqual("14.05", tag1.Descriptors.Single().Value);
-        }
-
         [Test]
         [TestCase("[mass]+S[mod:Methyl]EQVE[14]NCE")]
         [TestCase("[mass]+[mod:Methyl]-SEQVENCE")]
-        //[TestCase("[Methyl]-[mass]+SEQ[14.05]VENCE")]
+        [TestCase("[Methyl]-[mass]+SEQ[14.05]VENCE")]
         public void Rule6_7_Invalid(string proFormaString)
         {
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
