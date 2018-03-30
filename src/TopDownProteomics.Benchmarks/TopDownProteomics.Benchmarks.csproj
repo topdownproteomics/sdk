@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E3900E67-68CA-4DB6-AFE1-B40E03C7DE56}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>BenchmarkProject1</RootNamespace>
-    <AssemblyName>BenchmarkProject1</AssemblyName>
+    <RootNamespace>TopDownProteomics.Benchmarks</RootNamespace>
+    <AssemblyName>TopDownProteomics.Benchmarks</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

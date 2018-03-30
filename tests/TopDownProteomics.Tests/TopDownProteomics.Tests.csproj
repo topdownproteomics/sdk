@@ -8,8 +8,8 @@
     <ProjectGuid>{DB354E88-BF6E-44BF-AC78-B585F34E7D2A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestProject1</RootNamespace>
-    <AssemblyName>TestProject1</AssemblyName>
+    <RootNamespace>TopDownProteomics.Tests</RootNamespace>
+    <AssemblyName>TopDownProteomics.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>

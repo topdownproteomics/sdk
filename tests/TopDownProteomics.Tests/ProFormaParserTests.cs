@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using TopDownProteomics.ProForma;
 
-namespace TestProject1
+namespace TopDownProteomics.Tests
 {
     [TestFixture]
     public class ProFormaParserTests

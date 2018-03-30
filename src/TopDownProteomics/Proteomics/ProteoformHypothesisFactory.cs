@@ -18,20 +18,30 @@ namespace TopDownProteomics.Proteomics
         {
             ICollection<IProteoformModification> modifications = null;
 
-            if (term.Tags != null && modificationLookup != null)
+            if (term.Tags != null && term.Tags.Count > 0)
             {
+                if (modificationLookup == null)
+                    throw new ProteoformHypothesisCreateException("Cannot lookup tag because lookup wasn't provided.");
+
                 foreach (var tag in term.Tags)
                 {
                     foreach (var descriptor in tag.Descriptors)
                     {
                         if (modificationLookup.CanHandleDescriptor(descriptor))
                         {
-                            if (modifications == null)
-                                modifications = new List<IProteoformModification>();
-
                             var modification = modificationLookup.GetModification(descriptor);
 
-                            modifications.Add(modification);
+                            if (modification != null)
+                            {
+                                if (modifications == null)
+                                    modifications = new List<IProteoformModification>();
+
+                                modifications.Add(modification);
+                            }
+                        }
+                        else
+                        {
+                            throw new ProteoformHypothesisCreateException($"Couldn't handle descriptor {descriptor.Key}:{descriptor.Value}.");
                         }
                     }
                 }

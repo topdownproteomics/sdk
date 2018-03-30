@@ -40,7 +40,8 @@ namespace TopDownProteomics.Proteomics
                 case "me3": return new BrnoModification();
                 case "ph": return new BrnoModification();
 
-                default: return null;
+                default:
+                    throw new ProteoformHypothesisCreateException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
             }
         }
 

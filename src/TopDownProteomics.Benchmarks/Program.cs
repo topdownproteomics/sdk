@@ -6,7 +6,7 @@ using System.Linq;
 using TestLibNamespace.Northwestern;
 using UsefulProteomicsDatabases;
 
-namespace BenchmarkProject1
+namespace TopDownProteomics.Benchmarks
 {
     internal class Program
     {
