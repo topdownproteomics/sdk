@@ -14,7 +14,7 @@ namespace TopDownProteomics.Tests
         public void NoTagsValid()
         {
             const string sequence = "SEQVENCE";
-            var term = new ProFormaTerm(sequence, null);
+            var term = new ProFormaTerm(sequence, null, null, null);
             var proteoform = _factory.CreateHypothesis(term, null);
 
             Assert.AreEqual(sequence, proteoform.Sequence);
@@ -24,7 +24,7 @@ namespace TopDownProteomics.Tests
         [Test]
         public void TagsWithoutLookupThrowException()
         {
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
             });
@@ -37,7 +37,7 @@ namespace TopDownProteomics.Tests
         {
             IProteoformModificationLookup modificationLookup = new IgnoreKeyModificationLookup(ProFormaKey.Mass);
 
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
             });
@@ -55,7 +55,7 @@ namespace TopDownProteomics.Tests
                 new IgnoreKeyModificationLookup(ProFormaKey.Info)
             });
 
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") }),
                 new ProFormaTag(5, new[] { new ProFormaDescriptor("info", "not important") })
@@ -64,7 +64,7 @@ namespace TopDownProteomics.Tests
 
             Assert.IsNull(proteoform.Modifications);
 
-            term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[]
                 {
@@ -82,7 +82,7 @@ namespace TopDownProteomics.Tests
         {
             var modificationLookup = new BrnoModificationLookup();
 
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("ac(BRNO)") })
             });
@@ -96,7 +96,7 @@ namespace TopDownProteomics.Tests
         {
             var modificationLookup = new BrnoModificationLookup();
 
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("wrong(BRNO)") })
             });
@@ -114,7 +114,7 @@ namespace TopDownProteomics.Tests
             });
 
             // Modifications have same chemical formula ... OK
-            var term = new ProFormaTerm("SEQVKENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVKENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
@@ -127,7 +127,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(1, proteoform.Modifications.Count);
 
             // Modifications have different chemical formulas ... throw!
-            term = new ProFormaTerm("SEQVKENCE", new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVKENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
@@ -144,7 +144,7 @@ namespace TopDownProteomics.Tests
         {
             var modificationLookup = new BrnoModificationLookup();
 
-            var term = new ProFormaTerm("SEQVENCE", new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0038") })
             });
