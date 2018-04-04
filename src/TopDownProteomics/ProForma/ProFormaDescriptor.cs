@@ -14,11 +14,12 @@ namespace TopDownProteomics.ProForma
         /// <param name="value">The value.</param>
         public ProFormaDescriptor(string key, string value)
         {
-            if (Enum.TryParse(key, true, out ProFormaKey parsedKey))
-                this.Key = parsedKey;
-            else
-                throw new ProFormaParseException("The key " + key + " is not supported.");
+            //if (Enum.TryParse(key, true, out ProFormaKey parsedKey))
+            //    this.Key = parsedKey;
+            //else
+            //    throw new ProFormaParseException("The key " + key + " is not supported.");
 
+            this.Key = key;
             this.Value = value;
         }
 
@@ -33,12 +34,12 @@ namespace TopDownProteomics.ProForma
         }
 
         /// <summary>
-        /// Gets the key.
+        /// The key.
         /// </summary>
-        public ProFormaKey Key { get; }
+        public string Key { get; }
 
         /// <summary>
-        /// Gets the value.
+        /// The value.
         /// </summary>
         public string Value { get; }
     }

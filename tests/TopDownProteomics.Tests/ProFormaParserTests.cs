@@ -43,6 +43,32 @@ namespace TestProject1
         }
 
         [Test]
+        public void HandleExtraTagSpaces()
+        {
+            var term = _parser.ParseString("PRO[info:test]TEOFORM");
+            Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors[0].Key);
+            Assert.AreEqual("test", term.Tags.Single().Descriptors[0].Value);
+
+            // Trim extra spaces from beginning of the descriptor
+            term = _parser.ParseString("PRO[ info:test]TEOFORM");
+            Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors[0].Key);
+            Assert.AreEqual("test", term.Tags.Single().Descriptors[0].Value);
+
+            term = _parser.ParseString("PRO[info:test ]TEOFORM");
+            Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors[0].Key);
+            Assert.AreEqual("test ", term.Tags.Single().Descriptors[0].Value);
+
+            term = _parser.ParseString("PRO[     info:test  ]TEOFORM");
+            Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors[0].Key);
+            Assert.AreEqual("test  ", term.Tags.Single().Descriptors[0].Value);
+
+            // Keep everything after the colon
+            term = _parser.ParseString("PRO[info: test]TEOFORM");
+            Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors[0].Key);
+            Assert.AreEqual(" test", term.Tags.Single().Descriptors[0].Value);
+        }
+
+        [Test]
         public void MultipleDescriptorTag()
         {
             const string proFormaString = "SEQUEN[mod:Methyl|mass:+14.02]CE";
@@ -56,10 +82,10 @@ namespace TestProject1
             Assert.AreEqual(5, tag.Index);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
-            Assert.AreEqual(ProFormaKey.Mod, tag.Descriptors.First().Key);
-            Assert.AreEqual("Methyl", tag.Descriptors.First().Value);
-            Assert.AreEqual(ProFormaKey.Mass, tag.Descriptors.Last().Key);
-            Assert.AreEqual("+14.02", tag.Descriptors.Last().Value);
+            Assert.AreEqual(ProFormaKey.Mod, tag.Descriptors[0].Key);
+            Assert.AreEqual("Methyl", tag.Descriptors[0].Value);
+            Assert.AreEqual(ProFormaKey.Mass, tag.Descriptors[1].Key);
+            Assert.AreEqual("+14.02", tag.Descriptors[1].Value);
         }
 
         [Test]
@@ -193,49 +219,136 @@ namespace TestProject1
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
 
-        // Best Practice examples should be made into unit/integration tests
-        //[Acetyl]-S[Phospho|mass:79.966331]GRGK[Acetyl|Unimod:1|mass:42.010565]QGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKT[Unimod:21]ESHHKAKGK
-        //[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK
-        //MTLFQLREHWFVYKDDEKLTAFRNK[p-adenosine| N6-(phospho-5'-adenosine)-L-lysine (RESID)| RESID:AA0227| PSI-MOD:MOD:00232| N6AMPLys(PSI-MOD)]SMLFQRELRPNEEVTWK
-        //MTLFQLDEKLTA[mass:-37.995001|info:unknown modification]FRNKSMLFQRELRPNEEVTWK
+        [Test]
+        public void BestPractice_i()
+        {
+            const string proFormaString = "[Acetyl]-S[Phospho|mass:79.966331]GRGK[Acetyl|Unimod:1|mass:42.010565]QGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKT[Unimod:21]ESHHKAKGK";
+            var term = _parser.ParseString(proFormaString);
 
-        //[Test]
-        //public void BestPractice_ii()
-        //{
-        //    const string proFormaString = "[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK";
-        //    var term = _parser.ParseString(proFormaString);
+            Assert.AreEqual("SGRGKQGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKTESHHKAKGK", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(3, term.Tags.Count);
+            Assert.IsNotNull(term.NTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
 
-        //    Assert.AreEqual("SGRGKQGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKTESHHKAKGK", term.Sequence);
-        //    Assert.IsNotNull(term.Tags);
-        //    Assert.AreEqual(3, term.Tags.Count);
-        //    Assert.IsNotNull(term.NTerminalDescriptors);
-        //    Assert.AreEqual(1, term.NTerminalDescriptors.Count);
-        //    Assert.IsNull(term.CTerminalDescriptors);
+            var nTerm = term.NTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
+            Assert.AreEqual("Acetyl", nTerm.Value);
 
-        //    var nTerm = term.NTerminalDescriptors[0];
-        //    Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
-        //    Assert.AreEqual("1", nTerm.Value);
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(0, tag1.Index);
+            Assert.AreEqual(2, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.First().Key);
+            Assert.AreEqual("Phospho", tag1.Descriptors.First().Value);
+            Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Last().Key);
+            Assert.AreEqual("79.966331", tag1.Descriptors.Last().Value);
 
-        //    ProFormaTag tag1 = term.Tags[0];
-        //    Assert.AreEqual(0, tag1.Index);
-        //    Assert.AreEqual(1, tag1.Descriptors.Count);
-        //    Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.Single().Key);
-        //    Assert.AreEqual("21", tag1.Descriptors.Single().Value);
+            ProFormaTag tag5 = term.Tags[1];
+            Assert.AreEqual(4, tag5.Index);
+            Assert.AreEqual(3, tag5.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mod, tag5.Descriptors[0].Key);
+            Assert.AreEqual("Acetyl", tag5.Descriptors[0].Value);
+            Assert.AreEqual(ProFormaKey.Unimod, tag5.Descriptors[1].Key);
+            Assert.AreEqual("1", tag5.Descriptors[1].Value);
+            Assert.AreEqual(ProFormaKey.Mass, tag5.Descriptors[2].Key);
+            Assert.AreEqual("42.010565", tag5.Descriptors[2].Value);
 
-        //    ProFormaTag tag5 = term.Tags[1];
-        //    Assert.AreEqual(4, tag5.Index);
-        //    Assert.AreEqual(1, tag5.Descriptors.Count);
-        //    Assert.AreEqual(ProFormaKey.Mod, tag5.Descriptors.Single().Key);
-        //    Assert.AreEqual("1", tag5.Descriptors.Single().Value);
-
-        //    ProFormaTag tag44 = term.Tags[2];
-        //    Assert.AreEqual(43, tag44.Index);
-        //    Assert.AreEqual(1, tag44.Descriptors.Count);
-        //    Assert.AreEqual(ProFormaKey.Mod, tag44.Descriptors.Single().Key);
-        //    Assert.AreEqual("21", tag44.Descriptors.Single().Value);
-        //}
+            ProFormaTag tag120 = term.Tags[2];
+            Assert.AreEqual(119, tag120.Index);
+            Assert.AreEqual(1, tag120.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Unimod, tag120.Descriptors.Single().Key);
+            Assert.AreEqual("21", tag120.Descriptors.Single().Value);
+        }
 
         [Test]
+        public void BestPractice_ii()
+        {
+            const string proFormaString = "[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("SGRGKQGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKTESHHKAKGK", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(3, term.Tags.Count);
+            Assert.IsNotNull(term.NTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            var nTerm = term.NTerminalDescriptors[0];
+            Assert.AreEqual(ProFormaKey.Unimod, nTerm.Key);
+            Assert.AreEqual("1", nTerm.Value);
+
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(0, tag1.Index);
+            Assert.AreEqual(1, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Unimod, tag1.Descriptors.Single().Key);
+            Assert.AreEqual("21", tag1.Descriptors.Single().Value);
+
+            ProFormaTag tag5 = term.Tags[1];
+            Assert.AreEqual(4, tag5.Index);
+            Assert.AreEqual(1, tag5.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Unimod, tag5.Descriptors.Single().Key);
+            Assert.AreEqual("1", tag5.Descriptors.Single().Value);
+
+            ProFormaTag tag44 = term.Tags[2];
+            Assert.AreEqual(43, tag44.Index);
+            Assert.AreEqual(1, tag44.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Unimod, tag44.Descriptors.Single().Key);
+            Assert.AreEqual("21", tag44.Descriptors.Single().Value);
+        }
+
+        [Test]
+        public void BestPractice_iii()
+        {
+            const string proFormaString = "MTLFQLREHWFVYKDDEKLTAFRNK[p-adenosine| N6-(phospho-5'-adenosine)-L-lysine(RESID)| RESID:AA0227| PSI-MOD:MOD:00232| N6AMPLys(PSI-MOD)]SMLFQRELRPNEEVTWK";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("MTLFQLREHWFVYKDDEKLTAFRNKSMLFQRELRPNEEVTWK", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            ProFormaTag tag25 = term.Tags[0];
+            Assert.AreEqual(24, tag25.Index);
+            Assert.AreEqual(5, tag25.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[0].Key);
+            Assert.AreEqual("p-adenosine", tag25.Descriptors[0].Value);
+            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[1].Key);
+            Assert.AreEqual(" N6-(phospho-5'-adenosine)-L-lysine(RESID)", tag25.Descriptors[1].Value);
+            Assert.AreEqual(ProFormaKey.Resid, tag25.Descriptors[2].Key);
+            Assert.AreEqual("AA0227", tag25.Descriptors[2].Value);
+            Assert.AreEqual(ProFormaKey.PsiMod, tag25.Descriptors[3].Key);
+            Assert.AreEqual("MOD:00232", tag25.Descriptors[3].Value);
+            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[4].Key);
+            Assert.AreEqual(" N6AMPLys(PSI-MOD)", tag25.Descriptors[4].Value);
+        }
+
+        [Test]
+        public void BestPractice_iv()
+        {
+            const string proFormaString = "MTLFQLDEKLTA[mass:-37.995001|info:unknown modification]FRNKSMLFQRELRPNEEVTWK";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("MTLFQLDEKLTAFRNKSMLFQRELRPNEEVTWK", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            ProFormaTag tag12 = term.Tags[0];
+            Assert.AreEqual(11, tag12.Index);
+            Assert.AreEqual(2, tag12.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mass, tag12.Descriptors[0].Key); // Unimod
+            Assert.AreEqual("-37.995001", tag12.Descriptors[0].Value);
+            Assert.AreEqual(ProFormaKey.Info, tag12.Descriptors[1].Key); // RESID
+            Assert.AreEqual("unknown modification", tag12.Descriptors[1].Value);
+        }
+
+        [Test]
+        [TestCase("PRO[]TEOFORM")]
+        [TestCase("PRO[mod:Methyl|]TEOFORM")]
+        //[TestCase("PRO[fake:Formaldehyde]TEOFORM")]
         [TestCase("PROTEOFXRM")]
         [TestCase("PROTEOF@RM")]
         [TestCase("proteoform")]
@@ -243,27 +356,6 @@ namespace TestProject1
         [TestCase("----")]
         public void BadInput(string proFormaString)
         {
-            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
-        }
-
-        [Test]
-        public void EmptyDescriptor()
-        {
-            const string proFormaString = "PRO[]TEOFORM";
-            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
-        }
-
-        [Test]
-        public void MixedEmptyDescriptor()
-        {
-            const string proFormaString = "PRO[mod:Methyl|]TEOFORM";
-            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
-        }
-
-        [Test]
-        public void UnsupportedKey()
-        {
-            const string proFormaString = "PRO[xlink:Formaldehyde]TEOFORM";
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
     }

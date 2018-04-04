@@ -12,7 +12,7 @@ namespace TopDownProteomics.ProForma
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="descriptors">The descriptors.</param>
-        public ProFormaTag(int index, ICollection<ProFormaDescriptor> descriptors)
+        public ProFormaTag(int index, IList<ProFormaDescriptor> descriptors)
         {
             Index = index;
             Descriptors = descriptors;
@@ -26,6 +26,6 @@ namespace TopDownProteomics.ProForma
         /// <summary>
         /// Gets the descriptors.
         /// </summary>
-        public ICollection<ProFormaDescriptor> Descriptors { get; }
+        public IList<ProFormaDescriptor> Descriptors { get; }
     }
 }
