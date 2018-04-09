@@ -1,4 +1,4 @@
-﻿using Chemistry;
+﻿using UWMadison.Chemistry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +6,7 @@ using System.Linq;
 using TestLibNamespace.Northwestern;
 using UsefulProteomicsDatabases;
 
-namespace BenchmarkProject1
+namespace TopDownProteomics.Benchmarks
 {
     internal class Program
     {
@@ -52,7 +52,7 @@ namespace BenchmarkProject1
             stopwatch.Start();
             for (int i = 2; i < 1000; i++)
             {
-                var nice = Chemistry.IsotopicDistribution.GetDistribution(chemicalFormulas[i], 0.2, 1E-26);
+                var nice = UWMadison.Chemistry.IsotopicDistribution.GetDistribution(chemicalFormulas[i], 0.2, 1E-26);
             }
             stopwatch.Stop();
 

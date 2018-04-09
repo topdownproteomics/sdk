@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// A static store of elements accessible by anyone

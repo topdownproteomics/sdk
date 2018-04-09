@@ -18,7 +18,7 @@
 
 using System;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// Base exception for the library.
