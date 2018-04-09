@@ -18,7 +18,7 @@
 
 using System.Globalization;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// Represents a single isotope of a chemical element. Contains a unique number

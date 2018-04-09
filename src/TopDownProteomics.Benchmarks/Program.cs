@@ -1,4 +1,4 @@
-﻿using Chemistry;
+﻿using UWMadison.Chemistry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,7 +52,7 @@ namespace TopDownProteomics.Benchmarks
             stopwatch.Start();
             for (int i = 2; i < 1000; i++)
             {
-                var nice = Chemistry.IsotopicDistribution.GetDistribution(chemicalFormulas[i], 0.2, 1E-26);
+                var nice = UWMadison.Chemistry.IsotopicDistribution.GetDistribution(chemicalFormulas[i], 0.2, 1E-26);
             }
             stopwatch.Stop();
 

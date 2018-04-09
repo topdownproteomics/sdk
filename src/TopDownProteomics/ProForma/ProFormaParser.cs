@@ -112,7 +112,7 @@ namespace TopDownProteomics.ProForma
             for (int i = 0; i < descriptorText.Length; i++)
             {
                 int colon = descriptorText[i].IndexOf(':');
-                string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon);
+                string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon).TrimStart();
                 string value = descriptorText[i].Substring(colon + 1); // values may have colons
 
                 if (!string.IsNullOrEmpty(prefixTag))

@@ -23,7 +23,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// A chemical formula class. This does NOT correspond to a physical object. A physical object can have a chemical formula.

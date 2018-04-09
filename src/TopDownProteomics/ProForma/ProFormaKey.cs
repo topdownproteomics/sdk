@@ -3,26 +3,41 @@
     /// <summary>
     /// Possible keys for a ProFormaDescriptor
     /// </summary>
-    public enum ProFormaKey
+    public class ProFormaKey
     {
         /// <summary>
-        /// The modification
+        /// The modification name
         /// </summary>
-        Mod,
+        public static string Mod = "mod";
+
+        /// <summary>
+        /// The Unimod database identifier
+        /// </summary>
+        public static string Unimod = "Unimod";
+
+        /// <summary>
+        /// The RESID database identifier
+        /// </summary>
+        public static string Resid = "RESID";
+
+        /// <summary>
+        /// The PSI-MOD database identifier
+        /// </summary>
+        public static string PsiMod = "PSI-MOD";
 
         /// <summary>
         /// The mass
         /// </summary>
-        Mass,
+        public static string Mass = "mass";
 
         /// <summary>
         /// The formula (in Unimod notation)
         /// </summary>
-        Formula,
+        public static string Formula = "formula";
 
         /// <summary>
         /// The user defined extra information
         /// </summary>
-        Info
+        public static string Info = "info";
     }
 }

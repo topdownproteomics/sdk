@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with UsefulProteomicsDatabases. If not, see <http://www.gnu.org/licenses/>.
 
-using Chemistry;
+using UWMadison.Chemistry;
 using System;
 using System.Globalization;
 using System.IO;

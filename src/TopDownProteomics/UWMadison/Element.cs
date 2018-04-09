@@ -18,7 +18,7 @@
 
 using System.Collections.Generic;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// Represents a single chemical element. Elements comprises of multiple

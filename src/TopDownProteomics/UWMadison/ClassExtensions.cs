@@ -18,7 +18,7 @@
 
 using System;
 
-namespace Chemistry
+namespace UWMadison.Chemistry
 {
     /// <summary>
     /// Extension methods for converting to mass or m/z.
