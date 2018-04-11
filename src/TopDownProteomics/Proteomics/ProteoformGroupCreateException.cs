@@ -6,20 +6,20 @@ namespace TopDownProteomics.Proteomics
     /// Base ProForma parsing exception.
     /// </summary>
     /// <seealso cref="Exception" />
-    public class ProteoformHypothesisCreateException
+    public class ProteoformGroupCreateException
         : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProteoformHypothesisCreateException"/> class.
+        /// Initializes a new instance of the <see cref="ProteoformGroupCreateException"/> class.
         /// </summary>
-        public ProteoformHypothesisCreateException()
+        public ProteoformGroupCreateException()
             : base() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProteoformHypothesisCreateException"/> class.
+        /// Initializes a new instance of the <see cref="ProteoformGroupCreateException"/> class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        public ProteoformHypothesisCreateException(string message)
+        public ProteoformGroupCreateException(string message)
             : base(message) { }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using NUnit.Framework;
-using System;
 using System.Linq;
 using TopDownProteomics.Chemistry;
-using TopDownProteomics.Chemistry.Unimod;
 
 namespace TopDownProteomics.Tests
 {

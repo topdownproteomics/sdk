@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TopDownProteomics.ProForma
+﻿namespace TopDownProteomics.ProForma
 {
     /// <summary>
     /// Member of the tag. Could be a key-value pair, or a keyless entry.

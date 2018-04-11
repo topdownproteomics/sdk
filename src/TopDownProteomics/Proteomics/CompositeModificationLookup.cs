@@ -46,7 +46,7 @@ namespace TopDownProteomics.Proteomics
                     return lookup.GetModification(descriptor);
             }
 
-            throw new ProteoformHypothesisCreateException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
+            throw new ProteoformGroupCreateException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
         }
     }
 }
