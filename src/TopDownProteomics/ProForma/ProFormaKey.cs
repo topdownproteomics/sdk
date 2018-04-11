@@ -26,6 +26,11 @@
         public static string PsiMod = "PSI-MOD";
 
         /// <summary>
+        /// The BRNO identifier
+        /// </summary>
+        public static string Brno = "BRNO";
+
+        /// <summary>
         /// The mass
         /// </summary>
         public static string Mass = "mass";

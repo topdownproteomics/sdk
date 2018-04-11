@@ -31,6 +31,22 @@ namespace TopDownProteomics.Tests
                 new Isotope(16.9991312, 0.00038),
                 new Isotope(17.9991603, 0.00205)
             });
+            _elements[16] = new Element(16, "S", new[]
+            {
+                new Isotope(31.97207100, 0.9499),
+                new Isotope(32.97145876, 0.0075),
+                new Isotope(33.96786690, 0.0425),
+                new Isotope(35.96708076, 0.0001)
+            });
+            _elements[34] = new Element(34, "Se", new[]
+            {
+                new Isotope(73.9224764, 0.0089),
+                new Isotope(75.9192136, 0.0937),
+                new Isotope(76.9199140, 0.0763),
+                new Isotope(77.9173091, 0.2377),
+                new Isotope(79.9165213, 0.4961),
+                new Isotope(81.9166994, 0.0873)
+            });
         }
 
         public void OverwriteElement(IElement element)
