@@ -1,6 +1,6 @@
-﻿using TopDownProteomics.ProForma;
+﻿using TopDownProteomics.Proteomics;
 
-namespace TopDownProteomics.Proteomics
+namespace TopDownProteomics.ProForma.Validation
 {
     /// <summary>
     /// Looks up a proteoform modification based on a ProForma descriptor.

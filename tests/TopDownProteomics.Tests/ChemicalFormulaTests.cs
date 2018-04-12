@@ -2,7 +2,7 @@
 using System.Linq;
 using TopDownProteomics.Chemistry;
 
-namespace TopDownProteomics.Tests
+namespace TopDownProteomics.Tests.ProForma
 {
     [TestFixture]
     public class ChemicalFormulaTests
@@ -14,9 +14,7 @@ namespace TopDownProteomics.Tests
             IElement h = provider.GetElement("H");
             IElement o = provider.GetElement("O");
 
-            var formula = new ChemicalFormula();
-            formula.AddElement(h, 2);
-            formula.AddElement(o, 1);
+            var formula = ChemicalFormula.Water(provider);
             var elements = formula.GetElements();
 
             Assert.AreEqual(2, elements.Count);
@@ -45,9 +43,7 @@ namespace TopDownProteomics.Tests
                 new Isotope(16, 1.0)
             }));
 
-            var formula = new ChemicalFormula();
-            formula.AddElement(provider.GetElement("H"), 2);
-            formula.AddElement(provider.GetElement("O"), 1);
+            var formula = ChemicalFormula.Water(provider);
             var elements = formula.GetElements();
 
             Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
@@ -60,9 +56,7 @@ namespace TopDownProteomics.Tests
                 new Isotope(17, 0.25)
             }));
 
-            formula = new ChemicalFormula();
-            formula.AddElement(provider.GetElement("H"), 2);
-            formula.AddElement(provider.GetElement("O"), 1);
+            formula = ChemicalFormula.Water(provider);
             elements = formula.GetElements();
 
             Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
@@ -73,17 +67,15 @@ namespace TopDownProteomics.Tests
         public void ChemicalFormulaCompareTest()
         {
             var provider = new MockElementProvider();
-            var formula = new ChemicalFormula();
-            formula.AddElement(provider.GetElement("H"), 2);
-            formula.AddElement(provider.GetElement("O"), 1);
+            var formula = ChemicalFormula.Water(provider);
 
-            var formula2 = new ChemicalFormula();
-            formula2.AddElement(provider.GetElement("H"), 2);
-            formula2.AddElement(provider.GetElement("O"), 1);
+            var formula2 = ChemicalFormula.Water(provider);
 
-            var formula3 = new ChemicalFormula();
-            formula3.AddElement(provider.GetElement("H"), 1);
-            formula3.AddElement(provider.GetElement("O"), 2);
+            var formula3 = new ChemicalFormula(new[] 
+            {
+                new EntityCardinality<IElement>(provider.GetElement("H"), 1),
+                new EntityCardinality<IElement>(provider.GetElement("O"), 2),
+            });
 
             Assert.AreEqual(formula, formula2);
             Assert.AreNotEqual(formula, formula3);

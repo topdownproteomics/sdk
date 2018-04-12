@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using TopDownProteomics.Chemistry;
-using TopDownProteomics.ProForma;
+using TopDownProteomics.Proteomics;
 
-namespace TopDownProteomics.Proteomics
+namespace TopDownProteomics.ProForma.Validation
 {
     /// <summary>
     /// Lookup for Brno nomenclature for histone modifications.
@@ -56,7 +56,7 @@ namespace TopDownProteomics.Proteomics
                 case "ph": return _modifications[6];
 
                 default:
-                    throw new ProteoformGroupCreateException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
+                    throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
             }
         }
 

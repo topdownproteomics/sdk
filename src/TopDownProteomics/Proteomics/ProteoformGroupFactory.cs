@@ -4,6 +4,7 @@ using System.Linq;
 using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.ProForma;
+using TopDownProteomics.ProForma.Validation;
 
 namespace TopDownProteomics.Proteomics
 {

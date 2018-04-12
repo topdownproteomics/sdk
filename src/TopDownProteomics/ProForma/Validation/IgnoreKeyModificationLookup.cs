@@ -1,6 +1,6 @@
-﻿using TopDownProteomics.ProForma;
+﻿using TopDownProteomics.Proteomics;
 
-namespace TopDownProteomics.Proteomics
+namespace TopDownProteomics.ProForma.Validation
 {
     /// <summary>
     /// Lookup that handles a certain key and then ignores the descriptor (by returning null).
