@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.IO.Resid;
 using TopDownProteomics.Proteomics;
@@ -80,11 +81,8 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            if (string.IsNullOrEmpty(descriptor.Value))
-                return false;
-
             return descriptor.Key == ProFormaKey.Resid ||
-                (descriptor.Key == ProFormaKey.Mod && descriptor.Value.EndsWith($"({ProFormaKey.Resid})"));
+                (descriptor.Key == ProFormaKey.Mod && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
         }
 
         /// <summary>
@@ -94,6 +92,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         public IProteoformModification GetModification(ProFormaDescriptor descriptor)
         {
+            if (descriptor.Value == null)
+                throw new ProteoformModificationLookupException($"Value is NULL in descriptor {descriptor.Key}:{descriptor.Value}.");
+
             if (descriptor.Key == ProFormaKey.Resid)
             {
                 var value = descriptor.Value;
@@ -103,24 +104,49 @@ namespace TopDownProteomics.ProForma.Validation
                     value = value.Substring(2);
 
                 if (int.TryParse(value, out int resid))
+                {
+                    if (resid < 0 || resid > _modifications.Length - 1 || _modifications[resid] == null)
+                        throw new ProteoformModificationLookupException($"Could not find modification using ID in descriptor {descriptor.Key}:{descriptor.Value}.");
+
                     return _modifications[resid];
+                }
 
                 throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor.Key}:{descriptor.Value}.");
+            }
+            else if (descriptor.Key == ProFormaKey.Mod)
+            {
+                int index = descriptor.Value.IndexOf(this.GetModNameDatabaseTag());
+
+                if (index < 0)
+                    throw new ProteoformModificationLookupException($"Couldn't find database name in descriptor {descriptor.Key}:{descriptor.Value}.");
+
+                var value = descriptor.Value.Substring(0, index).Trim();
+
+                var modification = _modifications
+                    .SingleOrDefault(x => x != null && ((ResidModificationWrapper)x).Modification.Name == value);
+
+                if (modification == null)
+                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor.Key}:{descriptor.Value}.");
+
+                return modification;
             }
 
             throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
         }
 
+        private string GetModNameDatabaseTag() => $"({ProFormaKey.Resid})";
+
         private class ResidModificationWrapper : IProFormaProteoformModification
         {
-            ResidModification _modification;
             IChemicalFormula _chemicalFormula;
 
             public ResidModificationWrapper(ResidModification modification, IChemicalFormula chemicalFormula)
             {
-                _modification = modification;
+                this.Modification = modification;
                 _chemicalFormula = chemicalFormula;
             }
+
+            public ResidModification Modification { get; }
 
             public IChemicalFormula GetChemicalFormula() => _chemicalFormula;
 
