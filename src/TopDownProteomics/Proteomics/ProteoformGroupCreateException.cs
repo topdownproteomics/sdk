@@ -3,7 +3,7 @@
 namespace TopDownProteomics.Proteomics
 {
     /// <summary>
-    /// Base ProForma parsing exception.
+    /// Proteoform Group creation exception.
     /// </summary>
     /// <seealso cref="Exception" />
     public class ProteoformGroupCreateException

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using TopDownProteomics.ProForma;
 
-namespace TopDownProteomics.Tests
+namespace TopDownProteomics.Tests.ProForma
 {
     [TestFixture]
     public class ProFormaWriterTests
