@@ -28,14 +28,28 @@ namespace TopDownProteomics.Chemistry
             _elements = elements.ToList();
         }
 
+        ///// <summary>
+        ///// Adds the element.
+        ///// </summary>
+        ///// <param name="element">The element.</param>
+        ///// <param name="count">The count.</param>
+        //public void AddElement(IElement element, int count)
+        //{
+        //    _elements.Add(new EntityCardinality<IElement>(element, count));
+        //}
+
         /// <summary>
-        /// Adds the element.
+        /// Waters the specified element provider.
         /// </summary>
-        /// <param name="element">The element.</param>
-        /// <param name="count">The count.</param>
-        public void AddElement(IElement element, int count)
+        /// <param name="elementProvider">The element provider.</param>
+        /// <returns></returns>
+        public static ChemicalFormula Water(IElementProvider elementProvider)
         {
-            _elements.Add(new EntityCardinality<IElement>(element, count));
+            return new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(elementProvider.GetElement(1), 2),
+                new EntityCardinality<IElement>(elementProvider.GetElement(8), 1)
+            });
         }
 
         /// <summary>
@@ -140,7 +154,7 @@ namespace TopDownProteomics.Chemistry
                     formula._elements.Add(element);
                 else
                 {
-                    formula.AddElement(element.Entity, element.Count + otherElement.Count);
+                    formula._elements.Add(new EntityCardinality<IElement>(element.Entity, element.Count + otherElement.Count));
                     otherElements.Remove(otherElement);
                 }
             }
@@ -162,7 +176,7 @@ namespace TopDownProteomics.Chemistry
             var formula = new ChemicalFormula();
 
             foreach (var element in _elements)
-                formula.AddElement(element.Entity, element.Count * multiplier);
+                formula._elements.Add(new EntityCardinality<IElement>(element.Entity, element.Count * multiplier));
 
             return formula;
         }

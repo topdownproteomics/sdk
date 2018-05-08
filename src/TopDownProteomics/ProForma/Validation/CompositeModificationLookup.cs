@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using TopDownProteomics.ProForma;
+using TopDownProteomics.Proteomics;
 
-namespace TopDownProteomics.Proteomics
+namespace TopDownProteomics.ProForma.Validation
 {
     /// <summary>
     /// Lookup that delegates to multiple other lookups.

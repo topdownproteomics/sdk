@@ -49,12 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChemicalFormulaTests.cs" />
+    <Compile Include="IO\ResidXmlParserTest.cs" />
     <Compile Include="MockElementProvider.cs" />
     <Compile Include="NistElementParserTest.cs" />
     <Compile Include="NorthwesternTests\MSNumpressTests.cs" />
-    <Compile Include="ProFormaParserTests.cs" />
-    <Compile Include="ProFormaWriterTests.cs" />
-    <Compile Include="ProFormaValidationTests.cs" />
+    <Compile Include="ProForma\ProFormaParserTests.cs" />
+    <Compile Include="ProForma\ProFormaWriterTests.cs" />
+    <Compile Include="ProForma\ProFormaValidationTests.cs" />
+    <Compile Include="ProForma\ResidModificationLookupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnimodCompositionTests.cs" />
     <Compile Include="UWMadisonTests\ChemicalFormulaTestFixture.cs" />
@@ -76,6 +78,11 @@
       <Project>{801007d3-801c-46cd-bec0-cdaec49b7d18}</Project>
       <Name>LibraryProject1</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestData\RESIDUES.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

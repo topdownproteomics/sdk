@@ -1,11 +1,15 @@
 ﻿using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
+using TopDownProteomics.IO.Resid;
 using TopDownProteomics.ProForma;
+using TopDownProteomics.ProForma.Validation;
 using TopDownProteomics.Proteomics;
+using TopDownProteomics.Tests.IO;
 
-namespace TopDownProteomics.Tests
+namespace TopDownProteomics.Tests.ProForma
 {
     [TestFixture]
     public class ProFormaValidationTests
@@ -13,6 +17,7 @@ namespace TopDownProteomics.Tests
         ProteoformGroupFactory _factory;
         IElementProvider _elementProvider;
         IResidueProvider _residueProvider;
+        IProteoformModificationLookup _residLookup;
 
         [OneTimeSetUp]
         public void Setup()
@@ -20,6 +25,12 @@ namespace TopDownProteomics.Tests
             _elementProvider = new MockElementProvider();
             _residueProvider = new IupacAminoAcidProvider(_elementProvider);
             _factory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
+
+            var parser = new ResidXmlParser();
+            var modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
+
+            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == 38),
+                _elementProvider);
         }
 
         [Test]
@@ -124,7 +135,7 @@ namespace TopDownProteomics.Tests
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("wrong(BRNO)") })
             });
-            Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
+            Assert.Throws<ProteoformModificationLookupException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
         }
 
         [Test]
@@ -163,18 +174,19 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        [Ignore("Need to wait for RESID modification lookup.")]
         public void HandleDatabaseAccessionTag()
         {
-            var modificationLookup = new BrnoModificationLookup(_elementProvider);
-
             var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0038") })
             });
-            var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
 
             Assert.IsNotNull(proteoform.Modifications);
+            
+            // Residue masses plus water (approx)
+            Assert.AreEqual(1016.32, proteoform.GetMass(MassType.Monoisotopic), 0.01);
+            Assert.AreEqual(1016.93, proteoform.GetMass(MassType.Average), 0.01);
         }
     }
 }
