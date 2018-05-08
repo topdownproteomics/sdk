@@ -4,7 +4,8 @@
 The TopDown Software Development Kit (SDK) is the Consortium for Top-Down Proteomics' open-source software solution for common top-down proteomics tasks.
 
 ## Nuget Installation
-Install [topdown-sdk](https://www.nuget.org/packages/topdown-sdk) from nuget.
+Coming soon!
+<!--Install [topdown-sdk](https://www.nuget.org/packages/topdown-sdk) from nuget.-->
 
 ## Usage
 #### Basic syntax parsing
@@ -17,7 +18,11 @@ var term = parser.ParseString("PRQ[info:test]TEOFORM");
 // Initialize providers and modification lookup
 var elementProvider = new ElementProvider();
 var residueProvider = new IupacAminoAcidProvider(elementProvider);
-var modificationLookup = new ResidModificationLookup(elementProvider);
+
+// Pull in all RESID modifications
+var residParser = new ResidXmlParser();
+var modifications = parser.Parse("path to RESID XML");
+var residLookup = ResidModificationLookup.CreateFromModifications(modifications, elementProvider);
 
 // Create a simple term in code as an example
 // SEQV[RESID:AA0038]ENCE
@@ -28,7 +33,7 @@ var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
 
 // Validate and create proteoform group
 var factory = new ProteoformGroupFactory(elementProvider, residueProvider);
-var proteoform = factory.CreateProteoformGroup(term, modificationLookup);
+var proteoform = factory.CreateProteoformGroup(term, residLookup);
 ```
 
 ## Credits
