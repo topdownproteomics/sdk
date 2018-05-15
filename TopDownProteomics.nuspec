@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>TopDownProteomics</id>
+    <version>0.0.1</version>
+    <title>TopDownProteomics</title>
+    <authors>Consortium for Top-Down Proteomics</authors>
+    <owners>Consortium for Top-Down Proteomics</owners>
+    <licenseUrl>https://github.com/topdownproteomics/sdk/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/topdownproteomics/sdk</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Software solution for common top-down proteomics tasks </description>
+    <copyright>Copyright 2018</copyright>
+  </metadata>
+</package>
