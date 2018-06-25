@@ -104,6 +104,8 @@ namespace TopDownProteomics.ProForma
                     {
                         throw new ProFormaParseException("X is not allowed.");
                     }
+
+                    sequence.Append(current);
                 }
             }
 
