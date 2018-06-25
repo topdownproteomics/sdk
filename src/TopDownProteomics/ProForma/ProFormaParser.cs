@@ -9,11 +9,6 @@ namespace TopDownProteomics.ProForma
     /// </summary>
     public class ProFormaParser
     {
-        private static HashSet<char> AllowedAminoAcids = new HashSet<char>
-        { 'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
-          'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V',
-          'U', 'B', 'O' };
-
         /// <summary>
         /// Parses the ProForma string.
         /// </summary>
@@ -99,22 +94,15 @@ namespace TopDownProteomics.ProForma
                 }
                 else
                 {
-                    //Validate amino acid character
-                    if (AllowedAminoAcids.Contains(current))
-                    {
-                        sequence.Append(current);
-                    }
-                    else if (!char.IsUpper(current))
+                    // Validate amino acid character
+                    // the 20 standard amino acids are accepted, along with U, O, B, J, and Z (but not X)
+                    if (!char.IsUpper(current))
                     {
                         throw new ProFormaParseException($"{current} is not an upper case letter.");
                     }
                     else if (current == 'X')
                     {
                         throw new ProFormaParseException("X is not allowed.");
-                    }
-                    else
-                    {
-                        throw new ProFormaParseException($"{current} is not a recognized amino acid.");
                     }
                 }
             }

@@ -26,13 +26,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(proFormaString, term.Sequence);
             Assert.IsNull(term.Tags);
         }
-
-        [Test]
-        public void BadAminoAcid()
-        {
-            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("TESTJ"));
-        }
-
+        
         [Test]
         public void SimpleTag()
         {
