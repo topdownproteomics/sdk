@@ -28,6 +28,12 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
+        public void BadAminoAcid()
+        {
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("TESTJ"));
+        }
+
+        [Test]
         public void SimpleTag()
         {
             const string proFormaString = "PRO[info:test]TEOFORM";
