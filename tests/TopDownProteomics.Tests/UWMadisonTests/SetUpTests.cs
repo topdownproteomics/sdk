@@ -25,8 +25,6 @@ namespace Test
     [SetUpFixture]
     public class MySetUpClass
     {
-        #region Public Methods
-
         [OneTimeSetUp]
         public void Setup()
         {
@@ -35,7 +33,5 @@ namespace Test
                 Client.DownloadFile(@"http://physics.nist.gov/cgi-bin/Compositions/stand_alone.pl?ele=&ascii=ascii2&isotype=some", elementLocation);
             PeriodicTableLoader.Load(elementLocation);
         }
-
-        #endregion Public Methods
     }
 }

@@ -24,8 +24,6 @@ namespace Test
     [TestFixture]
     public class MassTestFixture
     {
-        #region Public Methods
-
         [Test]
         public void MassToMzToMass()
         {
@@ -63,14 +61,10 @@ namespace Test
             double a = 524.3;
             Assert.AreEqual(1050.614552933758, a.ToMass(-2));
         }
-
-        #endregion Public Methods
     }
 
     internal class ObjectWithMass1000 : IHasMass
     {
-        #region Public Properties
-
         public double MonoisotopicMass
         {
             get
@@ -78,14 +72,10 @@ namespace Test
                 return 1000;
             }
         }
-
-        #endregion Public Properties
     }
 
     internal class ObjectWithMass100 : IHasMass
     {
-        #region Public Properties
-
         public double MonoisotopicMass
         {
             get
@@ -93,16 +83,10 @@ namespace Test
                 return 100;
             }
         }
-
-        #endregion Public Properties
-
-        #region Public Methods
-
+        
         public override string ToString()
         {
             return "mass: 100";
         }
-
-        #endregion Public Methods
     }
 }
