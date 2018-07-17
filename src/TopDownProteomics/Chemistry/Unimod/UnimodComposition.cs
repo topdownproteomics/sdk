@@ -9,7 +9,7 @@ namespace TopDownProteomics.Chemistry.Unimod
     /// </summary>
     public class UnimodComposition : IHasChemicalFormula
     {
-        List<UnimodCompositionAtomCardinality> _atomCardinalities;
+        private List<UnimodCompositionAtomCardinality> _atomCardinalities;
 
         private UnimodComposition()
         {
@@ -17,27 +17,27 @@ namespace TopDownProteomics.Chemistry.Unimod
         }
 
         /// <summary>
-        /// Creates a Unimod composition from a formula string.
+        /// Creates a Unimod composition from a composition string.
         /// </summary>
-        /// <param name="formula">The formula.</param>
+        /// <param name="composition">The composition.</param>
         /// <param name="atomProvider">The atom provider.</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">formula</exception>
-        public static UnimodComposition CreateFromFormula(string formula, IUnimodCompositionAtomProvider atomProvider)
+        public static UnimodComposition CreateFromFormula(string composition, IUnimodCompositionAtomProvider atomProvider)
         {
-            if (string.IsNullOrEmpty(formula))
-                throw new ArgumentNullException(nameof(formula));
+            if (string.IsNullOrEmpty(composition))
+                throw new ArgumentNullException(nameof(composition));
 
             if (atomProvider == null)
                 throw new ArgumentNullException(nameof(atomProvider));
 
-            UnimodComposition unimodComposition = new UnimodComposition();
+            var unimodComposition = new UnimodComposition();
 
-            var atoms = formula.Split(' ');
+            string[] atoms = composition.Split(' ');
 
             for (int i = 0; i < atoms.Length; i++)
             {
-                var symbol = atoms[i];
+                string symbol = atoms[i];
                 int count = 1;
 
                 if (symbol.Contains("("))
@@ -61,9 +61,9 @@ namespace TopDownProteomics.Chemistry.Unimod
         {
             IChemicalFormula formula = null;
 
-            foreach (var atom in _atomCardinalities)
+            foreach (UnimodCompositionAtomCardinality atom in _atomCardinalities)
             {
-                var atomFormula = atom.Atom.GetChemicalFormula().Multiply(atom.Count);
+                IChemicalFormula atomFormula = atom.Atom.GetChemicalFormula().Multiply(atom.Count);
 
                 if (formula == null)
                     formula = atomFormula;

@@ -11,9 +11,9 @@ namespace TopDownProteomics.Tests.ProForma
     [TestFixture]
     public class ResidModificationLookupTests
     {
-        IElementProvider _elementProvider;
-        IProteoformModificationLookup _residLookup;
-        ResidModification _resid38;
+        private IElementProvider _elementProvider;
+        private IProteoformModificationLookup _residLookup;
+        private ResidModification _resid38;
 
         [OneTimeSetUp]
         public void Setup()
@@ -21,7 +21,7 @@ namespace TopDownProteomics.Tests.ProForma
             _elementProvider = new MockElementProvider();
 
             var parser = new ResidXmlParser();
-            var modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
+            ResidModification[] modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
             _resid38 = modifications.Single(x => x.Id == 38);
             _residLookup = ResidModificationLookup.CreateFromModifications(new[] { _resid38 },
@@ -57,7 +57,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void InvalidIntegerHandling()
         {
-            ProFormaDescriptor descriptor = new ProFormaDescriptor(ProFormaKey.Resid, "abc");
+            var descriptor = new ProFormaDescriptor(ProFormaKey.Resid, "abc");
 
             // I want this to return true and then throw an exception later.
             // This gives me an opportunity to give a meaningful error (and not just return false)
