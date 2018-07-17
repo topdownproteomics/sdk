@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using TopDownProteomics.Chemistry;
+using TopDownProteomics.MassSpectrometry;
 
-namespace TestLibNamespace.Northwestern
+namespace TopDownProteomics.Tools
 {
     /// <summary>
     /// A .NET implementation of the Mercury7 algorithm. Analagous data structures are used whenever possible, 
@@ -100,22 +102,22 @@ namespace TestLibNamespace.Northwestern
             double[] tmpAbundance = null;
             bool msaInitialized = false;
 
-            foreach (IElementCount kvp in cf.ElementCounts)
+            foreach (IEntityCardinality<IElement> kvp in cf.GetElements())
             {
                 uint n = (uint)kvp.Count;
-
+                
                 if (n == 0)
                     continue;
 
-                int isotopeCount = kvp.Element.Isotopes.Count;
+                int isotopeCount = kvp.Entity.Isotopes.Count;
                 double[] esaMz = new double[isotopeCount];
                 double[] esaAbundance = new double[isotopeCount];
 
                 int i = 0;
-                foreach (var iso in kvp.Element.Isotopes.OrderBy(x => x.AtomicMass)) // Algorithm requires it to be sorted.
+                foreach (var iso in kvp.Entity.Isotopes.OrderBy(x => x.AtomicMass)) // Algorithm requires it to be sorted.
                 {
                     esaMz[i] = iso.AtomicMass;
-                    esaAbundance[i] = iso.Abundance;
+                    esaAbundance[i] = iso.RelativeAbundance;
                     i++;
                 }
 

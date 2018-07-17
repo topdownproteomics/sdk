@@ -1,16 +1,16 @@
-﻿using UWMadison.Chemistry;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using TestLibNamespace.Northwestern;
+using TopDownProteomics.Chemistry;
+using TopDownProteomics.Tools;
 using UsefulProteomicsDatabases;
+using UWMadison.Chemistry;
 
 namespace TopDownProteomics.Benchmarks
 {
     internal class Program
     {
-        #region Private Methods
+        private const int MaxRunValue = 1000;
 
         private static void Main(string[] args)
         {
@@ -22,15 +22,16 @@ namespace TopDownProteomics.Benchmarks
         private static void BenchmarkIsotopicEvelopeGeneration()
         {
             // Generate the formulas
+            var random = new Random(1);
 
-            Random random = new Random(1);
+            var uwChemicalFormulas = new UWMadison.Chemistry.ChemicalFormula[MaxRunValue];
+            //var northwesternChemicalFormulas = new TestLibNamespace.Northwestern.IChemicalFormula[MaxRunValue];
+            var chemicalFormulas = new IChemicalFormula[MaxRunValue];
+            IElementProvider elementProvider = new MockElementProvider();
 
-            ChemicalFormula[] chemicalFormulas = new ChemicalFormula[1000];
-            IChemicalFormula[] northwesternChemicalFormulas = new IChemicalFormula[1000];
-
-            for (int i = 2; i < 1000; i++)
+            for (int i = 2; i < MaxRunValue; i++)
             {
-                ChemicalFormula chemicalFormula = new ChemicalFormula();
+                var chemicalFormula = new UWMadison.Chemistry.ChemicalFormula();
                 chemicalFormula.Add(PeriodicTable.GetElement("H"), (int)(random.Next(i) * 7.7583));
                 chemicalFormula.Add(PeriodicTable.GetElement("C"), (int)(random.Next(i) * 4.9384));
                 chemicalFormula.Add(PeriodicTable.GetElement("N"), (int)(random.Next(i) * 1.3577));
@@ -39,207 +40,219 @@ namespace TopDownProteomics.Benchmarks
 
                 //Console.WriteLine(chemicalFormula.Formula);
 
-                chemicalFormulas[i] = chemicalFormula;
+                uwChemicalFormulas[i] = chemicalFormula;
 
-                IChemicalFormula ff = new NorthwesternChemicalFormula(chemicalFormulas[i]);
-                northwesternChemicalFormulas[i] = ff;
+                //TestLibNamespace.Northwestern.IChemicalFormula ff = new NorthwesternChemicalFormula(uwChemicalFormulas[i]);
+                //northwesternChemicalFormulas[i] = ff;
+
+                var tdp_ff = new Chemistry.ChemicalFormula(chemicalFormula.Elements.Select(x => 
+                    new EntityCardinality<IElement>(elementProvider.GetElement(x.Key.AtomicNumber), x.Value)));
+                chemicalFormulas[i] = tdp_ff;
             }
 
-            Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
 
             // Time UW Madison
-
             stopwatch.Start();
-            for (int i = 2; i < 1000; i++)
+            for (int i = 2; i < MaxRunValue; i++)
             {
-                var nice = UWMadison.Chemistry.IsotopicDistribution.GetDistribution(chemicalFormulas[i], 0.2, 1E-26);
+                var nice = IsotopicDistribution.GetDistribution(uwChemicalFormulas[i], 0.2, 1E-26);
             }
             stopwatch.Stop();
 
             Console.WriteLine("Elapsed time for UofW Madison Isotopic Distribution Generation: " + stopwatch.Elapsed);
 
-            // Time Northwestern
+            // Time Northwestern OLD
+            //var mercury7_OLD = new Mercury7_OLD();
+            //stopwatch.Reset();
+            //stopwatch.Start();
+            //for (int i = 2; i < MaxRunValue; i++)
+            //{
+            //    MassSpectrometry.IIsotopicDistribution nice = mercury7_OLD.GenerateIsotopicDistribution(northwesternChemicalFormulas[i]);
+            //}
+            //stopwatch.Stop();
 
-            Mercury7 mercury7 = new Mercury7();
+            //Console.WriteLine("Elapsed time for Northwestern OLD Isotopic Distribution Generation: " + stopwatch.Elapsed);
+
+            // Time Northwestern NEW
+            var mercury7 = new Mercury7();
             stopwatch.Reset();
             stopwatch.Start();
-            for (int i = 2; i < 1000; i++)
+            for (int i = 2; i < MaxRunValue; i++)
             {
-                var nice = mercury7.GenerateIsotopicDistribution(northwesternChemicalFormulas[i]);
+                MassSpectrometry.IIsotopicDistribution nice = mercury7.GenerateIsotopicDistribution(chemicalFormulas[i]);
             }
             stopwatch.Stop();
 
-            Console.WriteLine("Elapsed time for Northwestern Isotopic Distribution Generation: " + stopwatch.Elapsed);
+            Console.WriteLine("Elapsed time for Northwestern NEW Isotopic Distribution Generation: " + stopwatch.Elapsed);
         }
-
-        #endregion Private Methods
     }
 
-    internal class NorthwesternChemicalFormula : IChemicalFormula
-    {
-        #region Private Fields
+    //internal class NorthwesternChemicalFormula : TestLibNamespace.Northwestern.IChemicalFormula
+    //{
+    //    #region Private Fields
 
-        private static Dictionary<Element, IElement> ElementDict = new Dictionary<Element, IElement>
-            {
-                { PeriodicTable.GetElement("H"), new NorthwesternElement(PeriodicTable.GetElement("H")) },
-                { PeriodicTable.GetElement("C"), new NorthwesternElement(PeriodicTable.GetElement("C")) },
-                { PeriodicTable.GetElement("N"), new NorthwesternElement(PeriodicTable.GetElement("N")) },
-                { PeriodicTable.GetElement("O"), new NorthwesternElement(PeriodicTable.GetElement("O")) },
-                { PeriodicTable.GetElement("S"), new NorthwesternElement(PeriodicTable.GetElement("S")) }
-            };
+    //    private static Dictionary<UWMadison.Chemistry.Element, TestLibNamespace.Northwestern.IElement> ElementDict = new Dictionary<UWMadison.Chemistry.Element, TestLibNamespace.Northwestern.IElement>
+    //        {
+    //            { PeriodicTable.GetElement("H"), new NorthwesternElement(PeriodicTable.GetElement("H")) },
+    //            { PeriodicTable.GetElement("C"), new NorthwesternElement(PeriodicTable.GetElement("C")) },
+    //            { PeriodicTable.GetElement("N"), new NorthwesternElement(PeriodicTable.GetElement("N")) },
+    //            { PeriodicTable.GetElement("O"), new NorthwesternElement(PeriodicTable.GetElement("O")) },
+    //            { PeriodicTable.GetElement("S"), new NorthwesternElement(PeriodicTable.GetElement("S")) }
+    //        };
 
-        private Dictionary<IElement, int> elements;
+    //    private Dictionary<TestLibNamespace.Northwestern.IElement, int> elements;
 
-        #endregion Private Fields
+    //    #endregion Private Fields
 
-        #region Public Constructors
+    //    #region Public Constructors
 
-        public NorthwesternChemicalFormula(ChemicalFormula chemicalFormula)
-        {
-            elements = chemicalFormula.Elements.ToDictionary(b => ElementDict[b.Key], b => b.Value);
-        }
+    //    public NorthwesternChemicalFormula(UWMadison.Chemistry.ChemicalFormula chemicalFormula)
+    //    {
+    //        elements = chemicalFormula.Elements.ToDictionary(b => ElementDict[b.Key], b => b.Value);
+    //    }
 
-        #endregion Public Constructors
+    //    #endregion Public Constructors
 
-        #region Public Properties
+    //    #region Public Properties
 
-        public IEnumerable<IElementCount> ElementCounts => elements.Select(b => new NorthwesternElementCount(b.Key, b.Value));
+    //    public IEnumerable<IElementCount> ElementCounts => elements.Select(b => new NorthwesternElementCount(b.Key, b.Value));
 
-        #endregion Public Properties
+    //    #endregion Public Properties
 
-        #region Public Indexers
+    //    #region Public Indexers
 
-        public int this[IElement element] => throw new NotImplementedException();
+    //    public int this[TestLibNamespace.Northwestern.IElement element] => throw new NotImplementedException();
 
-        #endregion Public Indexers
+    //    #endregion Public Indexers
 
-        #region Public Methods
+    //    #region Public Methods
 
-        public IChemicalFormula Add(IChemicalFormula formula)
-        {
-            throw new NotImplementedException();
-        }
+    //    public TestLibNamespace.Northwestern.IChemicalFormula Add(TestLibNamespace.Northwestern.IChemicalFormula formula)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public bool Contains(IElement element)
-        {
-            throw new NotImplementedException();
-        }
+    //    public bool Contains(TestLibNamespace.Northwestern.IElement element)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public bool Equals(IChemicalFormula other)
-        {
-            throw new NotImplementedException();
-        }
+    //    public bool Equals(TestLibNamespace.Northwestern.IChemicalFormula other)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public double GetMass(MassType massType)
-        {
-            throw new NotImplementedException();
-        }
+    //    public double GetMass(TestLibNamespace.Northwestern.MassType massType)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public IChemicalFormula Multiply(int multiplier)
-        {
-            throw new NotImplementedException();
-        }
+    //    public TestLibNamespace.Northwestern.IChemicalFormula Multiply(int multiplier)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public IChemicalFormula Subtract(IChemicalFormula formula)
-        {
-            throw new NotImplementedException();
-        }
+    //    public TestLibNamespace.Northwestern.IChemicalFormula Subtract(TestLibNamespace.Northwestern.IChemicalFormula formula)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        #endregion Public Methods
-    }
+    //    #endregion Public Methods
+    //}
 
-    internal class NorthwesternElement : IElement
-    {
-        #region Private Fields
+    //internal class NorthwesternElement : TestLibNamespace.Northwestern.IElement
+    //{
+    //    #region Private Fields
 
-        private IList<IIsotope> isotopes;
+    //    private IList<TestLibNamespace.Northwestern.IIsotope> isotopes;
 
-        #endregion Private Fields
+    //    #endregion Private Fields
 
-        #region Public Constructors
+    //    #region Public Constructors
 
-        public NorthwesternElement(Element element)
-        {
-            isotopes = element.Isotopes.Select(b => (IIsotope)new NorthwesternIsotope(b)).ToList();
-        }
+    //    public NorthwesternElement(UWMadison.Chemistry.Element element)
+    //    {
+    //        isotopes = element.Isotopes.Select(b => (TestLibNamespace.Northwestern.IIsotope)new NorthwesternIsotope(b)).ToList();
+    //    }
 
-        #endregion Public Constructors
+    //    #endregion Public Constructors
 
-        #region Public Properties
+    //    #region Public Properties
 
-        public int AtomicNumber => throw new NotImplementedException();
+    //    public int AtomicNumber => throw new NotImplementedException();
 
-        public string Symbol => throw new NotImplementedException();
+    //    public string Symbol => throw new NotImplementedException();
 
-        public IList<IIsotope> Isotopes => isotopes;
+    //    public IList<TestLibNamespace.Northwestern.IIsotope> Isotopes => isotopes;
 
-        public string Name => throw new NotImplementedException();
+    //    public string Name => throw new NotImplementedException();
 
-        #endregion Public Properties
+    //    #endregion Public Properties
 
-        #region Public Methods
+    //    #region Public Methods
 
-        public double GetMass(MassType massType)
-        {
-            throw new NotImplementedException();
-        }
+    //    public double GetMass(TestLibNamespace.Northwestern.MassType massType)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        #endregion Public Methods
-    }
+    //    #endregion Public Methods
+    //}
 
-    internal class NorthwesternIsotope : IIsotope
-    {
-        #region Private Fields
+    //internal class NorthwesternIsotope : TestLibNamespace.Northwestern.IIsotope
+    //{
+    //    #region Private Fields
 
-        private double atomicMass;
-        private double abundance;
+    //    private double atomicMass;
+    //    private double abundance;
 
-        #endregion Private Fields
+    //    #endregion Private Fields
 
-        #region Public Constructors
+    //    #region Public Constructors
 
-        public NorthwesternIsotope(Isotope b)
-        {
-            atomicMass = b.AtomicMass;
-            abundance = b.RelativeAbundance;
-        }
+    //    public NorthwesternIsotope(UWMadison.Chemistry.Isotope b)
+    //    {
+    //        atomicMass = b.AtomicMass;
+    //        abundance = b.RelativeAbundance;
+    //    }
 
-        #endregion Public Constructors
+    //    #endregion Public Constructors
 
-        #region Public Properties
+    //    #region Public Properties
 
-        public double AtomicMass => atomicMass;
+    //    public double AtomicMass => atomicMass;
 
-        public double Abundance => abundance;
+    //    public double Abundance => abundance;
 
-        #endregion Public Properties
-    }
+    //    #endregion Public Properties
+    //}
 
-    internal class NorthwesternElementCount : IElementCount
-    {
-        #region Private Fields
+    //internal class NorthwesternElementCount : IElementCount
+    //{
+    //    #region Private Fields
 
-        private IElement key;
-        private int value;
+    //    private TestLibNamespace.Northwestern.IElement key;
+    //    private int value;
 
-        #endregion Private Fields
+    //    #endregion Private Fields
 
-        #region Public Constructors
+    //    #region Public Constructors
 
-        public NorthwesternElementCount(IElement key, int value)
-        {
-            this.key = key;
-            this.value = value;
-        }
+    //    public NorthwesternElementCount(TestLibNamespace.Northwestern.IElement key, int value)
+    //    {
+    //        this.key = key;
+    //        this.value = value;
+    //    }
 
-        #endregion Public Constructors
+    //    #endregion Public Constructors
 
-        #region Public Properties
+    //    #region Public Properties
 
-        public IElement Element => key;
+    //    public TestLibNamespace.Northwestern.IElement Element => key;
 
-        public int Count => value;
+    //    public int Count => value;
 
-        #endregion Public Properties
-    }
+    //    #endregion Public Properties
+    //}
 }

@@ -52,7 +52,7 @@
     <Compile Include="IO\ResidXmlParserTest.cs" />
     <Compile Include="MockElementProvider.cs" />
     <Compile Include="NistElementParserTest.cs" />
-    <Compile Include="NorthwesternTests\MSNumpressTests.cs" />
+    <Compile Include="Tools\MSNumpressTests.cs" />
     <Compile Include="ProForma\ProFormaParserTests.cs" />
     <Compile Include="ProForma\ProFormaWriterTests.cs" />
     <Compile Include="ProForma\ProFormaValidationTests.cs" />
