@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace TestLibNamespace.Northwestern
+namespace TopDownProteomics.MassSpectrometry
 {
     /// <summary>
     /// Neutral distribution of isotopes.

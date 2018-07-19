@@ -25,10 +25,10 @@
 
 using System;
 using System.Linq;
-using TestLibNamespace.Northwestern;
 using NUnit.Framework;
+using TopDownProteomics.Tools;
 
-namespace TopDown.Tests.MassSpectrometry
+namespace TopDownProteomics.Tests.Tools
 {
     [TestFixture]
     public class MSNumpressTests
