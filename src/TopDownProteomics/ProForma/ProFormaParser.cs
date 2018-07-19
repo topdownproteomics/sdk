@@ -5,7 +5,7 @@ using System.Text;
 namespace TopDownProteomics.ProForma
 {
     /// <summary>
-    /// Parser for the ProForma proteoform notation (link here to published manuscript)
+    /// Parser for the ProForma proteoform notation (https://pubs.acs.org/doi/10.1021/acs.jproteome.7b00851)
     /// </summary>
     public class ProFormaParser
     {
@@ -21,7 +21,9 @@ namespace TopDownProteomics.ProForma
         public ProFormaTerm ParseString(string proFormaString)
         {
             if (string.IsNullOrEmpty(proFormaString))
+            {
                 throw new ArgumentNullException(nameof(proFormaString));
+            }
 
             List<ProFormaTag> tags = null;
             IList<ProFormaDescriptor> nTerminalDescriptors = null;
@@ -38,7 +40,9 @@ namespace TopDownProteomics.ProForma
                 char current = proFormaString[i];
 
                 if (current == '[')
+                {
                     inTag = true;
+                }
                 else if (current == ']')
                 {
                     // Handle terminal modifications and prefix tags
@@ -55,7 +59,9 @@ namespace TopDownProteomics.ProForma
                     {
                         // Make sure the prefix came before the N-terminal modification
                         if (nTerminalDescriptors != null)
+                        {
                             throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
+                        }
 
                         prefixTag = tag.ToString();
                         i++; // Skip the + character
@@ -63,7 +69,9 @@ namespace TopDownProteomics.ProForma
                     else
                     {
                         if (tags == null)
+                        {
                             tags = new List<ProFormaTag>();
+                        }
 
                         tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1, prefixTag));
                     }
@@ -78,17 +86,24 @@ namespace TopDownProteomics.ProForma
                 else if (current == '-')
                 {
                     if (inCTerminalTag)
+                    {
                         throw new ProFormaParseException($"- at index {i} is not allowed.");
+                    }
 
                     inCTerminalTag = true;
                 }
                 else
                 {
                     // Validate amino acid character
+                    // the 20 standard amino acids are accepted, along with U, O, B, J, and Z (but not X)
                     if (!char.IsUpper(current))
+                    {
                         throw new ProFormaParseException($"{current} is not an upper case letter.");
+                    }
                     else if (current == 'X')
+                    {
                         throw new ProFormaParseException("X is not allowed.");
+                    }
 
                     sequence.Append(current);
                 }
@@ -118,16 +133,24 @@ namespace TopDownProteomics.ProForma
                 if (!string.IsNullOrEmpty(prefixTag))
                 {
                     if (key.Length > 0)
+                    {
                         throw new ProFormaParseException("Cannot use keys with a prefix key");
+                    }
 
                     descriptors.Add(new ProFormaDescriptor(prefixTag, value));
                 }
                 else if (key.Length > 0)
+                {
                     descriptors.Add(new ProFormaDescriptor(key, value));
+                }
                 else if (value.Length > 0)
+                {
                     descriptors.Add(new ProFormaDescriptor(value));
+                }
                 else
+                {
                     throw new ProFormaParseException("Empty descriptor within tag " + tag);
+                }
             }
 
             return descriptors;

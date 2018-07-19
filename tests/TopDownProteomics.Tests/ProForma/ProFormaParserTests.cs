@@ -26,7 +26,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(proFormaString, term.Sequence);
             Assert.IsNull(term.Tags);
         }
-
+        
         [Test]
         public void SimpleTag()
         {
