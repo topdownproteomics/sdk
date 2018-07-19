@@ -1,4 +1,4 @@
-﻿namespace TestLibNamespace.Northwestern
+﻿namespace TopDownProteomics.MassSpectrometry
 {
     /// <summary>
     /// Isotopic Distribution with a given charge in m/z space.

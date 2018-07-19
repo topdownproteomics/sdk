@@ -21,7 +21,7 @@
 
 using System;
 
-namespace TestLibNamespace.Northwestern
+namespace TopDownProteomics.Tools
 {
     /// <summary>
     /// Implementations of two compression schemes for numeric data from mass spectrometers.
