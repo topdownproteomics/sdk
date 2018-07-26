@@ -52,6 +52,7 @@
     <Compile Include="IO\PsiModParserTest.cs" />
     <Compile Include="IO\ResidXmlParserTest.cs" />
     <Compile Include="IO\UnimodTest.cs" />
+    <Compile Include="IO\UniProtTests.cs" />
     <Compile Include="MockElementProvider.cs" />
     <Compile Include="MockUnimodCompositionAtomProvider.cs" />
     <Compile Include="NistElementParserTest.cs" />

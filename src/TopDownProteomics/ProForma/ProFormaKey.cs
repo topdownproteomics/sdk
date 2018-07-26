@@ -16,6 +16,11 @@
         public static string Unimod = "Unimod";
 
         /// <summary>
+        /// The UniProt database identifier
+        /// </summary>
+        public static string UniProt = "UniProt";
+
+        /// <summary>
         /// The RESID database identifier
         /// </summary>
         public static string Resid = "RESID";
