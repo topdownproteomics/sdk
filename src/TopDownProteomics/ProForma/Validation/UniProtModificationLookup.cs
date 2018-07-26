@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using TopDownProteomics.Chemistry;
-using TopDownProteomics.IO.Resid;
+using TopDownProteomics.IO.UniProt;
 
 namespace TopDownProteomics.ProForma.Validation
 {
     /// <summary>
-    /// Lookup for RESID modifications.
+    /// Lookup for UniProt modifications.
     /// </summary>
-    public class ResidModificationLookup : ModificationLookupBase<ResidModification>
+    public class UniProtModificationLookup : ModificationLookupBase<UniprotModification>
     {
         private readonly IElementProvider _elementProvider;
 
-        private ResidModificationLookup(IElementProvider elementProvider)
+        private UniProtModificationLookup(IElementProvider elementProvider)
         {
             _elementProvider = elementProvider;
         }
@@ -20,7 +20,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected override string Key => ProFormaKey.Resid;
+        protected override string Key => ProFormaKey.UniProt;
 
         /// <summary>
         /// Initializes the <see cref="ResidModificationLookup" /> class.
@@ -28,10 +28,10 @@ namespace TopDownProteomics.ProForma.Validation
         /// <param name="modifications">The modifications.</param>
         /// <param name="elementProvider">The element provider.</param>
         /// <returns></returns>
-        public static IProteoformModificationLookup CreateFromModifications(IEnumerable<ResidModification> modifications,
+        public static IProteoformModificationLookup CreateFromModifications(IEnumerable<UniprotModification> modifications,
             IElementProvider elementProvider)
         {
-            var lookup = new ResidModificationLookup(elementProvider);
+            var lookup = new UniProtModificationLookup(elementProvider);
 
             lookup.SetupModificationArray(modifications);
 
@@ -43,9 +43,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula GetChemicalFormula(ResidModification modification)
+        protected override IChemicalFormula GetChemicalFormula(UniprotModification modification)
         {
-            string formula = modification.DiffFormula;
+            string formula = modification.CorrectionFormula;
 
             if (string.IsNullOrEmpty(formula))
                 return null;
@@ -54,15 +54,20 @@ namespace TopDownProteomics.ProForma.Validation
 
             var elements = new List<IEntityCardinality<IElement>>();
 
-            for (int i = 0; i < cells.Length; i += 2)
+            for (int i = 0; i < cells.Length; i++)
             {
-                if (cells[i] == "+")
-                    continue;
+                // Find last index for element name
+                int j = cells[i].Length - 1;
+                while (char.IsDigit(cells[i][j]) || cells[i][j] == '-')
+                {
+                    j--;
+                }
 
-                int count = Convert.ToInt32(cells[i + 1]);
+                string elementSymbol = cells[i].Substring(0, j + 1);
+                int count = Convert.ToInt32(cells[i].Substring(j + 1));
 
                 if (count != 0)
-                    elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
+                    elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(elementSymbol), count));
             }
 
             return new ChemicalFormula(elements);
@@ -76,8 +81,8 @@ namespace TopDownProteomics.ProForma.Validation
         protected override string RemovePrefix(string value)
         {
             // Remove prefix AA
-            if (value.StartsWith("AA"))
-                return value.Substring(2);
+            if (value.StartsWith("PTM-"))
+                return value.Substring(4);
 
             return value;
         }

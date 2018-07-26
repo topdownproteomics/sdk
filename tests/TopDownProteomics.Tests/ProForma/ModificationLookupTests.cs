@@ -4,6 +4,7 @@ using TopDownProteomics.Chemistry;
 using TopDownProteomics.IO.PsiMod;
 using TopDownProteomics.IO.Resid;
 using TopDownProteomics.IO.Unimod;
+using TopDownProteomics.IO.UniProt;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
 using TopDownProteomics.Tests.IO;
@@ -20,6 +21,8 @@ namespace TopDownProteomics.Tests.ProForma
         private ResidModification _resid38;
         private IProteoformModificationLookup _psiModLookup;
         private PsiModTerm _psiMod38;
+        private IProteoformModificationLookup _uniProtModLookup;
+        private UniprotModification _uniProtMod312;
 
         [OneTimeSetUp]
         public void Setup()
@@ -29,6 +32,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.SetupUnimod();
             this.SetupResid();
             this.SetupPsiMod();
+            this.SetupUniProt();
         }
 
         private void SetupUnimod()
@@ -60,6 +64,15 @@ namespace TopDownProteomics.Tests.ProForma
             _psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { _psiMod38 },
                 _elementProvider);
         }
+        private void SetupUniProt()
+        {
+            var parser = new UniProtPtmListParser();
+            UniprotModification[] modifications = parser.Parse(UniProtTests.Get_PtmList()).ToArray();
+
+            _uniProtMod312 = modifications.Single(x => x.Id == 312);
+            _uniProtModLookup = UniProtModificationLookup.CreateFromModifications(new[] { _uniProtMod312 },
+                _elementProvider);
+        }
 
         [Test]
         public void DescriptorHandling()
@@ -67,6 +80,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.DescriptorHandling(_unimodLookup, ProFormaKey.Unimod, true);
             this.DescriptorHandling(_residLookup, ProFormaKey.Resid, false);
             this.DescriptorHandling(_psiModLookup, ProFormaKey.PsiMod, false);
+            this.DescriptorHandling(_uniProtModLookup, ProFormaKey.UniProt, false);
         }
         private void DescriptorHandling(IProteoformModificationLookup lookup, string key, bool isDefault)
         {
@@ -94,6 +108,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.InvalidIdHandling(id, _unimodLookup, ProFormaKey.Unimod);
             this.InvalidIdHandling(id, _residLookup, ProFormaKey.Resid);
             this.InvalidIdHandling(id, _psiModLookup, ProFormaKey.PsiMod);
+            this.InvalidIdHandling(id, _uniProtModLookup, ProFormaKey.UniProt);
         }
         private void InvalidIdHandling(string id, IProteoformModificationLookup lookup, string key)
         {
@@ -121,6 +136,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.FindById(_unimodLookup, ProFormaKey.Unimod, 37, "UNIMOD:");
             this.FindById(_residLookup, ProFormaKey.Resid, 38, "AA");
             this.FindById(_psiModLookup, ProFormaKey.PsiMod, 38, "MOD:");
+            this.FindById(_uniProtModLookup, ProFormaKey.UniProt, 312, "PTM-");
         }
         private void FindById(IProteoformModificationLookup lookup, string key, int correctId, string extraPrefix)
         {
@@ -143,6 +159,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.FindByName(_unimodLookup, ProFormaKey.Unimod, true, "Trimethyl");
             this.FindByName(_residLookup, ProFormaKey.Resid, false, "O-phospho-L-threonine");
             this.FindByName(_psiModLookup, ProFormaKey.PsiMod, false, "3-hydroxy-L-proline");
+            this.FindByName(_uniProtModLookup, ProFormaKey.UniProt, false, "(2-aminosuccinimidyl)acetic acid (Asp-Gly)");
         }
         private void FindByName(IProteoformModificationLookup lookup, string key, bool isDefault, string correctName)
         {
