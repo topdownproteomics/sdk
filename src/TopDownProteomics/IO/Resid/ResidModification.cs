@@ -7,7 +7,7 @@ namespace TopDownProteomics.IO.Resid
     /// Modification wrapper around a information in RESID.
     /// </summary>
     /// <seealso cref="IProFormaProteoformModification" />
-    public class ResidModification
+    public class ResidModification : IIdentifiable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ResidModification" /> class.

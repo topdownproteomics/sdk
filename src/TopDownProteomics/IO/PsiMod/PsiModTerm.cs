@@ -6,7 +6,7 @@ namespace TopDownProteomics.IO.PsiMod
     /// <summary>
     /// A term from the PSI-MOD modification ontology.
     /// </summary>
-    public class PsiModTerm
+    public class PsiModTerm : IIdentifiable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PsiModTerm"/> class.

@@ -3,7 +3,7 @@
     /// <summary>
     /// A modification from the UniMod database.
     /// </summary>
-    public class UnimodModification
+    public class UnimodModification : IIdentifiable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnimodModification" /> class.
