@@ -12,7 +12,7 @@ namespace TopDownProteomics.IO.Resid
     /// <summary>
     /// Parse RESID modification XML.
     /// </summary>
-    public class ResidXmlParser 
+    public class ResidXmlParser
     {
         /// <summary>
         /// Parses the specified path.
@@ -41,14 +41,14 @@ namespace TopDownProteomics.IO.Resid
             string name = (string)(elem.Element("Names").Element("Name"));
 
             string formula = (string)elem.XPathSelectElement("/FormulaBlock/Formula");
-            int formalCharge = this.GetFormulaCharge(elem, "/FormulaBlock/FormalCharge");
-            double? monoMass = this.GetMass(elem, "/FormulaBlock/Weight[@type='physical']");
-            double? avMass = this.GetMass(elem, "/FormulaBlock/Weight[@type='chemical']");
+            int formalCharge = GetFormulaCharge(elem, "/FormulaBlock/FormalCharge");
+            double? monoMass = GetMass(elem, "/FormulaBlock/Weight[@type='physical']");
+            double? avMass = GetMass(elem, "/FormulaBlock/Weight[@type='chemical']");
             string diffFormula = null; //(string)elem.XPathSelectElement("/CorrectionBlock/Formula"); ;
             double? diffMonoMass = null; // this.GetMass(elem, "/CorrectionBlock/Weight[@type='physical']");
             double? diffAvMass = null; // this.GetMass(elem, "/CorrectionBlock/Weight[@type='chemical']");
 
-            List<XElement> correctionBlocks = new List<XElement>(elem.XPathSelectElements("/CorrectionBlock"));
+            var correctionBlocks = new List<XElement>(elem.XPathSelectElements("/CorrectionBlock"));
 
             if (correctionBlocks.Count > 0 && id > 20) // Any ID less than 20 (amino acids) will not have a diff mass
             {
@@ -62,8 +62,8 @@ namespace TopDownProteomics.IO.Resid
                         continue;
 
                     diffFormula = (string)correctionBlock.XPathSelectElement("Formula");
-                    diffMonoMass = this.GetMass(correctionBlock, "Weight[@type='physical']");
-                    diffAvMass = this.GetMass(correctionBlock, "Weight[@type='chemical']");
+                    diffMonoMass = GetMass(correctionBlock, "Weight[@type='physical']");
+                    diffAvMass = GetMass(correctionBlock, "Weight[@type='chemical']");
 
                     //if (diffAvMass.HasValue && diffAvMass.Value != 0.00)
                     //    break;
@@ -87,7 +87,7 @@ namespace TopDownProteomics.IO.Resid
                     terminus = Terminus.C;
             }
 
-            var modification = new ResidModification(id, name, formula, monoMass.Value, avMass.Value, 
+            var modification = new ResidModification(id, name, formula, monoMass.Value, avMass.Value,
                 diffFormula, diffMonoMass, diffAvMass, terminus, aminoAcid, formalCharge);
 
             var features = new List<string>(elem.XPathSelectElements("/Features/Feature[@type='UniProt']").Select(x => x.Value));
@@ -146,9 +146,9 @@ namespace TopDownProteomics.IO.Resid
         /// <returns></returns>
         public static IEnumerable<XElement> SimpleStreamAxis(TextReader inputReader, string matchName)
         {
-            XmlReaderSettings settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+            var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
 
-            using (XmlReader reader = XmlReader.Create(inputReader, settings))
+            using (var reader = XmlReader.Create(inputReader, settings))
             {
                 reader.MoveToContent();
 

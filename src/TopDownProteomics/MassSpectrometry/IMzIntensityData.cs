@@ -1,4 +1,4 @@
-﻿namespace TestLibNamespace.Northwestern
+﻿namespace TopDownProteomics.MassSpectrometry
 {
     /// <summary>
     /// Represents simple spectral data that contains only m/z and intensity.

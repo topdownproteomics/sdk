@@ -50,13 +50,16 @@
   <ItemGroup>
     <Compile Include="ChemicalFormulaTests.cs" />
     <Compile Include="IO\ResidXmlParserTest.cs" />
+    <Compile Include="IO\UnimodTest.cs" />
     <Compile Include="MockElementProvider.cs" />
+    <Compile Include="MockUnimodCompositionAtomProvider.cs" />
     <Compile Include="NistElementParserTest.cs" />
-    <Compile Include="NorthwesternTests\MSNumpressTests.cs" />
+    <Compile Include="Tools\MSNumpressTests.cs" />
     <Compile Include="ProForma\ProFormaParserTests.cs" />
     <Compile Include="ProForma\ProFormaWriterTests.cs" />
     <Compile Include="ProForma\ProFormaValidationTests.cs" />
     <Compile Include="ProForma\ResidModificationLookupTests.cs" />
+    <Compile Include="ProForma\UnimodModificationLookupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnimodCompositionTests.cs" />
     <Compile Include="UWMadisonTests\ChemicalFormulaTestFixture.cs" />
@@ -67,6 +70,9 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="TestData\elements.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\unimod.obo">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
