@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TopDownProteomics.IO.Resid;
@@ -16,7 +15,7 @@ namespace TopDownProteomics.Tests.IO
         public void BasicTest()
         {
             var parser = new ResidXmlParser();
-            List<ResidModification> modifications = parser.Parse(GetResidFilePath()).ToList();
+            var modifications = parser.Parse(GetResidFilePath()).ToList();
 
             ResidModification r42 = modifications.Single(x => x.Id == 42);
             Assert.IsNotNull(r42);
@@ -35,8 +34,8 @@ namespace TopDownProteomics.Tests.IO
         [Test]
         public void TwoCorrectionBlocksTest()
         {
-            ResidXmlParser parser = new ResidXmlParser();
-            List<ResidModification> modifications = parser.Parse(GetResidFilePath()).ToList();
+            var parser = new ResidXmlParser();
+            var modifications = parser.Parse(GetResidFilePath()).ToList();
 
             ResidModification r1 = modifications.Single(x => x.Id == 1);
             Assert.IsFalse(r1.DiffAverageMass.HasValue);
@@ -53,8 +52,8 @@ namespace TopDownProteomics.Tests.IO
         [Test]
         public void FormalChargeTest()
         {
-            ResidXmlParser parser = new ResidXmlParser();
-            List<ResidModification> modifications = parser.Parse(GetResidFilePath()).ToList();
+            var parser = new ResidXmlParser();
+            var modifications = parser.Parse(GetResidFilePath()).ToList();
 
             ResidModification r74 = modifications.Single(x => x.Id == 74);
             Assert.AreEqual(1, r74.FormalCharge);
