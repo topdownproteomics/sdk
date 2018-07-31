@@ -56,9 +56,21 @@ namespace TopDownProteomics.Benchmarks
             }
             stopwatch.Stop();
 
-            Console.WriteLine("Elapsed time for UofW Madison Isotopic Distribution Generation: " + stopwatch.Elapsed);
+            Console.WriteLine("Elapsed time for UofW Madison Original: " + stopwatch.Elapsed);
 
-            // Time Northwestern
+            // Time UW Madison (port)
+            var fineGrain = new FineStructureIsotopicGenerator();
+            stopwatch.Reset();
+            stopwatch.Start();
+            for (int i = 2; i < MaxRunValue; i++)
+            {
+                var nice = fineGrain.GenerateIsotopicDistribution(chemicalFormulas[i], 0.2, 1E-26);
+            }
+            stopwatch.Stop();
+
+            Console.WriteLine("Elapsed time for UofW Madison Port: " + stopwatch.Elapsed);
+
+            // Time Northwestern (port)
             var mercury7 = new Mercury7();
             stopwatch.Reset();
             stopwatch.Start();
@@ -68,7 +80,7 @@ namespace TopDownProteomics.Benchmarks
             }
             stopwatch.Stop();
 
-            Console.WriteLine("Elapsed time for Northwestern Isotopic Distribution Generation: " + stopwatch.Elapsed);
+            Console.WriteLine("Elapsed time for Northwestern Port: " + stopwatch.Elapsed);
         }
     }
 }
