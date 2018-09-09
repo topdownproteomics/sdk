@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace TopDownProteomics.ProForma
 {
@@ -118,16 +119,53 @@ namespace TopDownProteomics.ProForma
                 if (!string.IsNullOrEmpty(prefixTag))
                 {
                     if (key.Length > 0)
-                        throw new ProFormaParseException("Cannot use keys with a prefix key");
+                        throw new ProFormaParseException("Cannot use key-value pairs with a prefix key");
 
                     descriptors.Add(new ProFormaDescriptor(prefixTag, value));
                 }
                 else if (key.Length > 0)
+                {
                     descriptors.Add(new ProFormaDescriptor(key, value));
+                }
+                else if (value.Contains(ProFormaAmbiguityAffix.Unlocalized))
+                {
+                    if (value.Length > ProFormaAmbiguityAffix.Unlocalized.Length)
+                        throw new ProFormaParseException("Cannot use group string with an unlocalized affix, " + ProFormaAmbiguityAffix.Unlocalized + ".");
+
+                    descriptors.Add(new ProFormaAmbiguityDescriptor(value));
+                }
+                else if (value.StartsWith(ProFormaAmbiguityAffix.PossibleSite))
+                {
+                    string group = value.Substring(ProFormaAmbiguityAffix.PossibleSite.Length);
+                    if (group.Length == 0)
+                        throw new ProFormaParseException("Cannot use empty group name following the possible site ambiguity prefix, " + ProFormaAmbiguityAffix.PossibleSite + ".");
+
+                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.PossibleSite, group));
+                }
+                else if (value.StartsWith(ProFormaAmbiguityAffix.RightBoundary))
+                {
+                    string group = value.Substring(ProFormaAmbiguityAffix.RightBoundary.Length);
+                    if (group.Length == 0)
+                        throw new ProFormaParseException("Cannot use empty group name following the range prefix, " + ProFormaAmbiguityAffix.RightBoundary + ".");
+
+                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.RightBoundary, group));
+                }
+                else if (value.EndsWith(ProFormaAmbiguityAffix.LeftBoundary))
+                {
+                    string group = value.Substring(0, value.Length - ProFormaAmbiguityAffix.LeftBoundary.Length + 1);
+                    if (group.Length == 0)
+                        throw new ProFormaParseException("Cannot use empty group name before the range suffix, " + ProFormaAmbiguityAffix.LeftBoundary + ".");
+
+                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.LeftBoundary, group));
+                }
                 else if (value.Length > 0)
+                {
                     descriptors.Add(new ProFormaDescriptor(value));
+                }
                 else
+                {
                     throw new ProFormaParseException("Empty descriptor within tag " + tag);
+                }
             }
 
             return descriptors;
