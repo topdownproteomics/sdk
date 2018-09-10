@@ -41,5 +41,17 @@ namespace TopDownProteomics.ProForma
         /// String uniquely identifying a group of ambiguity descriptors
         /// </summary>
         public string Group { get; }
+
+        /// <summary>
+        /// Gets string representation of <see cref="ProFormaAmbiguityDescriptor"/>
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return
+                Affix == ProFormaAmbiguityAffix.Unlocalized ? Affix :
+                Affix == ProFormaAmbiguityAffix.LeftBoundary ? Group + Affix :
+                Affix + Group;
+        }
     }
 }
