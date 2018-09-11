@@ -25,6 +25,7 @@ namespace TopDownProteomics.ProForma
                 throw new ArgumentNullException(nameof(proFormaString));
 
             List<ProFormaTag> tags = null;
+            IList<ProFormaTag> unlocalizedTags = null;
             IList<ProFormaDescriptor> nTerminalDescriptors = null;
             IList<ProFormaDescriptor> cTerminalDescriptors = null;
 
@@ -52,11 +53,25 @@ namespace TopDownProteomics.ProForma
                         nTerminalDescriptors = this.ProcessTag(tag.ToString(), prefixTag);
                         i++; // Skip the - character
                     }
+                    else if (sequence.Length == 0 && proFormaString[i + 1] == '?')
+                    {
+                        // Make sure the prefix came before the N-terminal modification
+                        if (nTerminalDescriptors != null)
+                            throw new ProFormaParseException($"Unlocalized modification must come before an N-terminal modification.");
+
+                        if (unlocalizedTags == null)
+                            unlocalizedTags = new List<ProFormaTag>();
+
+                        unlocalizedTags.Add(this.ProcessTag(tag.ToString(), -1, prefixTag));
+                        i++; // skip the ? character
+                    }
                     else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
                     {
                         // Make sure the prefix came before the N-terminal modification
                         if (nTerminalDescriptors != null)
                             throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
+                        if (unlocalizedTags != null)
+                            throw new ProFormaParseException("Prefix tag must come before an unlocalized modification.");
 
                         prefixTag = tag.ToString();
                         i++; // Skip the + character
@@ -95,7 +110,7 @@ namespace TopDownProteomics.ProForma
                 }
             }
 
-            return new ProFormaTerm(sequence.ToString(), nTerminalDescriptors, cTerminalDescriptors, tags);
+            return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
         }
 
         private ProFormaTag ProcessTag(string tag, int index, string prefixTag)
@@ -132,13 +147,6 @@ namespace TopDownProteomics.ProForma
                 }
 
                 // ambiguity descriptors
-                else if (value.Contains(ProFormaAmbiguityAffix.Unlocalized))
-                {
-                    if (value.Length > ProFormaAmbiguityAffix.Unlocalized.Length)
-                        throw new ProFormaParseException("Cannot use group string with an unlocalized affix, " + ProFormaAmbiguityAffix.Unlocalized + ".");
-
-                    descriptors.Add(new ProFormaAmbiguityDescriptor(value));
-                }
                 else if (value.StartsWith(ProFormaAmbiguityAffix.PossibleSite))
                 {
                     string group = value.Substring(ProFormaAmbiguityAffix.PossibleSite.Length);

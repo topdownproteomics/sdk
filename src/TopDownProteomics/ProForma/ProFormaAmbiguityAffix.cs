@@ -19,10 +19,5 @@
         /// Marks the right boundary of the range over which a modification may be localized.
         /// </summary>
         public static string RightBoundary { get; } = "<-";
-
-        /// <summary>
-        /// Marks a modification that is not localized
-        /// </summary>
-        public static string Unlocalized { get; } = "<->";
     }
 }

@@ -275,25 +275,25 @@ namespace TopDownProteomics.Tests
 
         public void UnlocalizedAmbiguityRules()
         {
-            const string proFormaString = "[mass:80|Phospho|<->]PROTEOSFORMS";
+            const string proFormaString = "[Phospho]?PROTEOSFORMS";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("PROTEOSFORMS", term.Sequence);
-            Assert.IsNotNull(term.Tags);
-            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNull(term.Tags);
+            Assert.IsNotNull(term.UnlocalizedTags);
+            Assert.AreEqual(1, term.UnlocalizedTags.Count);
             Assert.IsNull(term.NTerminalDescriptors);
             Assert.IsNull(term.CTerminalDescriptors);
 
-            ProFormaTag tag1 = term.Tags[0];
+            ProFormaTag tag1 = term.UnlocalizedTags[0];
             Assert.AreEqual(-1, tag1.ZeroBasedIndex);
-            Assert.AreEqual(3, tag1.Descriptors.Count);
-            Assert.AreEqual(1, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Count());
-            Assert.AreEqual(ProFormaAmbiguityAffix.Unlocalized, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Affix);
-            Assert.AreEqual(string.Empty, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Group);
+            Assert.AreEqual(1, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.Single().Key);
+            Assert.AreEqual("Phospho", tag1.Descriptors.Single().Value);
         }
 
         [Test]
-        [TestCase("[Phospho|<->A]PROTEOFORM")] // using group string with unlocalized
+        [TestCase("[Acetyl]-[Phospho]?PROTEOFORM")] // terminal mods must be adjacent to sequence
         [TestCase("PROT[Phospho|#]EOFORMS[#]")] // empty group string
         [TestCase("PROT[Phospho|->]EOFORMS[<-]")] // empty group string
         public void AmbiguityRulesInvalid(string proFormaString)

@@ -11,7 +11,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteSequenceOnly()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, null);
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, null);
             var result = _writer.WriteString(term);
 
             Assert.AreEqual(term.Sequence, result);
@@ -20,7 +20,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteSingleTag()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, new[]
             {
                 new ProFormaTag(2, new[] { new ProFormaDescriptor("info", "test") })
             });
@@ -32,7 +32,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteMultipleTags()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, new[]
             {
                 new ProFormaTag(2, new[] { new ProFormaDescriptor("info", "test") }),
                 new ProFormaTag(5, new[] { new ProFormaDescriptor("mass", "14.05") }),
@@ -45,7 +45,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteMultipleDescriptors()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, new[]
             {
                 new ProFormaTag(2, new[]
                 {
@@ -61,7 +61,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteAmbiguousPossibleSitesDescriptors()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, new[]
             {
                 new ProFormaTag(2, new[] 
                 {
@@ -78,7 +78,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteAmbiguousRangeDescriptors()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, null, null, new[]
             {
                 new ProFormaTag(2, new[]
                 {
@@ -93,35 +93,54 @@ namespace TopDownProteomics.Tests.ProForma
         }
 
         [Test]
-        public void WriteAmbiguousUnlocalizedDescriptors()
+        public void WriteAmbiguousUnlocalizedTags()
         {
-            var term = new ProFormaTerm("SEQUENCE", null, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", new[]
             {
                 new ProFormaTag(-1, new[]
                 {
                     new ProFormaDescriptor("mass", "14.05"),
-                    new ProFormaAmbiguityDescriptor("<->")
                 }),
-            });
+            }, null, null, null);
             var result = _writer.WriteString(term);
 
-            Assert.AreEqual("[mass:14.05|<->]SEQUENCE", result);
+            Assert.AreEqual("[mass:14.05]?SEQUENCE", result);
+        }
+
+        [Test]
+        public void WriteMultipleAmbiguousUnlocalizedTags()
+        {
+            var term = new ProFormaTerm("SEQUENCE", new[]
+            {
+                new ProFormaTag(-1, new[]
+                {
+                    new ProFormaDescriptor("mass", "14.05"),
+                }),
+                new ProFormaTag(-1, new[]
+                {
+                    new ProFormaDescriptor("mass", "79.98"),
+                }),
+            }, null, null, null);
+            var result = _writer.WriteString(term);
+
+            Assert.AreEqual("[mass:14.05]?[mass:79.98]?SEQUENCE", result);
         }
 
         [Test]
         public void WriteTerminalModsOnly()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[] { new ProFormaDescriptor("info", "test") }, null, null);
+            var term = new ProFormaTerm("SEQUENCE", null, new[] { new ProFormaDescriptor("info", "test") }, null, null);
             var result = _writer.WriteString(term);
 
             Assert.AreEqual("[info:test]-SEQUENCE", result);
 
-            term = new ProFormaTerm("SEQUENCE", null, new[] { new ProFormaDescriptor("info", "test") }, null);
+            term = new ProFormaTerm("SEQUENCE", null, null, new[] { new ProFormaDescriptor("info", "test") }, null);
             result = _writer.WriteString(term);
 
             Assert.AreEqual("SEQUENCE-[info:test]", result);
 
-            term = new ProFormaTerm("SEQUENCE", 
+            term = new ProFormaTerm("SEQUENCE",
+                null,
                 new[] { new ProFormaDescriptor("infoN", "testN") }, 
                 new[] { new ProFormaDescriptor("infoC", "testC") }, 
                 null);
@@ -133,7 +152,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteMultipleTagsTerminalMod()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
             {
                 new ProFormaTag(2, new[] { new ProFormaDescriptor("info", "test") }),
                 new ProFormaTag(5, new[] { new ProFormaDescriptor("mass", "14.05") }),
@@ -146,7 +165,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WritePossibleSitesAmbiguousTagsTerminalMod()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
             {
                 new ProFormaTag(2, new[]
                 {
@@ -163,7 +182,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteRangeAmbiguousTagsTerminalMod()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", null, new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
             {
                 new ProFormaTag(2, new[]
                 {
@@ -180,17 +199,16 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteUnlocalizedAmbiguousTagsTerminalMod()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[] { new ProFormaDescriptor("info", "unknown") }, null, new[]
+            var term = new ProFormaTerm("SEQUENCE", new[]
             {
                 new ProFormaTag(-1, new[]
                 {
-                    new ProFormaDescriptor("mass", "14.05"),
-                    new ProFormaAmbiguityDescriptor("<->")
+                    new ProFormaDescriptor("mass", "14.05")
                 }),
-            });
+            }, new[] { new ProFormaDescriptor("info", "unknown") }, null, null);
             var result = _writer.WriteString(term);
 
-            Assert.AreEqual("[info:unknown]-[mass:14.05|<->]SEQUENCE", result);
+            Assert.AreEqual("[mass:14.05]?[info:unknown]-SEQUENCE", result);
         }
     }
 }

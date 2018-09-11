@@ -18,6 +18,16 @@ namespace TopDownProteomics.ProForma
         {
             var sb = new StringBuilder();
 
+            // Check unlocalized modifications
+            if (term.UnlocalizedTags != null && term.UnlocalizedTags.Count > 0)
+            {
+                foreach (var tag in term.UnlocalizedTags)
+                {
+                    if (tag.Descriptors != null && tag.Descriptors.Count > 0)
+                        sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]?");
+                }
+            }
+
             // Check N-terminal modifications
             if (term.NTerminalDescriptors != null && term.NTerminalDescriptors.Count > 0)
             {

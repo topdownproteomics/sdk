@@ -48,9 +48,7 @@ namespace TopDownProteomics.ProForma
         /// <returns></returns>
         public override string ToString()
         {
-            if (Affix == ProFormaAmbiguityAffix.Unlocalized)
-                return Affix;
-            else if (Affix == ProFormaAmbiguityAffix.LeftBoundary)
+            if (Affix == ProFormaAmbiguityAffix.LeftBoundary)
                 return $"{Group}{Affix}";
             else
                 return $"{Affix}{Group}";
