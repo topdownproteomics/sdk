@@ -116,6 +116,7 @@ namespace TopDownProteomics.ProForma
                 string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon).TrimStart();
                 string value = descriptorText[i].Substring(colon + 1); // values may have colons
 
+                // Prefix tag
                 if (!string.IsNullOrEmpty(prefixTag))
                 {
                     if (key.Length > 0)
@@ -123,10 +124,14 @@ namespace TopDownProteomics.ProForma
 
                     descriptors.Add(new ProFormaDescriptor(prefixTag, value));
                 }
+
+                // typical descriptor
                 else if (key.Length > 0)
                 {
                     descriptors.Add(new ProFormaDescriptor(key, value));
                 }
+
+                // ambiguity descriptors
                 else if (value.Contains(ProFormaAmbiguityAffix.Unlocalized))
                 {
                     if (value.Length > ProFormaAmbiguityAffix.Unlocalized.Length)
@@ -158,6 +163,8 @@ namespace TopDownProteomics.ProForma
 
                     descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.LeftBoundary, group));
                 }
+
+                // keyless descriptor (UniMod annotation)
                 else if (value.Length > 0)
                 {
                     descriptors.Add(new ProFormaDescriptor(value));
