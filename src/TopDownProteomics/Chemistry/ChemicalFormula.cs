@@ -14,7 +14,7 @@ namespace TopDownProteomics.Chemistry
         /// <summary>
         /// Initializes a new instance of the <see cref="ChemicalFormula"/> class.
         /// </summary>
-        public ChemicalFormula()
+        private ChemicalFormula()
         {
             _elements = new List<IEntityCardinality<IElement>>();
         }

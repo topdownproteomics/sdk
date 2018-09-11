@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Linq;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.Chemistry.Unimod;
 
@@ -96,13 +97,36 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(146.1412, chemicalFormula.GetMass(MassType.Average), 0.001);
         }
 
+        [Test]
+        public void IsotopeTest()
+        {
+            const string formula = "C(-9) 13C(9)";
+
+            var composition = UnimodComposition.CreateFromFormula(formula, atomProvider);
+            var cardinalities = composition.GetAtomCardinalities();
+
+            Assert.AreEqual(2, cardinalities.Count);
+            Assert.AreEqual(atomProvider.GetUnimodCompositionAtom("C"), cardinalities[0].Atom);
+            Assert.AreEqual(-9, cardinalities[0].Count);
+            Assert.AreEqual(atomProvider.GetUnimodCompositionAtom("13C"), cardinalities[1].Atom);
+            Assert.AreEqual(9, cardinalities[1].Count);
+
+            IChemicalFormula chemicalFormula = composition.GetChemicalFormula();
+            var elements = chemicalFormula.GetElements();
+
+            Assert.AreEqual(2, elements.Count);
+            Assert.AreEqual(-9, elements.Single(x => x.Entity.Symbol == "C").Count);
+            Assert.AreEqual(9, elements.Single(x => x.Entity.Symbol == "13C").Count);
+        }
+
         private class MockAtomProvider : IUnimodCompositionAtomProvider
         {
             private UnimodCompositionAtom[] _atoms;
+            private UnimodCompositionAtom _carbon13;
 
             public MockAtomProvider()
             {
-                var elementProvider = new MockElementProvider();
+                IElementProvider elementProvider = new MockElementProvider();
 
                 _atoms = new UnimodCompositionAtom[128];
                 _atoms['H'] = new UnimodCompositionAtom("H", "Hydrogen", new[] {
@@ -113,16 +137,22 @@ namespace TopDownProteomics.Tests
                     new EntityCardinality<IElement>(elementProvider.GetElement(8), 1) });
 
                 // dHex(Fucose) C6H12O5 - H20 = C6H10O4
-                _atoms['d'] = new UnimodCompositionAtom("dHex", "Deoxy-hexose", new[] 
+                _atoms['d'] = new UnimodCompositionAtom("dHex", "Deoxy-hexose", new[]
                 {
                     new EntityCardinality<IElement>(elementProvider.GetElement(6), 6),
                     new EntityCardinality<IElement>(elementProvider.GetElement(1), 10),
                     new EntityCardinality<IElement>(elementProvider.GetElement(8), 4),
                 });
+
+                _carbon13 = new UnimodCompositionAtom("13C", "Carbon 13", new[] {
+                    new EntityCardinality<IElement>(elementProvider.GetCarbon13(), 1) });
             }
 
             public UnimodCompositionAtom GetUnimodCompositionAtom(string symbol)
             {
+                if (symbol == "13C")
+                    return _carbon13;
+
                 return _atoms[symbol[0]];
             }
         }

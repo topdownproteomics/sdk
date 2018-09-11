@@ -6,6 +6,7 @@ namespace TopDownProteomics.Tests
     public class MockElementProvider : IElementProvider
     {
         private IElement[] _elements;
+        private IElement _carbon13;
 
         public MockElementProvider()
         {
@@ -51,6 +52,11 @@ namespace TopDownProteomics.Tests
                 new Isotope(79.9165213, 0.4961),
                 new Isotope(81.9166994, 0.0873)
             });
+
+            _carbon13 = new Element(6, "13C", new[]
+            {
+                new Isotope(13.0033548378, 1.0)
+            });
         }
 
         public void OverwriteElement(IElement element)
@@ -67,5 +73,7 @@ namespace TopDownProteomics.Tests
         {
             return _elements.Single(x => x?.Symbol == symbol);
         }
+
+        public IElement GetCarbon13() => _carbon13;
     }
 }

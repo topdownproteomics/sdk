@@ -3,7 +3,7 @@
 namespace TopDownProteomics.Chemistry
 {
     /// <summary>
-    /// Represents a single chemical element. Elements comprises of multiple
+    /// Represents a single chemical element. Elements are usually comprised of multiple
     /// isotopes, with the element mass being a weighted average of all the
     /// isotopes atomic masses weighted by their natural relative abundance.
     /// </summary>

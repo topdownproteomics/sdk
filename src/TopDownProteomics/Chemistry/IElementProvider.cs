@@ -18,5 +18,11 @@
         /// <param name="symbol">The symbol.</param>
         /// <returns></returns>
         IElement GetElement(string symbol);
+
+        /// <summary>
+        /// Gets the Carbon 13 isotopic element.
+        /// </summary>
+        /// <returns></returns>
+        IElement GetCarbon13();
     }
 }
