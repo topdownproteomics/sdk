@@ -74,7 +74,7 @@ namespace TopDownProteomics.Proteomics
                         }
                         else
                         {
-                            throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.Key}:{descriptor.Value}.");
+                            throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
                         }
                     }
                 }
