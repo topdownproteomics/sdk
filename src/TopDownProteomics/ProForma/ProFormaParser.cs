@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 
 namespace TopDownProteomics.ProForma
 {
@@ -34,14 +33,15 @@ namespace TopDownProteomics.ProForma
             bool inTag = false;
             bool inCTerminalTag = false;
             string prefixTag = null;
+            int openLeftBrackets = 0;
 
             for (int i = 0; i < proFormaString.Length; i++)
             {
                 char current = proFormaString[i];
 
-                if (current == '[')
+                if (current == '[' && openLeftBrackets++ == 0)
                     inTag = true;
-                else if (current == ']')
+                else if (current == ']' && --openLeftBrackets == 0)
                 {
                     // Handle terminal modifications and prefix tags
                     if (inCTerminalTag)
@@ -109,6 +109,9 @@ namespace TopDownProteomics.ProForma
                     sequence.Append(current);
                 }
             }
+
+            if (openLeftBrackets != 0)
+                throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString}");
 
             return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
         }

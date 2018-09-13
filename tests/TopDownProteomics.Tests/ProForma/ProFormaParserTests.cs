@@ -89,18 +89,19 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void ValueOnlyDescriptor()
+        [TestCase("PRO[Methyl]TEOFORM", "PROTEOFORM", "Methyl")]
+        [TestCase("PRO[Fe[III]]TEOFORM", "PROTEOFORM", "Fe[III]")]
+        public void ValueOnlyDescriptor(string proFormaString, string sequence, string modName)
         {
-            const string proFormaString = "PRO[Methyl]TEOFORM";
             var term = _parser.ParseString(proFormaString);
 
-            Assert.AreEqual("PROTEOFORM", term.Sequence);
+            Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mod, term.Tags.Single().Descriptors.Single().Key);
-            Assert.AreEqual("Methyl", term.Tags.Single().Descriptors.Single().Value);
+            Assert.AreEqual(modName, term.Tags.Single().Descriptors.Single().Value);
         }
 
         [Test]
@@ -430,6 +431,7 @@ namespace TopDownProteomics.Tests
         [Test]
         [TestCase("PRO[]TEOFORM")]
         [TestCase("PRO[mod:Methyl|]TEOFORM")]
+        [TestCase("PRO[mod:jk :] lol]TEOFORM")]
         //[TestCase("PRO[fake:Formaldehyde]TEOFORM")]
         [TestCase("PROTEOFXRM")]
         [TestCase("PROTEOF@RM")]
