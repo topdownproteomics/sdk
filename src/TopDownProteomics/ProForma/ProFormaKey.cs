@@ -51,7 +51,7 @@
         public static readonly string Info = "info";
 
         /// <summary>
-        /// Determines whether a key is one of the standard four keys used in comma-separated key-value pairs.
+        /// Determines whether a key is one of the allowed keys
         /// </summary>
         /// <param name="key">key in question</param>
         /// <returns>true if <paramref name="key"/> is one of the standard keys</returns>
