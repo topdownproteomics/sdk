@@ -49,5 +49,23 @@
         /// The user defined extra information
         /// </summary>
         public static readonly string Info = "info";
+
+        /// <summary>
+        /// Determines whether a key is one of the allowed keys
+        /// </summary>
+        /// <param name="key">key in question</param>
+        /// <returns>true if <paramref name="key"/> is one of the standard keys</returns>
+        public static bool IsValidKey(string key)
+        {
+            return key == Mod
+                || key == Unimod
+                || key == UniProt
+                || key == Resid
+                || key == PsiMod
+                || key == Brno
+                || key == Mass
+                || key == Formula
+                || key == Info;
+        }
     }
 }
