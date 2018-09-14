@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace TopDownProteomics.ProForma
@@ -132,7 +133,16 @@ namespace TopDownProteomics.ProForma
             {
                 int colon = descriptorText[i].IndexOf(':');
                 string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon).TrimStart();
-                string value = descriptorText[i].Substring(colon + 1); // values may have colons
+                string value;
+                if (ProFormaKey.IsValidKey(key))
+                {
+                    value = descriptorText[i].Substring(colon + 1); // values may have colons
+                }
+                else
+                {
+                    key = "";
+                    value = descriptorText[i];
+                }
 
                 // Prefix tag
                 if (!string.IsNullOrEmpty(prefixTag))

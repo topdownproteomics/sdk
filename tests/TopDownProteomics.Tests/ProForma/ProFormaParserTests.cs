@@ -28,18 +28,19 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void SimpleTag()
+        [TestCase("PRO[info:test]TEOFORM", "PROTEOFORM", "test")]
+        [TestCase("PRO[info:test[nested]]TEOFORM", "PROTEOFORM", "test[nested]")]
+        public void SimpleInfoTag(string proFormaString, string sequence, string value)
         {
-            const string proFormaString = "PRO[info:test]TEOFORM";
             var term = _parser.ParseString(proFormaString);
 
-            Assert.AreEqual("PROTEOFORM", term.Sequence);
+            Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors.Single().Key);
-            Assert.AreEqual("test", term.Tags.Single().Descriptors.Single().Value);
+            Assert.AreEqual(value, term.Tags.Single().Descriptors.Single().Value);
         }
 
         [Test]
@@ -90,7 +91,7 @@ namespace TopDownProteomics.Tests
 
         [Test]
         [TestCase("PRO[Methyl]TEOFORM", "PROTEOFORM", "Methyl")]
-        [TestCase("PRO[Fe[III]]TEOFORM", "PROTEOFORM", "Fe[III]")]
+        [TestCase("PRO[Cation:Fe[III]]TEOFORM", "PROTEOFORM", "Cation:Fe[III]")]
         public void ValueOnlyDescriptor(string proFormaString, string sequence, string modName)
         {
             var term = _parser.ParseString(proFormaString);
