@@ -17,7 +17,7 @@ namespace TopDownProteomics.Chemistry
         public IList<IElement> ParseFile(string filePath)
         {
             var lines = File.ReadAllLines(filePath);
-            List<IElement> elements = new List<IElement>();
+            var elements = new List<IElement>();
             int currentAtomNumber = -1;
             string currentSymbol = null;
             int currentMassNumber = -1;
