@@ -37,7 +37,7 @@ namespace TopDownProteomics.Tests.ProForma
         public void NoTagsValid()
         {
             const string sequence = "SEQVENCE";
-            var term = new ProFormaTerm(sequence, null, null, null);
+            var term = new ProFormaTerm(sequence, null, null, null, null);
             var proteoform = _factory.CreateProteoformGroup(term, null);
 
             Assert.IsNotNull(proteoform.Residues);
@@ -53,7 +53,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void TagsWithoutLookupThrowException()
         {
-            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
             });
@@ -66,7 +66,7 @@ namespace TopDownProteomics.Tests.ProForma
         {
             IProteoformModificationLookup modificationLookup = new IgnoreKeyModificationLookup(ProFormaKey.Mass);
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
             });
@@ -84,7 +84,7 @@ namespace TopDownProteomics.Tests.ProForma
                 new IgnoreKeyModificationLookup(ProFormaKey.Info)
             });
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") }),
                 new ProFormaTag(5, new[] { new ProFormaDescriptor("info", "not important") })
@@ -93,7 +93,7 @@ namespace TopDownProteomics.Tests.ProForma
 
             Assert.IsNull(proteoform.Modifications);
 
-            term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[]
                 {
@@ -112,7 +112,7 @@ namespace TopDownProteomics.Tests.ProForma
             const string sequence = "SEQVENCE";
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            var term = new ProFormaTerm(sequence, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm(sequence, null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("ac(BRNO)") })
             });
@@ -131,7 +131,7 @@ namespace TopDownProteomics.Tests.ProForma
         {
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("wrong(BRNO)") })
             });
@@ -149,7 +149,7 @@ namespace TopDownProteomics.Tests.ProForma
             });
 
             // Modifications have same chemical formula ... OK
-            var term = new ProFormaTerm("SEQVKENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
@@ -162,7 +162,7 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.AreEqual(1, proteoform.Modifications.Count);
 
             // Modifications have different chemical formulas ... throw!
-            term = new ProFormaTerm("SEQVKENCE", null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
@@ -176,7 +176,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void HandleDatabaseAccessionTag()
         {
-            var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0038") })
             });

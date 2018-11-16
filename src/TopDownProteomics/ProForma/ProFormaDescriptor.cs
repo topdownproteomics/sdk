@@ -40,5 +40,14 @@
         /// The value.
         /// </summary>
         public string Value { get; }
+
+        /// <summary>
+        /// String representation of <see cref="ProFormaDescriptor"/>
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"{Key}:{Value}";
+        }
     }
 }

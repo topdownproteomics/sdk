@@ -56,7 +56,7 @@ namespace TopDownProteomics.ProForma.Validation
                 case "ph": return _modifications[6];
 
                 default:
-                    throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
+                    throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.ToString()}.");
             }
         }
 
