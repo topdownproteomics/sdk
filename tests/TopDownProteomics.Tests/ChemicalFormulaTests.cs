@@ -36,11 +36,11 @@ namespace TopDownProteomics.Tests.ProForma
             var provider = new MockElementProvider();
             provider.OverwriteElement(new Element(1, "H", new[]
             {
-                new Isotope(1, 1.0)
+                new Isotope(1, 0, 1.0)
             }));
             provider.OverwriteElement(new Element(8, "O", new[]
             {
-                new Isotope(16, 1.0)
+                new Isotope(16, 8, 1.0)
             }));
 
             var formula = ChemicalFormula.Water(provider);
@@ -52,8 +52,8 @@ namespace TopDownProteomics.Tests.ProForma
             // Switch to 75/25
             provider.OverwriteElement(new Element(8, "O", new[]
             {
-                new Isotope(16, 0.75),
-                new Isotope(17, 0.25)
+                new Isotope(16, 8, 0.75),
+                new Isotope(17, 9, 0.25)
             }));
 
             formula = ChemicalFormula.Water(provider);
@@ -79,6 +79,33 @@ namespace TopDownProteomics.Tests.ProForma
 
             Assert.AreEqual(formula, formula2);
             Assert.AreNotEqual(formula, formula3);
+        }
+
+        [Test]
+        public void Carbon13Test()
+        {
+            IElementProvider provider = new MockElementProvider();
+            IElement c = provider.GetElement("C");
+            IElement c13 = provider.GetElement("C", 13);
+
+            var formula = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(c, 1),
+                new EntityCardinality<IElement>(c13, 1),
+            });
+
+            var elements = formula.GetElements();
+
+            Assert.AreEqual(2, elements.Count);
+
+            // Check masses
+            Assert.AreEqual(c.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass
+                + c13.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass,
+                formula.GetMass(MassType.Monoisotopic));
+            Assert.AreEqual(c.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance)
+                + c13.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance),
+                formula.GetMass(MassType.Average));
+            Assert.AreEqual(c13.GetMass(MassType.Monoisotopic), c13.GetMass(MassType.Average));
         }
     }
 }

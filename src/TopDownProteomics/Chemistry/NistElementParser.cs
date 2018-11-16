@@ -20,6 +20,7 @@ namespace TopDownProteomics.Chemistry
             List<IElement> elements = new List<IElement>();
             int currentAtomNumber = -1;
             string currentSymbol = null;
+            int currentMassNumber = -1;
             List<IIsotope> currentIsotopes = null;
             double currentRelativeAtomicMass = 0.0;
             double currentIsotopicComposition = 0.0;
@@ -44,6 +45,10 @@ namespace TopDownProteomics.Chemistry
                 else if (lines[i].StartsWith("Atomic Symbol = ") && currentSymbol == null)
                 {
                     currentSymbol = lines[i].Substring(lines[i].LastIndexOf('=') + 1).Trim();
+                }
+                else if (lines[i].StartsWith("Mass Number = "))
+                {
+                    currentMassNumber = Convert.ToInt32(lines[i].Substring(lines[i].LastIndexOf('=') + 1).Trim());
                 }
                 else if (lines[i].StartsWith("Relative Atomic Mass = "))
                 {
@@ -71,7 +76,7 @@ namespace TopDownProteomics.Chemistry
                     if (currentIsotopes == null)
                         currentIsotopes = new List<IIsotope>();
 
-                    currentIsotopes.Add(new Isotope(currentRelativeAtomicMass, currentIsotopicComposition));
+                    currentIsotopes.Add(new Isotope(currentRelativeAtomicMass, currentMassNumber - currentAtomNumber, currentIsotopicComposition));
                 }
             }
 

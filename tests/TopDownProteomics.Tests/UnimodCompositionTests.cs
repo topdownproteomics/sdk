@@ -145,7 +145,7 @@ namespace TopDownProteomics.Tests
                 });
 
                 _carbon13 = new UnimodCompositionAtom("13C", "Carbon 13", new[] {
-                    new EntityCardinality<IElement>(elementProvider.GetCarbon13(), 1) });
+                    new EntityCardinality<IElement>(elementProvider.GetElement(6, 13), 1) });
             }
 
             public UnimodCompositionAtom GetUnimodCompositionAtom(string symbol)
