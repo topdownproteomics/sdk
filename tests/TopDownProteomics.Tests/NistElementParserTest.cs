@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
 using TopDownProteomics.Chemistry;
@@ -11,7 +12,7 @@ namespace TopDownProteomics.Tests
         [Test]
         public void LoadEntireFile()
         {
-            NistElementParser parser = new NistElementParser();
+            var parser = new NistElementParser();
             var elements = parser.ParseFile(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "elements.dat"));
 
             Assert.IsNotNull(elements);
@@ -26,6 +27,12 @@ namespace TopDownProteomics.Tests
             var h2 = h.Isotopes.Single(x => x.AtomicMass > 2);
             Assert.AreEqual(2.01410177812, h2.AtomicMass);
             Assert.AreEqual(0.000115, h2.RelativeAbundance);
+
+            var c = elements.Single(x => x.AtomicNumber == 6);
+            var c12 = c.Isotopes.Single(x => Math.Round(x.AtomicMass) == 12);
+            Assert.AreEqual(6, c12.NeutronCount);
+            var c13 = c.Isotopes.Single(x => Math.Round(x.AtomicMass) == 13);
+            Assert.AreEqual(7, c13.NeutronCount);
 
             var xe = elements.Single(x => x.AtomicNumber == 54);
             Assert.AreEqual("Xe", xe.Symbol);

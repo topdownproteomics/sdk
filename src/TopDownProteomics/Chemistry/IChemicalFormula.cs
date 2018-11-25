@@ -14,12 +14,6 @@ namespace TopDownProteomics.Chemistry
         /// <returns></returns>
         IReadOnlyCollection<IEntityCardinality<IElement>> GetElements();
 
-        ///// <summary>
-        ///// Gets the independent isotopes.
-        ///// </summary>
-        ///// <returns></returns>
-        //IEntityCardinality<IIsotope> GetIndependentIsotopes();
-
         /// <summary>
         /// Adds the specified formula.
         /// </summary>

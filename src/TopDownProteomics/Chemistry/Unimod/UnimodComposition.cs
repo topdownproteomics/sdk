@@ -42,7 +42,7 @@ namespace TopDownProteomics.Chemistry.Unimod
 
                 if (symbol.Contains("("))
                 {
-                    int startIndex = atoms[0].IndexOf("(");
+                    int startIndex = atoms[i].IndexOf("(");
                     symbol = atoms[i].Substring(0, startIndex);
                     count = Convert.ToInt32(atoms[i].Substring(startIndex + 1, atoms[i].Length - startIndex - 2));
                 }
