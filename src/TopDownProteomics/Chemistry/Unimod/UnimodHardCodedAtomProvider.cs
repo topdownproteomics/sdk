@@ -29,34 +29,10 @@ namespace TopDownProteomics.Chemistry.Unimod
             var o = elementProvider.GetElement(8);
             var s = elementProvider.GetElement(16);
 
-            atoms.Add("13C", new UnimodCompositionAtom("13C", "Carbon 13", new[]
-            {
-                new EntityCardinality<IElement>(new Element(c.AtomicNumber, c.Symbol, new[]
-                {
-                    c.Isotopes.FirstWithMax(x => x.AtomicMass)
-                }), 1)
-            }));
-            atoms.Add("15N", new UnimodCompositionAtom("15N", "Nitrogen 15", new[]
-            {
-                new EntityCardinality<IElement>(new Element(n.AtomicNumber, n.Symbol, new[]
-                {
-                    n.Isotopes.FirstWithMax(x => x.AtomicMass)
-                }), 1)
-            }));
-            atoms.Add("18O", new UnimodCompositionAtom("18O", "Oxygen 18", new[]
-            {
-                new EntityCardinality<IElement>(new Element(o.AtomicNumber, o.Symbol, new[]
-                {
-                    o.Isotopes.FirstWithMax(x => x.AtomicMass)
-                }), 1)
-            }));
-            atoms.Add("2H", new UnimodCompositionAtom("2H", "Deuterium", new[]
-                        {
-                new EntityCardinality<IElement>(new Element(h.AtomicNumber, h.Symbol, new[]
-                {
-                    h.Isotopes.FirstWithMax(x => x.AtomicMass)
-                }), 1)
-            }));
+            this.AddElement(atoms, elementProvider, "13C", "Carbon 13", "C", 13);
+            this.AddElement(atoms, elementProvider, "15N", "Nitrogen 15", "N", 15);
+            this.AddElement(atoms, elementProvider, "18O", "Oxygen 18", "O", 18);
+            this.AddElement(atoms, elementProvider, "2H", "Deuterium", "H", 2);
 
             // Never used
             //atoms.Add("Ac", new UnimodCompositionAtom("Ac", "Acetate", new[]
@@ -220,9 +196,20 @@ namespace TopDownProteomics.Chemistry.Unimod
             return atoms;
         }
 
-        private void AddElement(Dictionary<string, UnimodCompositionAtom> atoms, IElementProvider elementProvider, string symbol, string name)
+        private void AddElement(Dictionary<string, UnimodCompositionAtom> atoms, IElementProvider elementProvider,
+            string symbol, string name)
         {
             IElement element = elementProvider.GetElement(symbol);
+            atoms.Add(symbol, new UnimodCompositionAtom(symbol, name, new[]
+            {
+                new EntityCardinality<IElement>(element, 1)
+            }));
+        }
+
+        private void AddElement(Dictionary<string, UnimodCompositionAtom> atoms, IElementProvider elementProvider,
+            string symbol, string name, string elementSymbol, int? fixedIsotopeNumber = null)
+        {
+            IElement element = elementProvider.GetElement(elementSymbol, fixedIsotopeNumber);
             atoms.Add(symbol, new UnimodCompositionAtom(symbol, name, new[]
             {
                 new EntityCardinality<IElement>(element, 1)

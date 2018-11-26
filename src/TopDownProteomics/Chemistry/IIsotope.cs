@@ -12,6 +12,11 @@
         double AtomicMass { get; }
 
         /// <summary>
+        /// Gets the number of neutrons present in the atom's nucleus.
+        /// </summary>
+        int NeutronCount { get; }
+
+        /// <summary>
         /// The occurance of this isotope relative to others from a given element.
         /// </summary>
         /// <value>

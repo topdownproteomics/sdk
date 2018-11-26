@@ -28,18 +28,19 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void SimpleTag()
+        [TestCase("PRO[info:test]TEOFORM", "PROTEOFORM", "test")]
+        [TestCase("PRO[info:test[nested]]TEOFORM", "PROTEOFORM", "test[nested]")]
+        public void SimpleInfoTag(string proFormaString, string sequence, string value)
         {
-            const string proFormaString = "PRO[info:test]TEOFORM";
             var term = _parser.ParseString(proFormaString);
 
-            Assert.AreEqual("PROTEOFORM", term.Sequence);
+            Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors.Single().Key);
-            Assert.AreEqual("test", term.Tags.Single().Descriptors.Single().Value);
+            Assert.AreEqual(value, term.Tags.Single().Descriptors.Single().Value);
         }
 
         [Test]
@@ -89,18 +90,19 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void ValueOnlyDescriptor()
+        [TestCase("PRO[Methyl]TEOFORM", "PROTEOFORM", "Methyl")]
+        [TestCase("PRO[Cation:Fe[III]]TEOFORM", "PROTEOFORM", "Cation:Fe[III]")]
+        public void ValueOnlyDescriptor(string proFormaString, string sequence, string modName)
         {
-            const string proFormaString = "PRO[Methyl]TEOFORM";
             var term = _parser.ParseString(proFormaString);
 
-            Assert.AreEqual("PROTEOFORM", term.Sequence);
+            Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mod, term.Tags.Single().Descriptors.Single().Key);
-            Assert.AreEqual("Methyl", term.Tags.Single().Descriptors.Single().Value);
+            Assert.AreEqual(modName, term.Tags.Single().Descriptors.Single().Value);
         }
 
         [Test]
@@ -215,6 +217,88 @@ namespace TopDownProteomics.Tests
         [TestCase("[mass]+[mod:Methyl]-SEQVENCE")]
         [TestCase("[Methyl]-[mass]+SEQ[14.05]VENCE")]
         public void Rule6_7_Invalid(string proFormaString)
+        {
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
+        }
+
+        public void PossibleSiteAmbiguityRules()
+        {
+            const string proFormaString = "PROT[Phospho|#eg]EOS[#eg]FORMS[#eg]";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("PROTEOSFORMS", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(3, term.Tags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(3, tag1.ZeroBasedIndex);
+            Assert.AreEqual(2, tag1.Descriptors.Count);
+            Assert.AreEqual(1, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Count());
+            Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Affix);
+            Assert.AreEqual("eg", tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Group);
+
+            ProFormaTag tag2 = term.Tags[1];
+            Assert.AreEqual(6, tag2.ZeroBasedIndex);
+            Assert.AreEqual(1, tag2.Descriptors.Count);
+            Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, tag2.Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Affix);
+            Assert.AreEqual("eg", tag2.Descriptors.Single().Value);
+            Assert.AreEqual("eg", (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Group);
+        }
+
+        public void RangeAmbiguityRules()
+        {
+            const string proFormaString = "PROT[mass:19|A->]EOSFORMS[<-A]";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("PROTEOSFORMS", term.Sequence);
+            Assert.IsNotNull(term.Tags);
+            Assert.AreEqual(2, term.Tags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            ProFormaTag tag1 = term.Tags[0];
+            Assert.AreEqual(3, tag1.ZeroBasedIndex);
+            Assert.AreEqual(2, tag1.Descriptors.Count);
+            Assert.AreEqual(1, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Count());
+            Assert.AreEqual(ProFormaAmbiguityAffix.LeftBoundary, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Affix);
+            Assert.AreEqual("A", tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Group);
+
+            ProFormaTag tag2 = term.Tags[1];
+            Assert.AreEqual(11, tag2.ZeroBasedIndex);
+            Assert.AreEqual(1, tag2.Descriptors.Count);
+            Assert.AreEqual(ProFormaAmbiguityAffix.RightBoundary, tag2.Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaAmbiguityAffix.RightBoundary, (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Affix);
+            Assert.AreEqual("A", tag2.Descriptors.Single().Value);
+            Assert.AreEqual("A", (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Group);
+        }
+
+        public void UnlocalizedAmbiguityRules()
+        {
+            const string proFormaString = "[Phospho]?PROTEOSFORMS";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("PROTEOSFORMS", term.Sequence);
+            Assert.IsNull(term.Tags);
+            Assert.IsNotNull(term.UnlocalizedTags);
+            Assert.AreEqual(1, term.UnlocalizedTags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
+
+            ProFormaTag tag1 = term.UnlocalizedTags[0];
+            Assert.AreEqual(-1, tag1.ZeroBasedIndex);
+            Assert.AreEqual(1, tag1.Descriptors.Count);
+            Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.Single().Key);
+            Assert.AreEqual("Phospho", tag1.Descriptors.Single().Value);
+        }
+
+        [Test]
+        [TestCase("[Acetyl]-[Phospho]?PROTEOFORM")] // terminal mods must be adjacent to sequence
+        [TestCase("PROT[Phospho|#]EOFORMS[#]")] // empty group string
+        [TestCase("PROT[Phospho|->]EOFORMS[<-]")] // empty group string
+        public void AmbiguityRulesInvalid(string proFormaString)
         {
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
@@ -348,6 +432,7 @@ namespace TopDownProteomics.Tests
         [Test]
         [TestCase("PRO[]TEOFORM")]
         [TestCase("PRO[mod:Methyl|]TEOFORM")]
+        [TestCase("PRO[mod:jk :] lol]TEOFORM")]
         //[TestCase("PRO[fake:Formaldehyde]TEOFORM")]
         [TestCase("PROTEOFXRM")]
         [TestCase("PROTEOF@RM")]

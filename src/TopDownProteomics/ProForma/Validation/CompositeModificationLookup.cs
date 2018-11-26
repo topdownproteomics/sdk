@@ -46,7 +46,7 @@ namespace TopDownProteomics.ProForma.Validation
                     return lookup.GetModification(descriptor);
             }
 
-            throw new ProteoformGroupCreateException($"Couldn't handle value for descriptor {descriptor.Key}:{descriptor.Value}.");
+            throw new ProteoformGroupCreateException($"Couldn't handle value for descriptor {descriptor.ToString()}.");
         }
     }
 }
