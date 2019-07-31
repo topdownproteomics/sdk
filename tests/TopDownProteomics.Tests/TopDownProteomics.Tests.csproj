@@ -64,9 +64,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnimodCompositionTests.cs" />
     <Compile Include="UWMadisonTests\ChemicalFormulaTestFixture.cs" />
-    <Compile Include="UWMadisonTests\ElementsAndIsotopesTests.cs" />
-    <Compile Include="UWMadisonTests\MassTestFixture.cs" />
-    <Compile Include="UWMadisonTests\SetUpTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

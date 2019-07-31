@@ -16,11 +16,11 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with Chemistry Library. If not, see <http://www.gnu.org/licenses/>
 
-using UWMadison.Chemistry;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TopDownProteomics.Chemistry;
 
 namespace Test
 {

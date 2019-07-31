@@ -138,7 +138,7 @@ namespace TopDownProteomics.Chemistry
             if (otherFormula == null)
                 return this;
 
-            List<IEntityCardinality<IElement>> otherElements = otherFormula.GetElements().ToList();
+            var otherElements = otherFormula.GetElements().ToList();
 
             if (otherElements.Count == 0)
                 return this;

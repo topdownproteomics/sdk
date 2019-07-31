@@ -270,7 +270,7 @@ namespace TopDownProteomics.Tools
 
                     var poww = tempPolynomial.Power;
                     var probb = tempPolynomial.Probablity;
-                    if (double.IsNaN(poww) || double.IsNaN(prob))
+                    if (double.IsNaN(poww) || double.IsNaN(probb))
                         fgidPolynomial[indext] = new Polynomial { Power = power * prob, Probablity = prob };
                     else
                         fgidPolynomial[indext] = new Polynomial { Power = poww + power * prob, Probablity = probb + prob };
