@@ -50,7 +50,31 @@ namespace TopDownProteomics.Proteomics
 
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
-            List<IProteoformModification> modifications = null;
+            List<IProteoformModificationWithIndex> modifications = null;
+            IProteoformModification nTerminalModification = null;
+            IProteoformModification cTerminalModification = null;
+
+            if (term.NTerminalDescriptors != null && term.NTerminalDescriptors.Count > 0)
+            {
+                if (modificationLookup == null)
+                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
+
+                foreach (var descriptor in term.NTerminalDescriptors)
+                {
+                    nTerminalModification = this.GetModification(descriptor, modificationLookup);
+                }
+            }
+            if (term.CTerminalDescriptors != null && term.CTerminalDescriptors.Count > 0)
+            {
+                if (modificationLookup == null)
+                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
+
+                foreach (var descriptor in term.CTerminalDescriptors)
+                {
+                    cTerminalModification = this.GetModification(descriptor, modificationLookup);
+                }
+            }
+
             if (term.Tags != null && term.Tags.Count > 0)
             {
                 if (modificationLookup == null)
@@ -60,49 +84,81 @@ namespace TopDownProteomics.Proteomics
                 {
                     foreach (var descriptor in tag.Descriptors)
                     {
-                        if (modificationLookup.CanHandleDescriptor(descriptor))
+                        IProteoformModification modification = this.GetModification(descriptor, modificationLookup);
+                        if (modification != null)
                         {
-                            var modification = modificationLookup.GetModification(descriptor);
+                            if (modifications == null)
+                                modifications = new List<IProteoformModificationWithIndex>();
 
-                            if (modification != null)
-                            {
-                                if (modifications == null)
-                                    modifications = new List<IProteoformModification>();
-
-                                modifications.Add(modification);
-                            }
-                        }
-                        else
-                        {
-                            throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+                            IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modification, tag.ZeroBasedIndex);
+                            modifications.Add(proteoformModificationWithIndex);
                         }
                     }
                 }
             }
 
-            return new ProteoformGroup(residues, modifications, _water);
+            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
+        }
+
+        private IProteoformModification GetModification(ProFormaDescriptor descriptor, IProteoformModificationLookup modificationLookup)
+        {
+            if (modificationLookup.CanHandleDescriptor(descriptor))
+            {
+                return modificationLookup.GetModification(descriptor);
+            }
+            else
+            {
+                throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+            }
+        }
+
+        private class ProteoformModificationWithIndex : IProteoformModificationWithIndex
+        {
+            private IProteoformModification _proteoformModification;
+            private int _index;
+
+            public ProteoformModificationWithIndex(IProteoformModification proteoformModification, int zeroBasedIndex)
+            {
+                _proteoformModification = proteoformModification;
+                _index = zeroBasedIndex;
+            }
+
+            public int ZeroBasedIndex => this._index;
+
+            public IChemicalFormula GetChemicalFormula()
+            {
+                return this._proteoformModification.GetChemicalFormula();
+            }
         }
 
         private class ProteoformGroup : IProteoformGroup
         {
             public ProteoformGroup(IReadOnlyList<IResidue> residues,
-                IReadOnlyCollection<IProteoformModification> modifications,
+                IProteoformModification nTerminalModification,
+                IProteoformModification cTerminalModification,
+                IReadOnlyCollection<IProteoformModificationWithIndex> modifications,
                 IChemicalFormula water)
             {
                 this.Residues = residues;
+                this.NTerminalModification = nTerminalModification;
+                this.CTerminalModification = cTerminalModification;
                 this.Modifications = modifications;
                 this.Water = water;
             }
 
             public IReadOnlyList<IResidue> Residues { get; }
-            public IReadOnlyCollection<IProteoformModification> Modifications { get; }
+            public IProteoformModification NTerminalModification { get; }
+            public IProteoformModification CTerminalModification { get; }
+            public IReadOnlyCollection<IProteoformModificationWithIndex> Modifications { get; }
             public IChemicalFormula Water { get; }
 
             public double GetMass(MassType massType)
             {
                 return this.Water.GetMass(massType) +
                     this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0);
+                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0) +
+                    (this.NTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0) +
+                    (this.CTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0);
             }
         }
     }
