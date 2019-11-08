@@ -61,7 +61,19 @@ namespace TopDownProteomics.Proteomics
 
                 foreach (var descriptor in term.NTerminalDescriptors)
                 {
-                    nTerminalModification = this.GetModification(descriptor, modificationLookup);
+                    IProteoformModification mod = this.GetModification(descriptor, modificationLookup);
+
+                    if (nTerminalModification == null)
+                    {
+                        nTerminalModification = mod;
+                    }
+                    else if (mod != null)
+                    {
+                        if (! mod.GetChemicalFormula().Equals(nTerminalModification))
+                        {
+                            throw new ProteoformGroupCreateException($"Multiple N Terminal Modifications");
+                        }
+                    }
                 }
             }
             if (term.CTerminalDescriptors != null && term.CTerminalDescriptors.Count > 0)
@@ -71,7 +83,19 @@ namespace TopDownProteomics.Proteomics
 
                 foreach (var descriptor in term.CTerminalDescriptors)
                 {
-                    cTerminalModification = this.GetModification(descriptor, modificationLookup);
+                    IProteoformModification mod = this.GetModification(descriptor, modificationLookup);
+
+                    if (cTerminalModification == null)
+                    {
+                        cTerminalModification = mod;
+                    }
+                    else if (mod != null)
+                    {
+                        if (!mod.GetChemicalFormula().Equals(cTerminalModification))
+                        {
+                            throw new ProteoformGroupCreateException($"Multiple C Terminal Modifications");
+                        }
+                    }
                 }
             }
 
@@ -82,17 +106,32 @@ namespace TopDownProteomics.Proteomics
 
                 foreach (var tag in term.Tags)
                 {
+                    IProteoformModification modificationAtIndex = null;
+
                     foreach (var descriptor in tag.Descriptors)
                     {
                         IProteoformModification modification = this.GetModification(descriptor, modificationLookup);
-                        if (modification != null)
-                        {
-                            if (modifications == null)
-                                modifications = new List<IProteoformModificationWithIndex>();
 
-                            IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modification, tag.ZeroBasedIndex);
-                            modifications.Add(proteoformModificationWithIndex);
+                        if (modificationAtIndex == null)
+                        {
+                            modificationAtIndex = modification;
                         }
+                        else if (modification != null)
+                        {
+                            if (!modification.GetChemicalFormula().Equals(modificationAtIndex.GetChemicalFormula()))
+                            {
+                                throw new ProteoformGroupCreateException($"Multiple modifications at index: {tag.ZeroBasedIndex}");
+                            }
+                        }
+                    }
+
+                    if (modificationAtIndex != null)
+                    {
+                        if (modifications == null)
+                            modifications = new List<IProteoformModificationWithIndex>();
+
+                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedIndex);
+                        modifications.Add(proteoformModificationWithIndex);
                     }
                 }
             }

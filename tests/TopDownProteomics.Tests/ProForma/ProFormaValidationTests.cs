@@ -171,13 +171,14 @@ namespace TopDownProteomics.Tests.ProForma
         }
 
         [Test]
-        [Ignore("Advanced scenario ... keep waiting.")]
         public void MultipleModsOneSite()
         {
-            var modificationLookup = new CompositeModificationLookup(new[]
+            var modificationLookup = new CompositeModificationLookup(new IProteoformModificationLookup[]
             {
                 new IgnoreKeyModificationLookup(ProFormaKey.Mass),
-                new IgnoreKeyModificationLookup(ProFormaKey.Info)
+                new IgnoreKeyModificationLookup(ProFormaKey.Info),
+                new BrnoModificationLookup(_elementProvider),
+                _residLookup
             });
 
             // Modifications have same chemical formula ... OK
@@ -185,8 +186,8 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("Acetyl"),
-                    new ProFormaDescriptor("Unimod:1")
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
                 })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -199,8 +200,8 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("Methyl"),
-                    new ProFormaDescriptor("Acetyl")
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
                 })
             });
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
