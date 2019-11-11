@@ -205,6 +205,36 @@ namespace TopDownProteomics.Tests.ProForma
                 })
             });
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
+
+            // What about different mods at different indexes?
+            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            {
+                new ProFormaTag(4, new[]
+                {
+                    new ProFormaDescriptor("ac(BRNO)")
+                }),
+                new ProFormaTag(7, new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                })
+            });
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNotNull(proteoform.Modifications);
+            Assert.AreEqual(2, proteoform.Modifications.Count);
+
+            // What about descriptors that don't have chemical formulas?
+            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            {
+                new ProFormaTag(7, new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("info:hello!")
+                })
+            });
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNotNull(proteoform.Modifications);
+            Assert.AreEqual(1, proteoform.Modifications.Count);
+            Assert.AreEqual(7, proteoform.Modifications.Single().ZeroBasedIndex);
         }
 
         [Test]
