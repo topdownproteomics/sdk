@@ -228,13 +228,55 @@ namespace TopDownProteomics.Tests.ProForma
                 new ProFormaTag(7, new[]
                 {
                     new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("info:hello!")
+                    new ProFormaDescriptor("info", "hello!")
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
             Assert.AreEqual(7, proteoform.Modifications.Single().ZeroBasedIndex);
+
+            // Multiple N terminal mods.
+            term = new ProFormaTerm("SEQVKENCE", null,
+                new[]
+                {
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
+                }, null, null
+            );
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.NTerminalModification);
+
+            term = new ProFormaTerm("SEQVKENCE", null,
+                new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
+                }, null, null
+            );
+            Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
+
+            // Multiple C terminal mods.
+            term = new ProFormaTerm("SEQVKENCE", null, null,
+                new[]
+                {
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
+                }, null
+            );
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.CTerminalModification);
+
+            term = new ProFormaTerm("SEQVKENCE", null, null,
+                new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
+                }, null
+            );
+            Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
         }
 
         [Test]

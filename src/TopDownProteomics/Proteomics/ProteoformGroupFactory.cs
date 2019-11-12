@@ -105,7 +105,7 @@ namespace TopDownProteomics.Proteomics
                     }
                     else if (mod != null)
                     {
-                        if (!mod.GetChemicalFormula().Equals(modification))
+                        if (!mod.GetChemicalFormula().Equals(modification.GetChemicalFormula()))
                         {
                             throw new ProteoformGroupCreateException(multipleModsErrorMessage);
                         }
@@ -119,15 +119,14 @@ namespace TopDownProteomics.Proteomics
         private class ProteoformModificationWithIndex : IProteoformModificationWithIndex
         {
             private IProteoformModification _proteoformModification;
-            private int _index;
 
             public ProteoformModificationWithIndex(IProteoformModification proteoformModification, int zeroBasedIndex)
             {
                 _proteoformModification = proteoformModification;
-                _index = zeroBasedIndex;
+                ZeroBasedIndex = zeroBasedIndex;
             }
 
-            public int ZeroBasedIndex => this._index;
+            public int ZeroBasedIndex { get; }
 
             public IChemicalFormula GetChemicalFormula()
             {
