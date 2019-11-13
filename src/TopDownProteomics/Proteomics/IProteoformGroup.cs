@@ -16,9 +16,18 @@ namespace TopDownProteomics.Proteomics
         IReadOnlyList<IResidue> Residues { get; }
 
         /// <summary>
+        /// The N terminal modification on this proteoform.
+        /// </summary>
+        IProteoformModification NTerminalModification { get; }
+        /// <summary>
+        /// The C terminal modification on this proteoform.
+        /// </summary>
+        IProteoformModification CTerminalModification { get; }
+
+        /// <summary>
         /// The modifications on this proteoform.
         /// </summary>
-        IReadOnlyCollection<IProteoformModification> Modifications { get; }
+        IReadOnlyCollection<IProteoformModificationWithIndex> Modifications { get; }
     }
 
     /// <summary>
