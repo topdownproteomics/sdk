@@ -51,48 +51,24 @@ namespace TopDownProteomics.Proteomics
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
             List<IProteoformModificationWithIndex> modifications = null;
-            IProteoformModification nTerminalModification = null;
-            IProteoformModification cTerminalModification = null;
+            IProteoformModification nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
+            IProteoformModification cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
 
-            if (term.NTerminalDescriptors != null && term.NTerminalDescriptors.Count > 0)
+            if (term.Tags?.Count > 0)
             {
-                if (modificationLookup == null)
-                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
-
-                foreach (var descriptor in term.NTerminalDescriptors)
-                {
-                    nTerminalModification = this.GetModification(descriptor, modificationLookup);
-                }
-            }
-            if (term.CTerminalDescriptors != null && term.CTerminalDescriptors.Count > 0)
-            {
-                if (modificationLookup == null)
-                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
-
-                foreach (var descriptor in term.CTerminalDescriptors)
-                {
-                    cTerminalModification = this.GetModification(descriptor, modificationLookup);
-                }
-            }
-
-            if (term.Tags != null && term.Tags.Count > 0)
-            {
-                if (modificationLookup == null)
-                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
-
                 foreach (var tag in term.Tags)
                 {
-                    foreach (var descriptor in tag.Descriptors)
-                    {
-                        IProteoformModification modification = this.GetModification(descriptor, modificationLookup);
-                        if (modification != null)
-                        {
-                            if (modifications == null)
-                                modifications = new List<IProteoformModificationWithIndex>();
+                    IProteoformModification modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
+                        $"Multiple modifications at index: {tag.ZeroBasedIndex}");
 
-                            IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modification, tag.ZeroBasedIndex);
-                            modifications.Add(proteoformModificationWithIndex);
-                        }
+                    // Lazy create the modifications list and add
+                    if (modificationAtIndex != null)
+                    {
+                        if (modifications == null)
+                            modifications = new List<IProteoformModificationWithIndex>();
+
+                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedIndex);
+                        modifications.Add(proteoformModificationWithIndex);
                     }
                 }
             }
@@ -100,30 +76,57 @@ namespace TopDownProteomics.Proteomics
             return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
         }
 
-        private IProteoformModification GetModification(ProFormaDescriptor descriptor, IProteoformModificationLookup modificationLookup)
+        private IProteoformModification GetModification(IList<ProFormaDescriptor> descriptors, IProteoformModificationLookup modificationLookup,
+            string multipleModsErrorMessage)
         {
-            if (modificationLookup.CanHandleDescriptor(descriptor))
+            IProteoformModification modification = null;
+
+            if (descriptors != null && descriptors.Count > 0)
             {
-                return modificationLookup.GetModification(descriptor);
+                if (modificationLookup == null)
+                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
+
+                foreach (var descriptor in descriptors)
+                {
+                    IProteoformModification mod = null;
+
+                    if (modificationLookup.CanHandleDescriptor(descriptor))
+                    {
+                        mod = modificationLookup.GetModification(descriptor);
+                    }
+                    else
+                    {
+                        throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+                    }
+
+                    if (modification == null)
+                    {
+                        modification = mod;
+                    }
+                    else if (mod != null)
+                    {
+                        if (!mod.GetChemicalFormula().Equals(modification.GetChemicalFormula()))
+                        {
+                            throw new ProteoformGroupCreateException(multipleModsErrorMessage);
+                        }
+                    }
+                }
             }
-            else
-            {
-                throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
-            }
+
+            return modification;
         }
 
         private class ProteoformModificationWithIndex : IProteoformModificationWithIndex
         {
             private IProteoformModification _proteoformModification;
-            private int _index;
 
             public ProteoformModificationWithIndex(IProteoformModification proteoformModification, int zeroBasedIndex)
             {
                 _proteoformModification = proteoformModification;
-                _index = zeroBasedIndex;
+                ZeroBasedIndex = zeroBasedIndex;
             }
 
-            public int ZeroBasedIndex => this._index;
+            public int ZeroBasedIndex { get; }
 
             public IChemicalFormula GetChemicalFormula()
             {
