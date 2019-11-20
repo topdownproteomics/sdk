@@ -116,24 +116,6 @@ namespace TopDownProteomics.Proteomics
             return modification;
         }
 
-        private class ProteoformModificationWithIndex : IProteoformModificationWithIndex
-        {
-            private IProteoformModification _proteoformModification;
-
-            public ProteoformModificationWithIndex(IProteoformModification proteoformModification, int zeroBasedIndex)
-            {
-                _proteoformModification = proteoformModification;
-                ZeroBasedIndex = zeroBasedIndex;
-            }
-
-            public int ZeroBasedIndex { get; }
-
-            public IChemicalFormula GetChemicalFormula()
-            {
-                return this._proteoformModification.GetChemicalFormula();
-            }
-        }
-
         private class ProteoformGroup : IProteoformGroup
         {
             public ProteoformGroup(IReadOnlyList<IResidue> residues,

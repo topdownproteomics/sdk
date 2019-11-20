@@ -56,6 +56,7 @@
     <Compile Include="MockElementProvider.cs" />
     <Compile Include="MockUnimodCompositionAtomProvider.cs" />
     <Compile Include="NistElementParserTest.cs" />
+    <Compile Include="ProForma\ChemicalProteoformHashTests.cs" />
     <Compile Include="Tools\MSNumpressTests.cs" />
     <Compile Include="ProForma\ProFormaParserTests.cs" />
     <Compile Include="ProForma\ProFormaWriterTests.cs" />
