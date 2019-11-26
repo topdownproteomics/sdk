@@ -9,89 +9,98 @@ using TopDownProteomics.Chemistry;
 using TopDownProteomics.IO.Resid;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
+using TopDownProteomics.ProteoformHash;
 using TopDownProteomics.Proteomics;
 using TopDownProteomics.Tests.IO;
 
-namespace TopDownProteomics.Tests.ProForma
+namespace TopDownProteomics.Tests.ProteoformHash
 {
     [TestFixture]
-    class ChemicalProteoformHashTests
+    public class ChemicalProteoformHashTests
     {
         IElementProvider _elementProvider;
         IResidueProvider _residueProvider;
         IProteoformModificationLookup _lookup;
-        IProteoformModification _acetyl;
-        string _acetylDescriptorString = "[formula:C2H2O1]";
+        string _acetylDescriptorString = "[formula:C(2) H(2) O]";
+        ChemicalProteoformHashGenerator _chemicalProteoformHashGenerator;
+        string _acetylBrnoString = "[mod:ac(BRNO)]";
 
         [OneTimeSetUp]
         public void Setup()
         {
             _elementProvider = new MockElementProvider();
             _residueProvider = new IupacAminoAcidProvider(_elementProvider);
+            //_lookup = new FormulaLookup(_elementProvider);
+            _lookup = new CompositeModificationLookup(new IProteoformModificationLookup[]
+                {
+                    new FormulaLookup(_elementProvider),
+                    new BrnoModificationLookup(_elementProvider)
+                });
 
-            _lookup = new BrnoModificationLookup(_elementProvider);
-            _acetyl = _lookup.GetModification(new ProFormaDescriptor("ac(BRNO)"));
+            ProFormaParser proFormaParser = new ProFormaParser();
+            ProteoformGroupFactory proteoformGroupFactory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
+            _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup);
         }
 
         [Test]
         public void NoMods()
         {
-            string sequence = "SEQUENCE";
-            MockProteoformGroup proteoformGroup = this.GetProteoformGroup(sequence);
-
-            ChemicalProteoformHashGenerator chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator();
-            string chemicalProteoformHash = chemicalProteoformHashGenerator.Generate(proteoformGroup);
-            Assert.AreEqual(sequence, chemicalProteoformHash);
+            this.TestHash("SEQUENCE", "SEQUENCE");
         }
 
         [Test]
         public void NTerminalMod()
         {
-            string sequence = "SEQUENCE";
-            MockProteoformGroup proteoformGroup = this.GetProteoformGroup(sequence);
-            proteoformGroup.NTerminalModification = _acetyl;
-
-            ChemicalProteoformHashGenerator chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator();
-            string chemicalProteoformHash = chemicalProteoformHashGenerator.Generate(proteoformGroup);
-            Assert.AreEqual($"{_acetylDescriptorString}-{sequence}", chemicalProteoformHash);
+            string proForma = $"{_acetylDescriptorString}-SEQUENCE";
+            this.TestHash(proForma, proForma);
         }
 
         [Test]
         public void CTerminalMod()
         {
-            string sequence = "SEQUENCE";
-            MockProteoformGroup proteoformGroup = this.GetProteoformGroup(sequence);
-            proteoformGroup.CTerminalModification = _acetyl;
-
-            ChemicalProteoformHashGenerator chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator();
-            string chemicalProteoformHash = chemicalProteoformHashGenerator.Generate(proteoformGroup);
-            Assert.AreEqual($"{sequence}-{_acetylDescriptorString}", chemicalProteoformHash);
+            string proForma = $"SEQUENCE-{_acetylDescriptorString}";
+            this.TestHash(proForma, proForma);
         }
 
         [Test]
         public void OneModification()
         {
-            string sequence = "SEQUENCE";
-            MockProteoformGroup proteoformGroup = this.GetProteoformGroup(sequence);
-            proteoformGroup.AddModification(_acetyl, 2);
-
-            ChemicalProteoformHashGenerator chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator();
-            string chemicalProteoformHash = chemicalProteoformHashGenerator.Generate(proteoformGroup);
-            Assert.AreEqual($"SEQ{_acetylDescriptorString}UENCE", chemicalProteoformHash);
+            string proForma = $"SEQ{_acetylDescriptorString}UENCE";
+            this.TestHash(proForma, proForma);
         }
 
         [Test]
         public void MultipleModifications()
         {
-            string sequence = "SEQUENCE";
-            MockProteoformGroup proteoformGroup = this.GetProteoformGroup(sequence);
-            proteoformGroup.NTerminalModification = _acetyl;
-            proteoformGroup.CTerminalModification = _acetyl;
-            proteoformGroup.AddModification(_acetyl, 2);
+            string proForma = $"{_acetylDescriptorString}-SEQ{_acetylDescriptorString}UENCE-{_acetylDescriptorString}";
+            this.TestHash(proForma, proForma);
+        }
 
-            ChemicalProteoformHashGenerator chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator();
-            string chemicalProteoformHash = chemicalProteoformHashGenerator.Generate(proteoformGroup);
-            Assert.AreEqual($"{_acetylDescriptorString}-SEQ{_acetylDescriptorString}UENCE-{_acetylDescriptorString}", chemicalProteoformHash);
+        [Test]
+        public void NonFormula()
+        {
+            string proForma = $"SEQUE{_acetylBrnoString}NCE";
+            this.TestHash(proForma, $"SEQUE{_acetylDescriptorString}NCE");
+        }
+
+        [Test]
+        public void NullArgument()
+        {
+            Assert.Throws<ArgumentNullException>(() => _chemicalProteoformHashGenerator.Generate(null));
+        }
+
+        [Test]
+        public void EmptyString()
+        {
+            Assert.Throws<ArgumentNullException>(() => _chemicalProteoformHashGenerator.Generate(""));
+        }
+
+        private void TestHash(string proForma, string expectedHash)
+        {
+            IChemicalProteoformHash chemicalProteoformHash = _chemicalProteoformHashGenerator.Generate(proForma);
+            Assert.AreEqual(expectedHash, chemicalProteoformHash.Hash);
+            Assert.IsTrue(chemicalProteoformHash.HasProForma);
+            Assert.AreEqual(expectedHash, chemicalProteoformHash.ProForma);
         }
 
         private MockProteoformGroup GetProteoformGroup(string sequence, IProteoformModification nTermMod = null, IProteoformModification cTermMod = null)

@@ -7,6 +7,7 @@ using TopDownProteomics.IO.Unimod;
 using TopDownProteomics.IO.UniProt;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
+using TopDownProteomics.Proteomics;
 using TopDownProteomics.Tests.IO;
 
 namespace TopDownProteomics.Tests.ProForma
@@ -23,6 +24,7 @@ namespace TopDownProteomics.Tests.ProForma
         private PsiModTerm _psiMod38;
         private IProteoformModificationLookup _uniProtModLookup;
         private UniprotModification _uniProtMod312;
+        private IProteoformModificationLookup _formulaLookup;
 
         [OneTimeSetUp]
         public void Setup()
@@ -33,6 +35,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.SetupResid();
             this.SetupPsiMod();
             this.SetupUniProt();
+            this.SetupFormula();
         }
 
         private void SetupUnimod()
@@ -74,6 +77,11 @@ namespace TopDownProteomics.Tests.ProForma
                 _elementProvider);
         }
 
+        private void SetupFormula()
+        {
+            _formulaLookup = new FormulaLookup(_elementProvider);
+        }
+
         [Test]
         public void DescriptorHandling()
         {
@@ -81,6 +89,8 @@ namespace TopDownProteomics.Tests.ProForma
             this.DescriptorHandling(_residLookup, ProFormaKey.Resid, false);
             this.DescriptorHandling(_psiModLookup, ProFormaKey.PsiMod, false);
             this.DescriptorHandling(_uniProtModLookup, ProFormaKey.UniProt, false);
+
+            Assert.IsTrue(_formulaLookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Formula, "C(2) H(2) O")));
         }
         private void DescriptorHandling(IProteoformModificationLookup lookup, string key, bool isDefault)
         {
@@ -109,6 +119,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.InvalidIdHandling(id, _residLookup, ProFormaKey.Resid);
             this.InvalidIdHandling(id, _psiModLookup, ProFormaKey.PsiMod);
             this.InvalidIdHandling(id, _uniProtModLookup, ProFormaKey.UniProt);
+            this.InvalidIdHandling(id, _formulaLookup, ProFormaKey.Formula);
         }
         private void InvalidIdHandling(string id, IProteoformModificationLookup lookup, string key)
         {
@@ -172,6 +183,22 @@ namespace TopDownProteomics.Tests.ProForma
                 () => lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Mod, "Something")));
             Assert.Throws<ProteoformModificationLookupException>(
                 () => lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Mod, $"Something({key})")));
+        }
+
+        [Test]
+        public void FormulaLookup()
+        {
+            string formulaString = "C(2) H(2) O";
+            ProFormaDescriptor proFormaDescriptor = new ProFormaDescriptor(ProFormaKey.Formula, formulaString);
+            ChemicalFormula chemicalFormula = new ChemicalFormula(new IEntityCardinality<IElement>[]
+            {
+                new EntityCardinality<IElement>(_elementProvider.GetElement("C"), 2),
+                new EntityCardinality<IElement>(_elementProvider.GetElement("H"), 2),
+                new EntityCardinality<IElement>(_elementProvider.GetElement("O"), 1),
+            });
+
+            IProteoformModification proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
+            Assert.AreEqual(chemicalFormula, proteoformModification.GetChemicalFormula());
         }
     }
 }
