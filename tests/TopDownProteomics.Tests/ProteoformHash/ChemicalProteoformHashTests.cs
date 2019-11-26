@@ -2,16 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
-using TopDownProteomics.IO.Resid;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
 using TopDownProteomics.ProteoformHash;
 using TopDownProteomics.Proteomics;
-using TopDownProteomics.Tests.IO;
 
 namespace TopDownProteomics.Tests.ProteoformHash
 {

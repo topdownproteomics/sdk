@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace TopDownProteomics.Chemistry
@@ -182,7 +181,7 @@ namespace TopDownProteomics.Chemistry
             return formula;
         }
 
-        /// <summary>  Attempts to parses the string into a CHemicalFormula.  The string must use the Unimod format.</summary>
+        /// <summary>  Attempts to parse the string into a ChemicalFormula.  The string must use the Unimod format.</summary>
         /// <param name="formula">The chemical formula. as a string</param>
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
@@ -245,8 +244,7 @@ namespace TopDownProteomics.Chemistry
                         index++;
                     }
 
-                    int count;
-                    if (int.TryParse(countString, out count))
+                    if (int.TryParse(countString, out int count))
                     {
                         elementList.Add(GetElement(symbol, count, elementProvider));
                     }

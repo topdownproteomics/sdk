@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TopDownProteomics.Chemistry;
+﻿using TopDownProteomics.Chemistry;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.ProForma.Validation
 {
-
     /// <summary>Lookup for modifications given by chemical formula.</summary>
-    /// <seealso cref="TopDownProteomics.ProForma.Validation.IProteoformModificationLookup" />
+    /// <seealso cref="IProteoformModificationLookup" />
     public class FormulaLookup : IProteoformModificationLookup
     {
         private IElementProvider _elementProvider;

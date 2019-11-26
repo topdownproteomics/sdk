@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
