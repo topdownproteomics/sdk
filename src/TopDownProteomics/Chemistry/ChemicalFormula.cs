@@ -180,5 +180,105 @@ namespace TopDownProteomics.Chemistry
 
             return formula;
         }
+
+        /// <summary>  Attempts to parse the string into a ChemicalFormula.  The string must use the Unimod format.</summary>
+        /// <param name="formula">The chemical formula. as a string</param>
+        /// <param name="elementProvider">The element provider.</param>
+        /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        public static bool TryParseString(string formula, IElementProvider elementProvider, out ChemicalFormula chemicalFormula)
+        {
+            chemicalFormula = null; // Set to null in case of failure.
+
+            IList<IEntityCardinality<IElement>> elementList = new List<IEntityCardinality<IElement>>();
+
+            string[] elements = formula.Split(' ');
+
+            foreach (string element in elements)
+            {
+                int index = 0;
+                // Element symbol is first.
+                string symbol = "";
+                while (index < element.Length && char.IsLetter(element[index]))
+                {
+                    symbol += element[index];
+                    index++;
+                }
+
+                if (index >= element.Length) // No count given, so it must be 1.
+                {
+                    IEntityCardinality<IElement> elementAndCount = GetElement(symbol, 1, elementProvider);
+                    if (elementAndCount == null)
+                    {
+                        return false; // Could happen if the symbol found was an empty string.
+                    }
+                    else
+                    {
+                        elementList.Add(elementAndCount);
+                    }
+                }
+                else
+                {
+                    string countString = "";
+
+                    // There should be a left paren next, ignore it.
+                    if (element[index] == '(')
+                    {
+                        index++;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    // Next may be a minus sign.
+                    if (element[index] == '-')
+                    {
+                        countString += '-';
+                    }
+
+                    // Rest should be digits and a right paren.  Ignore the right paren.
+                    while (index < element.Length && char.IsDigit(element[index]))
+                    {
+                        countString += element[index];
+                        index++;
+                    }
+
+                    if (int.TryParse(countString, out int count))
+                    {
+                        elementList.Add(GetElement(symbol, count, elementProvider));
+                    }
+                    else
+                    {
+                        return false; // Parsing the count failed.
+                    }
+
+                    // Finally there should be a right paren.
+                    if (element[index] == ')')
+                    {
+                        index++;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    // This should be the end.
+                    if (index != element.Length)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // Success!
+            chemicalFormula = new ChemicalFormula(elementList);
+            return true;
+        }
+
+        private static IEntityCardinality<IElement> GetElement(string symbol, int count, IElementProvider elementProvider)
+        {
+            return new EntityCardinality<IElement>(elementProvider.GetElement(symbol), count);
+        }
     }
 }
