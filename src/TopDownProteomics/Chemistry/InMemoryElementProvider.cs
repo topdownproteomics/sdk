@@ -29,7 +29,7 @@ namespace TopDownProteomics.Chemistry
         private void IndexElements(IElement[] elements)
         {
             int capacity = elements.Max(x => x.AtomicNumber);
-            _by_atomic_number = new IElement[capacity];
+            _by_atomic_number = new IElement[capacity + 1];
             _by_symbol = new Dictionary<string, IElement>(capacity);
 
             for (int i = 0; i < elements.Length; i++)
