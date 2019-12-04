@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="ChemicalFormulaTests.cs" />
     <Compile Include="Chemistry\ChemicalFormulaTest.cs" />
+    <Compile Include="InMemoryElementProviderTest.cs" />
     <Compile Include="IO\PsiModParserTest.cs" />
     <Compile Include="IO\ResidXmlParserTest.cs" />
     <Compile Include="IO\UnimodTest.cs" />
