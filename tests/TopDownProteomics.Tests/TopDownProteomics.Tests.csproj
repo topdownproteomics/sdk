@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chemistry\ChemicalFormulaTest.cs" />
+    <Compile Include="InMemoryElementProviderTest.cs" />
     <Compile Include="Chemistry\ElementTest.cs" />
     <Compile Include="IO\PsiModParserTest.cs" />
     <Compile Include="IO\ResidXmlParserTest.cs" />
