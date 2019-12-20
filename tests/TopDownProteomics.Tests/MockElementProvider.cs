@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.ObjectModel;
+using System.Linq;
 using TopDownProteomics.Chemistry;
 
 namespace TopDownProteomics.Tests
@@ -69,7 +70,8 @@ namespace TopDownProteomics.Tests
             if (atomicNumber == 6 && fixedIsotopeNumber == 13)
                 return _carbon13;
 
-            return _elements[atomicNumber];
+            IElement element = _elements[atomicNumber];
+            return this.GetFixedIsotopeElement(element, fixedIsotopeNumber);
         }
 
         public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
@@ -77,7 +79,23 @@ namespace TopDownProteomics.Tests
             if (symbol == "C" && fixedIsotopeNumber == 13)
                 return _carbon13;
 
-            return _elements.Single(x => x?.Symbol == symbol);
+            IElement element = _elements.Single(x => x?.Symbol == symbol);
+            return this.GetFixedIsotopeElement(element, fixedIsotopeNumber);
+        }
+
+        private IElement GetFixedIsotopeElement(IElement element, int? fixedIsotopeNumber)
+        {
+            if (fixedIsotopeNumber == null)
+            {
+                return element;
+            }
+
+            IIsotope oldIsotope = element.Isotopes
+                .Single(x => x.NeutronCount == fixedIsotopeNumber - element.AtomicNumber);
+            IIsotope newIsotope = new Isotope(element.AtomicNumber, oldIsotope.NeutronCount, 1.0);
+
+            return new Element(element.AtomicNumber, element.Symbol,
+                new ReadOnlyCollection<IIsotope>(new[] { newIsotope }));
         }
     }
 }

@@ -62,7 +62,19 @@ namespace TopDownProteomics.ProForma.Validation
                 int count = Convert.ToInt32(cells[i + 1]);
 
                 if (count != 0)
-                    elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
+                {
+                    if (cells[i][0] == '(') // Fixed isotope.
+                    {
+                        int endIsotopeIndex = cells[i].IndexOf(')');
+                        string isotopeStr = cells[i].Substring(1, endIsotopeIndex - 1);
+                        int fixedIsotope = Convert.ToInt32(isotopeStr);
+                        elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i].Substring(endIsotopeIndex + 1), fixedIsotope), count));
+                    }
+                    else
+                    {
+                        elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
+                    }
+                }
             }
 
             return new ChemicalFormula(elements);

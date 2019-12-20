@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
+using System.IO;
 using System.Linq;
 using TopDownProteomics.Chemistry;
+using TopDownProteomics.Chemistry.Unimod;
 using TopDownProteomics.IO.PsiMod;
 using TopDownProteomics.IO.Resid;
 using TopDownProteomics.IO.Unimod;
@@ -29,7 +31,10 @@ namespace TopDownProteomics.Tests.ProForma
         [OneTimeSetUp]
         public void Setup()
         {
-            _elementProvider = new MockElementProvider();
+            //_elementProvider = new MockElementProvider();
+            NistElementParser parser = new NistElementParser();
+            IElement[] elements = parser.ParseFile(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "elements.dat")).ToArray();
+            _elementProvider = new InMemoryElementProvider(elements);
 
             this.SetupUnimod();
             this.SetupResid();
@@ -40,14 +45,15 @@ namespace TopDownProteomics.Tests.ProForma
 
         private void SetupUnimod()
         {
-            var atomProvider = new MockUnimodCompositionAtomProvider(_elementProvider);
+            var atomProvider = new UnimodHardCodedAtomProvider(_elementProvider);
 
             var parser = new UnimodOboParser();
             UnimodModification[] modifications = parser.Parse(UnimodTest.GetUnimodFilePath()).ToArray();
 
             _unimod37 = modifications.Single(x => x.Id == 37);
-            _unimodLookup = UnimodModificationLookup.CreateFromModifications(new[] { _unimod37 },
-                atomProvider);
+            //_unimodLookup = UnimodModificationLookup.CreateFromModifications(new[] { _unimod37 },
+            //    atomProvider);
+            _unimodLookup = UnimodModificationLookup.CreateFromModifications(modifications, atomProvider);
         }
         private void SetupResid()
         {
@@ -55,7 +61,9 @@ namespace TopDownProteomics.Tests.ProForma
             ResidModification[] modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
             _resid38 = modifications.Single(x => x.Id == 38);
-            _residLookup = ResidModificationLookup.CreateFromModifications(new[] { _resid38 },
+            //_residLookup = ResidModificationLookup.CreateFromModifications(new[] { _resid38 },
+            //    _elementProvider);
+            _residLookup = ResidModificationLookup.CreateFromModifications(modifications,
                 _elementProvider);
         }
         private void SetupPsiMod()
@@ -64,7 +72,9 @@ namespace TopDownProteomics.Tests.ProForma
             PsiModTerm[] modifications = parser.Parse(PsiModParserTest.GetFilePath()).ToArray();
 
             _psiMod38 = modifications.Single(x => x.Id == 38);
-            _psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { _psiMod38 },
+            //_psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { _psiMod38 },
+            //    _elementProvider);
+            _psiModLookup = PsiModModificationLookup.CreateFromModifications(modifications,
                 _elementProvider);
         }
         private void SetupUniProt()
@@ -73,10 +83,11 @@ namespace TopDownProteomics.Tests.ProForma
             UniprotModification[] modifications = parser.Parse(UniProtTests.Get_PtmList()).ToArray();
 
             _uniProtMod312 = modifications.Single(x => x.Id == 312);
-            _uniProtModLookup = UniProtModificationLookup.CreateFromModifications(new[] { _uniProtMod312 },
+            //_uniProtModLookup = UniProtModificationLookup.CreateFromModifications(new[] { _uniProtMod312 },
+            //    _elementProvider);
+            _uniProtModLookup = UniProtModificationLookup.CreateFromModifications(modifications,
                 _elementProvider);
         }
-
         private void SetupFormula()
         {
             _formulaLookup = new FormulaLookup(_elementProvider);
@@ -199,6 +210,32 @@ namespace TopDownProteomics.Tests.ProForma
 
             IProteoformModification proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
             Assert.AreEqual(chemicalFormula, proteoformModification.GetChemicalFormula());
+        }
+
+        [Test]
+        public void PsiModIsotope()
+        {
+            var parser = new PsiModParser();
+            PsiModTerm[] modifications = parser.Parse(PsiModParserTest.GetFilePath()).ToArray();
+
+            PsiModTerm psiMod402 = modifications.Single(x => x.Id == 402);
+            IProteoformModificationLookup psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { psiMod402 },
+                _elementProvider);
+            this.FindById(psiModLookup, ProFormaKey.PsiMod, 402, "MOD:");
+
+            IProteoformModification mod = psiModLookup.GetModification(new ProFormaDescriptor(ProFormaKey.PsiMod, $"402"));
+
+            ChemicalFormula chemicalFormula = new ChemicalFormula(
+                new IEntityCardinality<IElement>[]
+                {
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("C"), 22),
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("H", 1), 30),
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("H", 2), 8),
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("N"), 4),
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("O"), 6),
+                    new EntityCardinality<IElement>(_elementProvider.GetElement("S"), 1),
+                });
+            Assert.IsTrue(chemicalFormula.Equals(mod.GetChemicalFormula()));
         }
     }
 }
