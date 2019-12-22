@@ -47,7 +47,7 @@ namespace TopDownProteomics.ProForma.Validation
         {
             string formula = modification.DiffFormula;
 
-            if (string.IsNullOrEmpty(formula))
+            if (string.IsNullOrEmpty(formula) || formula == "none")
                 return null;
 
             string[] cells = formula.Split(' ');

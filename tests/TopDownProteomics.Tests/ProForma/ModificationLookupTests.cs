@@ -170,8 +170,6 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.Throws<ProteoformModificationLookupException>(
                 () => lookup.GetModification(new ProFormaDescriptor(key, $"{extraPrefix}0")));
             Assert.Throws<ProteoformModificationLookupException>(
-                () => lookup.GetModification(new ProFormaDescriptor(key, $"1025")));
-            Assert.Throws<ProteoformModificationLookupException>(
                 () => lookup.GetModification(new ProFormaDescriptor(key, $"{extraPrefix}2037")));
         }
 

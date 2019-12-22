@@ -34,6 +34,10 @@ namespace TopDownProteomics.Tests
             var c13 = c.Isotopes.Single(x => Math.Round(x.AtomicMass) == 13);
             Assert.AreEqual(7, c13.NeutronCount);
 
+            var ru = elements.Single(x => x.AtomicNumber == 44);
+            Assert.AreEqual("Ru", ru.Symbol);
+            Assert.AreEqual(7, ru.Isotopes.Count);
+
             var xe = elements.Single(x => x.AtomicNumber == 54);
             Assert.AreEqual("Xe", xe.Symbol);
             Assert.AreEqual(9, xe.Isotopes.Count);
