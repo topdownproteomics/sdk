@@ -19,8 +19,6 @@ namespace TopDownProteomics.IO.Unimod
         {
             var oboParser = new OboParser();
             return this.ConvertToModifications(oboParser.Parse(path));
-
-            //return oboParser.Parse(path).Select(term => this.ConvertToModification(term));
         }
 
         /// <summary>
@@ -32,18 +30,6 @@ namespace TopDownProteomics.IO.Unimod
         {
             var oboParser = new OboParser();
             return this.ConvertToModifications(oboParser.ParseText(text));
-
-            //IList<UnimodModification> modifications = new List<UnimodModification>();
-            //foreach (OboTerm term in oboParser.ParseText(text))
-            //{
-            //    UnimodModification modification = this.ConvertToModification(term);
-            //    if (modification != null)
-            //    {
-            //        modifications.Add(modification);
-            //    }
-            //}
-
-            //return modifications;
         }
 
         private IList<UnimodModification> ConvertToModifications(IEnumerable<OboTerm> terms)
