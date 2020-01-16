@@ -50,59 +50,100 @@ namespace TopDownProteomics.Proteomics
 
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
-            List<IProteoformModification> modifications = null;
-            if (term.Tags != null && term.Tags.Count > 0)
+            List<IProteoformModificationWithIndex> modifications = null;
+            IProteoformModification nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
+            IProteoformModification cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
+
+            if (term.Tags?.Count > 0)
+            {
+                foreach (var tag in term.Tags)
+                {
+                    IProteoformModification modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
+                        $"Multiple modifications at index: {tag.ZeroBasedIndex}");
+
+                    // Lazy create the modifications list and add
+                    if (modificationAtIndex != null)
+                    {
+                        if (modifications == null)
+                            modifications = new List<IProteoformModificationWithIndex>();
+
+                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedIndex);
+                        modifications.Add(proteoformModificationWithIndex);
+                    }
+                }
+            }
+
+            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
+        }
+
+        private IProteoformModification GetModification(IList<ProFormaDescriptor> descriptors, IProteoformModificationLookup modificationLookup,
+            string multipleModsErrorMessage)
+        {
+            IProteoformModification modification = null;
+
+            if (descriptors != null && descriptors.Count > 0)
             {
                 if (modificationLookup == null)
                     throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
 
-                foreach (var tag in term.Tags)
+                foreach (var descriptor in descriptors)
                 {
-                    foreach (var descriptor in tag.Descriptors)
+                    IProteoformModification mod = null;
+
+                    if (modificationLookup.CanHandleDescriptor(descriptor))
                     {
-                        if (modificationLookup.CanHandleDescriptor(descriptor))
-                        {
-                            var modification = modificationLookup.GetModification(descriptor);
+                        mod = modificationLookup.GetModification(descriptor);
+                    }
+                    else
+                    {
+                        throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+                    }
 
-                            if (modification != null)
-                            {
-                                if (modifications == null)
-                                    modifications = new List<IProteoformModification>();
-
-                                modifications.Add(modification);
-                            }
-                        }
-                        else
+                    if (modification == null)
+                    {
+                        modification = mod;
+                    }
+                    else if (mod != null)
+                    {
+                        if (!mod.GetChemicalFormula().Equals(modification.GetChemicalFormula()))
                         {
-                            throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+                            throw new ProteoformGroupCreateException(multipleModsErrorMessage);
                         }
                     }
                 }
             }
 
-            return new ProteoformGroup(residues, modifications, _water);
+            return modification;
         }
 
         private class ProteoformGroup : IProteoformGroup
         {
             public ProteoformGroup(IReadOnlyList<IResidue> residues,
-                IReadOnlyCollection<IProteoformModification> modifications,
+                IProteoformModification nTerminalModification,
+                IProteoformModification cTerminalModification,
+                IReadOnlyCollection<IProteoformModificationWithIndex> modifications,
                 IChemicalFormula water)
             {
                 this.Residues = residues;
+                this.NTerminalModification = nTerminalModification;
+                this.CTerminalModification = cTerminalModification;
                 this.Modifications = modifications;
                 this.Water = water;
             }
 
             public IReadOnlyList<IResidue> Residues { get; }
-            public IReadOnlyCollection<IProteoformModification> Modifications { get; }
+            public IProteoformModification NTerminalModification { get; }
+            public IProteoformModification CTerminalModification { get; }
+            public IReadOnlyCollection<IProteoformModificationWithIndex> Modifications { get; }
             public IChemicalFormula Water { get; }
 
             public double GetMass(MassType massType)
             {
                 return this.Water.GetMass(massType) +
                     this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0);
+                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0) +
+                    (this.NTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0) +
+                    (this.CTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0);
             }
         }
     }

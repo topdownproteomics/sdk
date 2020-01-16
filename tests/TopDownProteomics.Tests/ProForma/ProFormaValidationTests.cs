@@ -120,6 +120,38 @@ namespace TopDownProteomics.Tests.ProForma
 
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
+            Assert.AreEqual(3, proteoform.Modifications.Single().ZeroBasedIndex);
+
+            // Residue masses plus modification plus water (approx)
+            Assert.AreEqual(978.36, proteoform.GetMass(MassType.Monoisotopic), 0.01);
+            Assert.AreEqual(978.98, proteoform.GetMass(MassType.Average), 0.01);
+        }
+
+        [Test]
+        public void HandleTerminalModificationNameTag()
+        {
+            const string sequence = "SEQVENCE";
+            var modificationLookup = new BrnoModificationLookup(_elementProvider);
+
+            ProFormaDescriptor descriptor = new ProFormaDescriptor("ac(BRNO)");
+            var term = new ProFormaTerm(sequence, null, new[] { descriptor }, null, null);
+            var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.NTerminalModification);
+            Assert.IsNull(proteoform.CTerminalModification);
+            
+            // Residue masses plus modification plus water (approx)
+            Assert.AreEqual(978.36, proteoform.GetMass(MassType.Monoisotopic), 0.01);
+            Assert.AreEqual(978.98, proteoform.GetMass(MassType.Average), 0.01);
+
+            // C terminal case
+            term = new ProFormaTerm(sequence, null, null, new[] { descriptor }, null);
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.NTerminalModification);
+            Assert.IsNotNull(proteoform.CTerminalModification);
 
             // Residue masses plus modification plus water (approx)
             Assert.AreEqual(978.36, proteoform.GetMass(MassType.Monoisotopic), 0.01);
@@ -139,13 +171,14 @@ namespace TopDownProteomics.Tests.ProForma
         }
 
         [Test]
-        [Ignore("Advanced scenario ... keep waiting.")]
         public void MultipleModsOneSite()
         {
-            var modificationLookup = new CompositeModificationLookup(new[]
+            var modificationLookup = new CompositeModificationLookup(new IProteoformModificationLookup[]
             {
                 new IgnoreKeyModificationLookup(ProFormaKey.Mass),
-                new IgnoreKeyModificationLookup(ProFormaKey.Info)
+                new IgnoreKeyModificationLookup(ProFormaKey.Info),
+                new BrnoModificationLookup(_elementProvider),
+                _residLookup
             });
 
             // Modifications have same chemical formula ... OK
@@ -153,23 +186,96 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("Acetyl"),
-                    new ProFormaDescriptor("Unimod:1")
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
                 })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
+            Assert.AreEqual(4, proteoform.Modifications.Single().ZeroBasedIndex);
 
             // Modifications have different chemical formulas ... throw!
             term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("Methyl"),
-                    new ProFormaDescriptor("Acetyl")
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
                 })
             });
+            Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
+
+            // What about different mods at different indexes?
+            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            {
+                new ProFormaTag(4, new[]
+                {
+                    new ProFormaDescriptor("ac(BRNO)")
+                }),
+                new ProFormaTag(7, new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                })
+            });
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNotNull(proteoform.Modifications);
+            Assert.AreEqual(2, proteoform.Modifications.Count);
+
+            // What about descriptors that don't have chemical formulas?
+            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            {
+                new ProFormaTag(7, new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("info", "hello!")
+                })
+            });
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNotNull(proteoform.Modifications);
+            Assert.AreEqual(1, proteoform.Modifications.Count);
+            Assert.AreEqual(7, proteoform.Modifications.Single().ZeroBasedIndex);
+
+            // Multiple N terminal mods.
+            term = new ProFormaTerm("SEQVKENCE", null,
+                new[]
+                {
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
+                }, null, null
+            );
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.NTerminalModification);
+
+            term = new ProFormaTerm("SEQVKENCE", null,
+                new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
+                }, null, null
+            );
+            Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
+
+            // Multiple C terminal mods.
+            term = new ProFormaTerm("SEQVKENCE", null, null,
+                new[]
+                {
+                    new ProFormaDescriptor("ph(BRNO)"),
+                    new ProFormaDescriptor("RESID", "AA0038")
+                }, null
+            );
+            proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
+            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.CTerminalModification);
+
+            term = new ProFormaTerm("SEQVKENCE", null, null,
+                new[]
+                {
+                    new ProFormaDescriptor("me1(BRNO)"),
+                    new ProFormaDescriptor("ac(BRNO)")
+                }, null
+            );
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
         }
 
