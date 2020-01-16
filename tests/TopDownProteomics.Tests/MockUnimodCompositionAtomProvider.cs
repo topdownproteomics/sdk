@@ -41,8 +41,28 @@ namespace TopDownProteomics.Tests
             {
                 return _carbon;
             }
-
-            return null;
+            else
+            {
+                try
+                {
+                    IElement element = _elementProvider.GetElement(symbol);
+                    if (element == null)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return new UnimodCompositionAtom(symbol, element.Symbol, new[]
+                        {
+                            new EntityCardinality<IElement>(element, 1)
+                        });
+                    }
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
     }
 }

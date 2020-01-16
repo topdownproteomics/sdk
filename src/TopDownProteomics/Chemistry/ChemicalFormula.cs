@@ -80,6 +80,9 @@ namespace TopDownProteomics.Chemistry
             if (other == null)
                 return false;
 
+            if (this == other)
+                return true;
+
             IReadOnlyCollection<IEntityCardinality<IElement>> otherElements = other.GetElements();
 
             if (_elements.Count != otherElements.Count)
@@ -88,13 +91,15 @@ namespace TopDownProteomics.Chemistry
             if (_elements.Sum(x => x.Count) != otherElements.Sum(x => x.Count))
                 return false;
 
-            foreach (var element in _elements)
+            foreach (IEntityCardinality<IElement> element in _elements)
             {
                 var otherElement = otherElements.SingleOrDefault(x => x.Entity.Equals(element.Entity));
 
+                // Check that the other chemical formula has this element.
                 if (otherElement == null)
                     return false;
 
+                // Check the counts.
                 if (element.Count != otherElement.Count)
                     return false;
             }

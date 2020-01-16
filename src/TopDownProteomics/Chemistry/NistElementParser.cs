@@ -31,10 +31,13 @@ namespace TopDownProteomics.Chemistry
                 {
                     int atomicNumber = Convert.ToInt32(lines[i].Substring(lines[i].LastIndexOf('=') + 1));
 
-                    if (currentAtomNumber > 0 && atomicNumber > currentAtomNumber && currentIsotopes != null)
+                    if (currentAtomNumber > 0 && atomicNumber > currentAtomNumber)
                     {
-                        // Add new element
-                        elements.Add(new Element(currentAtomNumber, currentSymbol, currentIsotopes));
+                        if (currentIsotopes != null)
+                        {
+                            // Add new element
+                            elements.Add(new Element(currentAtomNumber, currentSymbol, currentIsotopes));
+                        }
 
                         currentSymbol = null; // Needed so Hydrogen gets the right symbol
                         currentIsotopes = null;

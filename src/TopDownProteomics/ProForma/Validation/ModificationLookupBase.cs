@@ -24,7 +24,7 @@ namespace TopDownProteomics.ProForma.Validation
         {
             if (modifications == null) throw new ArgumentNullException(nameof(modifications));
 
-            var modArray = new IProteoformModification[1024]; // More IDs than will ever exist
+            var modArray = new IProteoformModification[10000]; // More IDs than will ever exist
             int maxId = -1;
             foreach (T modification in modifications)
             {

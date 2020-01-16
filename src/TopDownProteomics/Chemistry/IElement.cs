@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TopDownProteomics.Chemistry
 {
@@ -7,7 +8,7 @@ namespace TopDownProteomics.Chemistry
     /// isotopes, with the element mass being a weighted average of all the
     /// isotopes atomic masses weighted by their natural relative abundance.
     /// </summary>
-    public interface IElement : IHasMass
+    public interface IElement : IHasMass, IEquatable<IElement>
     {
         /// <summary>
         /// Get the element's atomic number

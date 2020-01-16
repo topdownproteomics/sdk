@@ -18,8 +18,7 @@ namespace TopDownProteomics.IO.Unimod
         public IEnumerable<UnimodModification> Parse(string path)
         {
             var oboParser = new OboParser();
-
-            return oboParser.Parse(path).Select(term => this.ConvertToModification(term));
+            return this.ConvertToModifications(oboParser.Parse(path));
         }
 
         /// <summary>
@@ -30,8 +29,22 @@ namespace TopDownProteomics.IO.Unimod
         public IEnumerable<UnimodModification> ParseText(string text)
         {
             var oboParser = new OboParser();
+            return this.ConvertToModifications(oboParser.ParseText(text));
+        }
 
-            return oboParser.ParseText(text).Select(term => this.ConvertToModification(term));
+        private IList<UnimodModification> ConvertToModifications(IEnumerable<OboTerm> terms)
+        {
+            IList<UnimodModification> modifications = new List<UnimodModification>();
+            foreach (OboTerm term in terms)
+            {
+                UnimodModification modification = this.ConvertToModification(term);
+                if (modification != null)
+                {
+                    modifications.Add(modification);
+                }
+            }
+
+            return modifications;
         }
 
         private UnimodModification ConvertToModification(OboTerm term)
@@ -55,6 +68,13 @@ namespace TopDownProteomics.IO.Unimod
                     diffMonoMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
                 else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_avge_mass"))
                     diffAvMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
+            }
+
+            // The root node is not a real modification and has no diffFormula.
+            // Unsure if other real modifications could have this unset as well, but they aren't currently supported anyway.
+            if (diffFormula == null)
+            {
+                return null;
             }
 
             return new UnimodModification(id, name, definition, diffFormula, diffMonoMass, diffAvMass);

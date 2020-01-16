@@ -5,6 +5,7 @@ using TopDownProteomics.Chemistry;
 
 namespace TopDownProteomics.Tests.Chemistry
 {
+    [TestFixture]
     public class ChemicalFormulaTest
     {
         IElementProvider _elementProvider;
@@ -44,6 +45,191 @@ namespace TopDownProteomics.Tests.Chemistry
         {
             string formulaString = "H2O";
             Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula));
+        }
+
+        [Test]
+        public void WaterTest()
+        {
+            IElementProvider provider = new MockElementProvider();
+            IElement h = provider.GetElement("H");
+            IElement o = provider.GetElement("O");
+
+            var formula = ChemicalFormula.Water(provider);
+            var elements = formula.GetElements();
+
+            Assert.AreEqual(2, elements.Count);
+            Assert.AreEqual(2, elements.Single(x => x.Entity.Symbol == "H").Count);
+            Assert.AreEqual(1, elements.Single(x => x.Entity.Symbol == "O").Count);
+
+            Assert.AreEqual(h.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass * 2
+                + o.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass,
+                formula.GetMass(MassType.Monoisotopic));
+            Assert.AreEqual(h.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance) * 2
+                + o.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance),
+                formula.GetMass(MassType.Average));
+        }
+
+        [Test]
+        public void MassTest()
+        {
+            // Using simple 100% abundances
+            var provider = new MockElementProvider();
+            provider.OverwriteElement(new Element(1, "H", new[]
+            {
+                new Isotope(1, 0, 1.0)
+            }));
+            provider.OverwriteElement(new Element(8, "O", new[]
+            {
+                new Isotope(16, 8, 1.0)
+            }));
+
+            var formula = ChemicalFormula.Water(provider);
+            var elements = formula.GetElements();
+
+            Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
+            Assert.AreEqual(18, formula.GetMass(MassType.Average));
+
+            // Switch to 75/25
+            provider.OverwriteElement(new Element(8, "O", new[]
+            {
+                new Isotope(16, 8, 0.75),
+                new Isotope(17, 9, 0.25)
+            }));
+
+            formula = ChemicalFormula.Water(provider);
+            elements = formula.GetElements();
+
+            Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
+            Assert.AreEqual(18.25, formula.GetMass(MassType.Average));
+        }
+
+        [Test]
+        public void ChemicalFormulaCompareTest()
+        {
+            var provider = new MockElementProvider();
+            var formula = ChemicalFormula.Water(provider);
+
+            var formula2 = ChemicalFormula.Water(provider);
+
+            IElement h = provider.GetElement("H");
+            IElement o = provider.GetElement("O");
+            var formula3 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h, 1),
+                new EntityCardinality<IElement>(o, 2),
+            });
+
+            Assert.AreEqual(formula, formula2);
+            Assert.AreNotEqual(formula, formula3);
+
+            // Equality when element object is different.
+            IElement anotherH = new Element(1, "H", h.Isotopes);
+            IElement anotherO = new Element(1, "O", o.Isotopes);
+            ChemicalFormula formula4 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(anotherH, 2),
+                new EntityCardinality<IElement>(anotherO, 1),
+            });
+
+            Assert.IsTrue(formula.Equals(formula4));
+            Assert.IsTrue(formula2.Equals(formula4));
+            Assert.IsFalse(formula3.Equals(formula4));
+        }
+
+        [Test]
+        public void Carbon13Test()
+        {
+            IElementProvider provider = new MockElementProvider();
+            IElement c = provider.GetElement("C");
+            IElement c13 = provider.GetElement("C", 13);
+
+            var formula = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(c, 1),
+                new EntityCardinality<IElement>(c13, 1),
+            });
+
+            var elements = formula.GetElements();
+
+            Assert.AreEqual(2, elements.Count);
+
+            // Check masses
+            Assert.AreEqual(c.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass
+                + c13.Isotopes.FirstWithMax(x => x.RelativeAbundance).AtomicMass,
+                formula.GetMass(MassType.Monoisotopic));
+            Assert.AreEqual(c.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance)
+                + c13.Isotopes.Sum(x => x.AtomicMass * x.RelativeAbundance),
+                formula.GetMass(MassType.Average));
+            Assert.AreEqual(c13.GetMass(MassType.Monoisotopic), c13.GetMass(MassType.Average));
+        }
+
+        [Test]
+        public void IsotopesTest()
+        {
+            var provider = new MockElementProvider();
+            IElement h = provider.GetElement(1);
+            IElement h1 = provider.GetElement(1, 1);
+            IElement h2 = provider.GetElement(1, 2);
+
+            // These two are equal.
+            ChemicalFormula formula0 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h, 2)
+            });
+            ChemicalFormula formula1 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h, 2)
+            });
+
+            ChemicalFormula formula2 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h1, 2)
+            });
+
+            // These two are equal.
+            ChemicalFormula formula3 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h, 1),
+                new EntityCardinality<IElement>(h1, 1)
+            });
+            ChemicalFormula formula4 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h1, 1),
+                new EntityCardinality<IElement>(h, 1)
+            });
+
+            ChemicalFormula formula5 = new ChemicalFormula(new[]
+            {
+                new EntityCardinality<IElement>(h1, 1),
+                new EntityCardinality<IElement>(h2, 1)
+            });
+
+            ChemicalFormula[] formulas = new[]
+            {
+                formula0, formula1, formula2, formula3, formula4, formula5,
+            };
+
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = i; j < 6; j++)
+                {
+                    ChemicalFormula fi = formulas[i];
+                    ChemicalFormula fj = formulas[j];
+
+                    if (
+                            i == j ||
+                            (i == 0 && j == 1) ||
+                            (i == 3 && j == 4)
+                        )
+                    {
+                        Assert.IsTrue(fi.Equals(fj));
+                    }
+                    else
+                    {
+                        Assert.IsFalse(fi.Equals(fj));
+                    }
+                }
+            }
         }
     }
 }
