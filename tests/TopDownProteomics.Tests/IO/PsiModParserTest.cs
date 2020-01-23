@@ -85,32 +85,6 @@ namespace TopDownProteomics.Tests.IO
 
             PsiModTerm hexakis = result[147];
             Assert.AreEqual(-3, hexakis.FormalCharge);
-
-            // Isotopes
-            // "C 22 (1)H 30 (2)H 8 N 4 O 6 S 1"
-            ChemicalFormula chemicalFormula = new ChemicalFormula(
-                new IEntityCardinality<IElement>[]
-                {
-                    new EntityCardinality<IElement>(elementProvider.GetElement("C"), 22),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("H", 1), 30),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("H", 2), 8),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("N"), 4),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("O"), 6),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("S"), 1),
-                });
-            Assert.IsTrue(chemicalFormula.Equals(result[402].DiffFormula));
-            // C 25 (1)H 35 (2)H 8 N 5 O 7 S 2
-            chemicalFormula = new ChemicalFormula(
-                new IEntityCardinality<IElement>[]
-                {
-                    new EntityCardinality<IElement>(elementProvider.GetElement("C"), 25),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("H", 1), 35),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("H", 2), 8),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("N"), 5),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("O"), 7),
-                    new EntityCardinality<IElement>(elementProvider.GetElement("S"), 2),
-                });
-            Assert.IsTrue(chemicalFormula.Equals(result[402].Formula));
         }
     }
 }
