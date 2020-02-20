@@ -34,14 +34,12 @@ namespace TopDownProteomics.Chemistry.Unimod
             this.AddElement(atoms, elementProvider, "18O", "Oxygen 18", "O", 18);
             this.AddElement(atoms, elementProvider, "2H", "Deuterium", "H", 2);
 
-            // Never used
-            //atoms.Add("Ac", new UnimodCompositionAtom("Ac", "Acetate", new[]
-            //            {
-            //    new EntityCardinality<IElement>(new Element(c.AtomicNumber, c.Symbol, c.Name, new[]
-            //    {
-            //        c.Isotopes.Single(x=>x.AtomicMass> 13)
-            //    }), 1)
-            //}));
+            atoms.Add("Ac", new UnimodCompositionAtom("Ac", "Acetate", new[]
+            {
+                new EntityCardinality<IElement>(c, 2),
+                new EntityCardinality<IElement>(h, 3),
+                new EntityCardinality<IElement>(o, 2),
+            }));
 
             this.AddElement(atoms, elementProvider, "Ag", "Silver");
             this.AddElement(atoms, elementProvider, "Al", "Aluminium");

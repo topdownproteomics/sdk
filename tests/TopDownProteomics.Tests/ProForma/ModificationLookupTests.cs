@@ -80,7 +80,7 @@ namespace TopDownProteomics.Tests.ProForma
         private void SetupUniProt()
         {
             var parser = new UniProtPtmListParser();
-            UniprotModification[] modifications = parser.Parse(UniProtTests.Get_PtmList()).ToArray();
+            UniprotModification[] modifications = parser.Parse(File.ReadAllText(UniProtTests.GetPtmListPath())).ToArray();
 
             _uniProtMod312 = modifications.Single(x => x.Id == 312);
             //_uniProtModLookup = UniProtModificationLookup.CreateFromModifications(new[] { _uniProtMod312 },
