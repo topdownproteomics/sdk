@@ -63,6 +63,10 @@ namespace TopDownProteomics.ProForma.Validation
 
                 if (count != 0)
                 {
+                    // Handle formal charge by adding or removing hydrogen atoms
+                    if (modification.FormalCharge != 0 && cells[i] == "H")
+                        count -= modification.FormalCharge;
+
                     if (cells[i][0] == '(') // Fixed isotope.
                     {
                         int endIsotopeIndex = cells[i].IndexOf(')');
