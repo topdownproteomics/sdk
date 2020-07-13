@@ -9,6 +9,9 @@ namespace TopDownProteomics.Chemistry
     /// <seealso cref="IChemicalFormula" />
     public class ChemicalFormula : IChemicalFormula
     {
+        /// <summary>The static empty chemical formula.</summary>
+        public static IChemicalFormula Empty = new ChemicalFormula();
+
         private List<IEntityCardinality<IElement>> _elements;
 
         /// <summary>
@@ -116,10 +119,10 @@ namespace TopDownProteomics.Chemistry
         /// </returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is IChemicalFormula))
-                return false;
+            if (obj is IChemicalFormula other)
+                return this.Equals(other);
 
-            return this.Equals(obj as IChemicalFormula);
+            return false;
         }
 
         /// <summary>
@@ -191,9 +194,9 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
         /// <returns>True if successful, otherwise false.</returns>
-        public static bool TryParseString(string formula, IElementProvider elementProvider, out ChemicalFormula chemicalFormula)
+        public static bool TryParseString(string formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
         {
-            chemicalFormula = null; // Set to null in case of failure.
+            chemicalFormula = ChemicalFormula.Empty; // Set to null in case of failure.
 
             IList<IEntityCardinality<IElement>> elementList = new List<IEntityCardinality<IElement>>();
 

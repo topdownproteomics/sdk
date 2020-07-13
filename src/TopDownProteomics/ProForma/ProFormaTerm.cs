@@ -15,8 +15,8 @@ namespace TopDownProteomics.ProForma
         /// <param name="nTerminalDescriptors">The n terminal descriptors.</param>
         /// <param name="cTerminalDescriptors">The c terminal descriptors.</param>
         /// <param name="tags">The tags.</param>
-        public ProFormaTerm(string sequence, IList<ProFormaTag> unlocalizedTags, IList<ProFormaDescriptor> nTerminalDescriptors, 
-            IList<ProFormaDescriptor> cTerminalDescriptors, IList<ProFormaTag> tags)
+        public ProFormaTerm(string sequence, IList<ProFormaTag>? unlocalizedTags, IList<ProFormaDescriptor>? nTerminalDescriptors, 
+            IList<ProFormaDescriptor>? cTerminalDescriptors, IList<ProFormaTag>? tags)
         {
             this.Sequence = sequence;
             this.UnlocalizedTags = unlocalizedTags;
@@ -25,29 +25,19 @@ namespace TopDownProteomics.ProForma
             this.Tags = tags;
         }
 
-        /// <summary>
-        /// Gets the amino acid sequence.
-        /// </summary>
+        /// <summary>The amino acid sequence.</summary>
         public string Sequence { get; }
 
-        /// <summary>
-        /// Unlocalized modification descriptors.
-        /// </summary>
-        public IList<ProFormaTag> UnlocalizedTags { get; }
+        /// <summary>Unlocalized modification descriptors.</summary>
+        public IList<ProFormaTag>? UnlocalizedTags { get; }
 
-        /// <summary>
-        /// The optional N-Terminal descriptor.
-        /// </summary>
-        public IList<ProFormaDescriptor> NTerminalDescriptors { get; }
+        /// <summary>The N-Terminal descriptor.</summary>
+        public IList<ProFormaDescriptor>? NTerminalDescriptors { get; }
 
-        /// <summary>
-        /// The optional C-Terminal descriptor.
-        /// </summary>
-        public IList<ProFormaDescriptor> CTerminalDescriptors { get; }
+        /// <summary>The C-Terminal descriptor.</summary>
+        public IList<ProFormaDescriptor>? CTerminalDescriptors { get; }
 
-        /// <summary>
-        /// Gets the tags.
-        /// </summary>
-        public IList<ProFormaTag> Tags { get; }
+        /// <summary>All tags on this term.</summary>
+        public IList<ProFormaTag>? Tags { get; }
     }
 }

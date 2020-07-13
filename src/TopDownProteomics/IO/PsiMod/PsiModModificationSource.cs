@@ -1,23 +1,15 @@
 ﻿namespace TopDownProteomics.IO.PsiMod
 {
-    /// <summary>
-    /// Source of a modification
-    /// </summary>
+    /// <summary>Source of a modification</summary>
     public enum PsiModModificationSource
     {
-        /// <summary>
-        /// Comes from nature
-        /// </summary>
+        /// <summary>Comes from nature</summary>
         Natural = 0,
 
-        /// <summary>
-        /// Artifact of some artificial process
-        /// </summary>
+        /// <summary>Artifact of some artificial process</summary>
         Artifact = 1,
 
-        /// <summary>
-        /// Hypothetical modification
-        /// </summary>
+        /// <summary>Hypothetical modification</summary>
         Hypothetical = 2
     }
 }

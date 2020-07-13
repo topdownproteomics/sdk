@@ -29,7 +29,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
-            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == 38 || x.Id == 74),
+            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == "AA0038" || x.Id == "AA0074"),
                 _elementProvider);
         }
 

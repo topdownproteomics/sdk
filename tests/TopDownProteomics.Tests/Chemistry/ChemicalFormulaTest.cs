@@ -21,7 +21,7 @@ namespace TopDownProteomics.Tests.Chemistry
         {
             string formulaString = "H(2) O";
 
-            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula);
+            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
 
             Assert.IsTrue(success);
             Assert.IsNotNull(chemicalFormula);
@@ -44,7 +44,7 @@ namespace TopDownProteomics.Tests.Chemistry
         public void IncorrectFormatTest()
         {
             string formulaString = "H2O";
-            Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula));
+            Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula));
         }
 
         [Test]

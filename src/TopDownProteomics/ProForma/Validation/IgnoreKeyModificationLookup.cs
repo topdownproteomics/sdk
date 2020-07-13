@@ -36,6 +36,6 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public IProteoformModification GetModification(ProFormaDescriptor descriptor) => null;
+        public IProteoformModification? GetModification(ProFormaDescriptor descriptor) => null;
     }
 }

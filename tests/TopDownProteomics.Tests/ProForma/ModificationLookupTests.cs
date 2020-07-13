@@ -50,7 +50,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new UnimodOboParser();
             UnimodModification[] modifications = parser.Parse(UnimodTest.GetUnimodFilePath()).ToArray();
 
-            _unimod37 = modifications.Single(x => x.Id == 37);
+            _unimod37 = modifications.Single(x => x.Id == "UNIMOD:37");
             //_unimodLookup = UnimodModificationLookup.CreateFromModifications(new[] { _unimod37 },
             //    atomProvider);
             _unimodLookup = UnimodModificationLookup.CreateFromModifications(modifications, atomProvider);
@@ -60,7 +60,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new ResidXmlParser();
             ResidModification[] modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
-            _resid38 = modifications.Single(x => x.Id == 38);
+            _resid38 = modifications.Single(x => x.Id == "AA0038");
             //_residLookup = ResidModificationLookup.CreateFromModifications(new[] { _resid38 },
             //    _elementProvider);
             _residLookup = ResidModificationLookup.CreateFromModifications(modifications,
@@ -68,10 +68,10 @@ namespace TopDownProteomics.Tests.ProForma
         }
         private void SetupPsiMod()
         {
-            var parser = new PsiModParser();
-            PsiModTerm[] modifications = parser.Parse(PsiModParserTest.GetFilePath()).ToArray();
+            var parser = new PsiModOboParser();
+            PsiModTerm[] modifications = parser.Parse(PsiModOboParserTest.GetFilePath()).ToArray();
 
-            _psiMod38 = modifications.Single(x => x.Id == 38);
+            _psiMod38 = modifications.Single(x => x.Id == "MOD:00038");
             //_psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { _psiMod38 },
             //    _elementProvider);
             _psiModLookup = PsiModModificationLookup.CreateFromModifications(modifications,
@@ -82,7 +82,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new UniProtPtmListParser();
             UniprotModification[] modifications = parser.Parse(File.ReadAllText(UniProtTests.GetPtmListPath())).ToArray();
 
-            _uniProtMod312 = modifications.Single(x => x.Id == 312);
+            _uniProtMod312 = modifications.Single(x => x.Id == "PTM-0312");
             //_uniProtModLookup = UniProtModificationLookup.CreateFromModifications(new[] { _uniProtMod312 },
             //    _elementProvider);
             _uniProtModLookup = UniProtModificationLookup.CreateFromModifications(modifications,
@@ -213,10 +213,10 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void PsiModIsotope()
         {
-            var parser = new PsiModParser();
-            PsiModTerm[] modifications = parser.Parse(PsiModParserTest.GetFilePath()).ToArray();
+            var parser = new PsiModOboParser();
+            PsiModTerm[] modifications = parser.Parse(PsiModOboParserTest.GetFilePath()).ToArray();
 
-            PsiModTerm psiMod402 = modifications.Single(x => x.Id == 402);
+            PsiModTerm psiMod402 = modifications.Single(x => x.Id == "MOD:00402");
             IProteoformModificationLookup psiModLookup = PsiModModificationLookup.CreateFromModifications(new[] { psiMod402 },
                 _elementProvider);
             this.FindById(psiModLookup, ProFormaKey.PsiMod, 402, "MOD:");

@@ -50,15 +50,15 @@ namespace TopDownProteomics.Proteomics
 
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
-            List<IProteoformModificationWithIndex> modifications = null;
-            IProteoformModification nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
-            IProteoformModification cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
+            List<IProteoformModificationWithIndex>? modifications = null;
+            IProteoformModification? nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
+            IProteoformModification? cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
 
             if (term.Tags?.Count > 0)
             {
                 foreach (var tag in term.Tags)
                 {
-                    IProteoformModification modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
+                    IProteoformModification? modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
                         $"Multiple modifications at index: {tag.ZeroBasedIndex}");
 
                     // Lazy create the modifications list and add
@@ -76,10 +76,10 @@ namespace TopDownProteomics.Proteomics
             return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
         }
 
-        private IProteoformModification GetModification(IList<ProFormaDescriptor> descriptors, IProteoformModificationLookup modificationLookup,
+        private IProteoformModification? GetModification(IList<ProFormaDescriptor>? descriptors, IProteoformModificationLookup modificationLookup,
             string multipleModsErrorMessage)
         {
-            IProteoformModification modification = null;
+            IProteoformModification? modification = null;
 
             if (descriptors != null && descriptors.Count > 0)
             {
@@ -88,7 +88,7 @@ namespace TopDownProteomics.Proteomics
 
                 foreach (var descriptor in descriptors)
                 {
-                    IProteoformModification mod = null;
+                    IProteoformModification? mod = null;
 
                     if (modificationLookup.CanHandleDescriptor(descriptor))
                     {
@@ -119,9 +119,9 @@ namespace TopDownProteomics.Proteomics
         private class ProteoformGroup : IProteoformGroup
         {
             public ProteoformGroup(IReadOnlyList<IResidue> residues,
-                IProteoformModification nTerminalModification,
-                IProteoformModification cTerminalModification,
-                IReadOnlyCollection<IProteoformModificationWithIndex> modifications,
+                IProteoformModification? nTerminalModification,
+                IProteoformModification? cTerminalModification,
+                IReadOnlyCollection<IProteoformModificationWithIndex>? modifications,
                 IChemicalFormula water)
             {
                 this.Residues = residues;
@@ -132,9 +132,9 @@ namespace TopDownProteomics.Proteomics
             }
 
             public IReadOnlyList<IResidue> Residues { get; }
-            public IProteoformModification NTerminalModification { get; }
-            public IProteoformModification CTerminalModification { get; }
-            public IReadOnlyCollection<IProteoformModificationWithIndex> Modifications { get; }
+            public IProteoformModification? NTerminalModification { get; }
+            public IProteoformModification? CTerminalModification { get; }
+            public IReadOnlyCollection<IProteoformModificationWithIndex>? Modifications { get; }
             public IChemicalFormula Water { get; }
 
             public double GetMass(MassType massType)

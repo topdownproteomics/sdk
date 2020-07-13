@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 
 namespace TopDownProteomics.ProForma
@@ -24,16 +23,16 @@ namespace TopDownProteomics.ProForma
             if (string.IsNullOrEmpty(proFormaString))
                 throw new ArgumentNullException(nameof(proFormaString));
 
-            List<ProFormaTag> tags = null;
-            IList<ProFormaTag> unlocalizedTags = null;
-            IList<ProFormaDescriptor> nTerminalDescriptors = null;
-            IList<ProFormaDescriptor> cTerminalDescriptors = null;
+            List<ProFormaTag>? tags = null;
+            IList<ProFormaTag>? unlocalizedTags = null;
+            IList<ProFormaDescriptor>? nTerminalDescriptors = null;
+            IList<ProFormaDescriptor>? cTerminalDescriptors = null;
 
             var sequence = new StringBuilder();
             var tag = new StringBuilder();
             bool inTag = false;
             bool inCTerminalTag = false;
-            string prefixTag = null;
+            string? prefixTag = null;
             int openLeftBrackets = 0;
 
             for (int i = 0; i < proFormaString.Length; i++)
@@ -117,14 +116,14 @@ namespace TopDownProteomics.ProForma
             return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
         }
 
-        private ProFormaTag ProcessTag(string tag, int index, string prefixTag)
+        private ProFormaTag ProcessTag(string tag, int index, string? prefixTag)
         {
             var descriptors = this.ProcessTag(tag, prefixTag);
 
             return new ProFormaTag(index, descriptors);
         }
 
-        private IList<ProFormaDescriptor> ProcessTag(string tag, string prefixTag)
+        private IList<ProFormaDescriptor> ProcessTag(string tag, string? prefixTag)
         {
             var descriptors = new List<ProFormaDescriptor>();
             var descriptorText = tag.Split('|');

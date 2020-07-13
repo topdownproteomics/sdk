@@ -43,9 +43,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula GetChemicalFormula(ResidModification modification)
+        protected override IChemicalFormula? GetChemicalFormula(ResidModification modification)
         {
-            string formula = modification.DiffFormula;
+            string? formula = modification.DiffFormula;
 
             if (string.IsNullOrEmpty(formula))
                 return null;

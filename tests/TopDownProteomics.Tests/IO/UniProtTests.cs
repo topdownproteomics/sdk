@@ -31,9 +31,9 @@ namespace TopDownProteomics.Tests.IO
             Assert.AreEqual("Intracellular localisation or Extracellular and lumenal localisation", mod1.CellularLocation);
 
             Assert.AreEqual(1, mod1.TaxonomicRanges.Count);
-            Assert.AreEqual("Eukaryota; taxId:40674 (Mammalia)", mod1.TaxonomicRanges[0]);
+            Assert.AreEqual("Eukaryota; taxId:40674 (Mammalia)", mod1.TaxonomicRanges.Single());
             Assert.AreEqual(1, mod1.Keywords.Count);
-            Assert.AreEqual("Hydroxylation", mod1.Keywords[0]);
+            Assert.AreEqual("Hydroxylation", mod1.Keywords.Single());
 
             Assert.AreEqual("AA0026", mod1.Resid);
             Assert.AreEqual("00035", mod1.PsiMod);

@@ -8,26 +8,25 @@ namespace TopDownProteomics.IO.Obo
     public class OboTerm
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OboTerm" /> class.
+        /// Initializes a new instance of the <see cref="OboTerm"/> class.
         /// </summary>
-        public OboTerm()
+        /// <param name="id">The identifier.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="valuePairs">The value pairs.</param>
+        public OboTerm(string id, string name, ICollection<OboTagValuePair>? valuePairs)
         {
-            this.ValuePairs = new List<OboTagValuePair>();
+            this.Id = id;
+            this.Name = name;
+            this.ValuePairs = valuePairs;
         }
 
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        public string Id { get; set; }
+        /// <summary>The identifier.</summary>
+        public string Id { get; }
 
-        /// <summary>
-        /// Gets or sets the name.
-        /// </summary>
-        public string Name { get; set; }
+        /// <summary>The name.</summary>
+        public string Name { get; }
 
-        /// <summary>
-        /// Gets or sets the value pairs.
-        /// </summary>
-        public ICollection<OboTagValuePair> ValuePairs { get; set; }
+        /// <summary>The value pairs.</summary>
+        public ICollection<OboTagValuePair>? ValuePairs { get; }
     }
 }

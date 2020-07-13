@@ -39,31 +39,40 @@ namespace TopDownProteomics.ProteoformHash
                 throw new ArgumentNullException(nameof(proteoformGroup));
             }
 
-            ProFormaDescriptor nTermDescriptor =
+            ProFormaDescriptor? nTermDescriptor =
                 this.GetFormulaDescriptor(proteoformGroup.NTerminalModification);
-            IList<ProFormaDescriptor> nTermDescriptors = nTermDescriptor == null ? null : new[] { nTermDescriptor };
+            IList<ProFormaDescriptor>? nTermDescriptors = nTermDescriptor == null ? null : new[] { nTermDescriptor };
 
-            ProFormaDescriptor cTermDescriptor =
+            ProFormaDescriptor? cTermDescriptor =
                 this.GetFormulaDescriptor(proteoformGroup.CTerminalModification);
-            IList<ProFormaDescriptor> cTermDescriptors = cTermDescriptor == null ? null : new[] { cTermDescriptor };
+            IList<ProFormaDescriptor>? cTermDescriptors = cTermDescriptor == null ? null : new[] { cTermDescriptor };
 
-            IList<ProFormaTag> tags = null;
+            IList<ProFormaTag>? tags = null;
             if (proteoformGroup.Modifications?.Count > 0)
             {
                 tags = new List<ProFormaTag>();
                 foreach (IProteoformModificationWithIndex proteoformModificationWithIndex in proteoformGroup.Modifications)
                 {
-                    ProFormaDescriptor descriptor = this.GetFormulaDescriptor(proteoformModificationWithIndex);
-                    tags.Add(new ProFormaTag(proteoformModificationWithIndex.ZeroBasedIndex, new[] { descriptor }));
+                    ProFormaDescriptor? descriptor = this.GetFormulaDescriptor(proteoformModificationWithIndex);
+                    
+                    if (descriptor != null)
+                        tags.Add(new ProFormaTag(proteoformModificationWithIndex.ZeroBasedIndex, new[] { descriptor }));
                 }
             }
 
-            ProFormaTerm proFormaTerm = new ProFormaTerm(proteoformGroup.GetSequence(), null, nTermDescriptors, cTermDescriptors, tags?.OrderBy(t => t.Descriptors.First().Value).ToArray());
-            string hash = new ProFormaWriter().WriteString(proFormaTerm);
-            return new ChemicalProteoformHash(hash);
+            string? sequence = proteoformGroup.GetSequence();
+
+            if (sequence != null)
+            {
+                ProFormaTerm proFormaTerm = new ProFormaTerm(sequence, null, nTermDescriptors, cTermDescriptors, tags?.OrderBy(t => t.Descriptors.First().Value).ToArray());
+                string hash = new ProFormaWriter().WriteString(proFormaTerm);
+                return new ChemicalProteoformHash(hash);
+            }
+
+            throw new Exception("Cannot get amino acid sequence for the proteoform group.");
         }
 
-        private ProFormaDescriptor GetFormulaDescriptor(IProteoformModification proteoformModification)
+        private ProFormaDescriptor? GetFormulaDescriptor(IProteoformModification? proteoformModification)
         {
             return proteoformModification == null
                     ? null
