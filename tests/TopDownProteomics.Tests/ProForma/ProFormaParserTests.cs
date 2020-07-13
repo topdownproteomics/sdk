@@ -443,5 +443,177 @@ namespace TopDownProteomics.Tests
         {
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
+
+        #region Version 2.0 Tests
+        [Test]
+        public void ModificationNameUsage_4_2_1()
+        {
+            const string proFormaString = "EM[Oxidation]EVEES[U:Phospho]PEK";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual(proFormaString, term.Sequence);
+            Assert.AreEqual(2, term.Tags.Count);
+
+            // EM[L-methionine sulfoxide]EVEES[O-phospho-L-serine]PEK
+            // EM[Oxidation]EVE[Cation:Mg[II]]ES[Phospho]PEK
+        }
+
+        // TODO: 4.2.1.1 -> Validation, not parsing
+
+        [Test]
+        public void ModificationAccessionNumbers_4_2_2()
+        {
+            const string proFormaString = "EM[MOD:00719]EVEES[MOD:00046]PEK";
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual(proFormaString, term.Sequence);
+            Assert.AreEqual(2, term.Tags.Count);
+
+            // EM[UNIMOD:15]EVEES[UNIMOD:56]PEK
+        }
+
+        [Test]
+        public void Crosslinkers_XL_MOD_4_2_3()
+        {
+            // EMEVTK[XLMOD:02001.XL1]SESPEK[XLMOD:02001.XL1]
+            // EMK[XLMOD:02000.XL1]EVTK[XLMOD:02001.XL2]SESK[XLMOD:02000.XL1]PEK[XLMOD:02001.XL2]
+
+        }
+
+        [Test]
+        public void Glycans_GNO_MOD_4_2_4()
+        {
+            // NEEYN[GNO:G59626AS]K
+            // YPVLN[GNO:G62765YT]VTMPN[GNO:G02815KT]NSNGKFDK
+        }
+
+        [Test]
+        public void DeltaMassNotation_4_2_5()
+        {
+            // No prefixes
+            // EM[+15.9949]EVEES[+79.9663]PEK
+            // EM[+15.995]EVEES[+79.966]PEK
+
+            // Prefixes
+            // TODO: One of these should not validate because these are theoretical masses.
+            // EM[U:+15.9949]EVEES[U:+79.9663]PEK
+            // EM[U:+15.995]EVEES[U:+79.966]PEK
+            // EM[U:+15.995]EVEES[Obs:+79.978]PEK
+        }
+
+        [Test]
+        public void GapOfKnownMass_4_2_6()
+        {
+            // RTAAX[+367.0537]WT
+        }
+
+        [Test]
+        public void ChemicalFormulas_4_2_7()
+        {
+            // SEQUEN[Formula:C12H20O2]CE
+            // SEQUEN[Formula:HN-1O2]CE
+            // SEQUEN[Formula:[13]C2[12]C-2H2N]CE
+            // SEQUEN[Formula:CH3(CH2)4CH3]CE
+        }
+
+        [Test]
+        public void GlycanComposition_4_2_8()
+        {
+            // SEQUEN[Glycan:Hex2Man]CE
+            // SEQUEN[Glycan:HexNAc]CE
+        }
+
+        [Test]
+        public void TerminalModifications_4_3_1()
+        {
+            // [iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK
+            // [iTRAQ4plex]-EM[U:Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]-[Methyl]
+        }
+
+        [Test]
+        public void LabileModifications_4_3_2()
+        {
+            // {Hex}EM[U:Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]
+            // {Hex}[iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]
+            // {Hex}[iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]-[Methyl]
+        }
+
+        [Test]
+        public void Ambiguity_UnknownPosition_4_4_1()
+        {
+            // [Phospho]?EM[Hydroxylation]EVTSESPEK
+            // [Phospho][Phospho]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
+            // [Phospho]*2?[Acetyl]-EM[Hydroxylation]EVTSESPEK
+
+            // INVALID [Acetyl]-[Phospho]*2? EM[Hydroxylation]EVTSESPEK
+        }
+
+        [Test]
+        public void Ambiguity_PossiblePositions_4_4_2()
+        {
+            // This is read as a named group 'g1' indicates that a phosphorylation exists on either T5, S6 or S8
+            // EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho|#g1]PEK
+        }
+
+        [Test]
+        public void Ambiguity_PossiblePositionsWithScores_4_4_3()
+        {
+            // The values of the modification localization scores can be indicated in parentheses within the same group and brackets. 
+            // EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho|#g1(0.90)]PEK
+
+            // Similarly, modification position preference may be specified in boolean notation (case insensitive). 
+            // In the following example, the last site is preferred. 
+            // TODO: Multiple sites may be listed as preferred.
+
+            // EM[Oxidation]EVT[#g1(False)]S[#g1(False)]ES[Phospho|#g1(True)]PEK
+
+            // The third option to represent localisation scores is to leave the position of the modification as unknown using the ‘?’ notation, 
+            //  but report the localization modification scores at specific sites.
+            // [Phospho|#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.90)]ES[#s1(0.90)]PEK
+        }
+
+        [Test]
+        public void Ambiguity_Ranges_4_4_4()
+        {
+            // Ranges of amino acids as possible locations for the modifications may be represented using parentheses within the amino acid sequence.
+            // PROT(EOSFORMS)[+19.0523]ISK
+            // PROT(EOC[Carbamidomethyl]FORMS)[+19.0523]ISK
+        }
+
+        [Test]
+        public void NoMultipleModificationsSameSite_4_5()
+        {
+            // TODO: Example?
+        }
+
+        [Test]
+        public void GlobalModifications_4_6()
+        {
+            // Representation of isotopes
+            // <13C>ATPEILTVNSIGQLK
+            // <15N>ATPEILTVNSIGQLK
+            // <D>ATPEILTVNSIGQLK
+            // <13C><15N>ATPEILTVNSIGQLK
+
+            // Fixed protein modifications
+            // <[S-carboxamidomethyl-L-cysteine]@C>ATPEILTCNSIGCLK
+            // <[MOD:01090]@C>ATPEILTCNSIGCLK
+
+            // Fixed modifications MUST be written prior to ambiguous modifications, and similar to ambiguity notation, N-terminal modifications MUST be the last ones written, just next to the sequence. 
+            // INVALID: [Phospho]?<[MOD:01090]@C> EM[Hydroxylation]EVTSESPEK
+            // INVALID: [Acetyl]-<[MOD:01090]@C> EM[Hydroxylation]EVTSESPEK
+        }
+
+        [Test]
+        public void InfoTag_4_7()
+        {
+            // ELV[INFO:AnyString]IS
+            // ELVIS[Phospho|INFO:newly discovered]K
+            // ELVIS[Phospho|INFO:newly discovered|INFO:really awesome]K
+            // INVALID: ELVIS[Phospho|INFO:newly]discovered]K
+        }
+
+        // TODO: 4.8 is up in the air a bit, wait to implement
+        #endregion
     }
 }
