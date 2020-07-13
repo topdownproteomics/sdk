@@ -62,7 +62,13 @@ namespace TopDownProteomics.ProForma.Validation
                 int count = Convert.ToInt32(cells[i + 1]);
 
                 if (count != 0)
+                {
+                    // Handle formal charge by adding or removing hydrogen atoms
+                    if (modification.FormalCharge != 0 && cells[i] == "H")
+                        count -= modification.FormalCharge;
+
                     elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
+                }
             }
 
             return new ChemicalFormula(elements);

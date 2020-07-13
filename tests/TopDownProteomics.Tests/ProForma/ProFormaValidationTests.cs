@@ -29,7 +29,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
-            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == 38),
+            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == 38 || x.Id == 74),
                 _elementProvider);
         }
 
@@ -293,6 +293,26 @@ namespace TopDownProteomics.Tests.ProForma
             // Residue masses plus water (approx)
             Assert.AreEqual(1016.32, proteoform.GetMass(MassType.Monoisotopic), 0.01);
             Assert.AreEqual(1016.93, proteoform.GetMass(MassType.Average), 0.01);
+        }
+
+        /// <summary>
+        /// A formal charge on a modification means that additional protons are present or have been removed.
+        /// To account for this, we adjust the chemical formula to add/remove hydrogen atoms.
+        /// </summary>
+        [Test]
+        public void HandleFormalCharge()
+        {
+            var term = new ProFormaTerm("KEQVENCE", null, null, null, new List<ProFormaTag>
+            {
+                new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0074") })
+            });
+            var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
+
+            Assert.IsNotNull(proteoform.Modifications);
+
+            // Residue masses plus water (approx)
+            Assert.AreEqual(1019.46, proteoform.GetMass(MassType.Monoisotopic), 0.01);
+            Assert.AreEqual(1020.12, proteoform.GetMass(MassType.Average), 0.01);
         }
     }
 }

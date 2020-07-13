@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.IO;
 using System.Linq;
 using TopDownProteomics.IO.UniProt;
 
@@ -7,6 +8,8 @@ namespace TopDownProteomics.Tests.IO
     [TestFixture]
     public class UniProtTests
     {
+        public static string GetPtmListPath() => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "ptmlist.txt");
+
         [Test]
         public void BasicModificationFileParse()
         {

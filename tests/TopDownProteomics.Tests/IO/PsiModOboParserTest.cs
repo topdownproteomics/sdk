@@ -2,28 +2,25 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TopDownProteomics.Chemistry;
 using TopDownProteomics.IO.PsiMod;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.Tests.IO
 {
     [TestFixture]
-    public class PsiModParserTest
+    public class PsiModOboParserTest
     {
-        public static string GetFilePath() => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "PSI-MOD.obo.xml");
+        public static string GetFilePath() => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "PSI-MOD.obo");
 
         [Test]
         public void BasicTest()
         {
-            IElementProvider elementProvider = new MockElementProvider();
+            var parser = new PsiModOboParser();
 
-            var parser = new PsiModParser();
-
-            var result = new List<PsiModTerm>(parser.Parse(GetFilePath()));
+            List<PsiModTerm> result = new List<PsiModTerm>(parser.Parse(GetFilePath()));
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(1996, result.Count);
+            Assert.AreEqual(2027, result.Count);
             Assert.AreEqual(812, result[812].Id);
             Assert.AreEqual("alkylated residue", result[1].Name);
             Assert.AreEqual("A protein modification that effectively converts an L-serine residue to O3-glycosylserine.", result[2].Definition);
@@ -66,7 +63,7 @@ namespace TopDownProteomics.Tests.IO
             CollectionAssert.Contains(result[5].IsA.ToList(), 917);
 
             PsiModTerm formylMethionine = result[30];
-            Assert.AreEqual(8, formylMethionine.ExternalReferences.Count);
+            Assert.AreEqual(9, formylMethionine.ExternalReferences.Count);
             CollectionAssert.Contains(formylMethionine.ExternalReferences.Select(x => x.Id).ToList(), "AA0021#FMET");
             CollectionAssert.Contains(formylMethionine.ExternalReferences.Select(x => x.Name).ToList(), "RESID");
 
@@ -85,6 +82,10 @@ namespace TopDownProteomics.Tests.IO
 
             PsiModTerm hexakis = result[147];
             Assert.AreEqual(-3, hexakis.FormalCharge);
+
+            PsiModTerm stearoylated = result[2001];
+            Assert.AreEqual(2001, stearoylated.Id);
+            Assert.AreEqual(0, stearoylated.ExternalReferences.Count);
         }
     }
 }
