@@ -66,14 +66,18 @@ namespace TopDownProteomics.Benchmarks
 
         public IElement GetElement(int atomicNumber, int? fixedIsotopeNumber = null)
         {
+            if (atomicNumber == 6 && fixedIsotopeNumber == 13)
+                return _carbon13;
+
             return _elements[atomicNumber];
         }
 
         public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
         {
+            if (symbol == "C" && fixedIsotopeNumber == 13)
+                return _carbon13;
+
             return _elements.Single(x => x?.Symbol == symbol);
         }
-
-        public IElement GetCarbon13() => _carbon13;
     }
 }
