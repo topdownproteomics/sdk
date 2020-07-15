@@ -3,7 +3,7 @@
 namespace TopDownProteomics.ProForma
 {
     /// <summary>
-    /// The specified way of writing a localized modification. Everything between ‘[‘ and ‘]’ (inclusive). A collection of descriptors.
+    /// The specified way of writing a modification. Everything between ‘[‘ and ‘]’ (inclusive). A collection of descriptors.
     /// </summary>
     public class ProFormaTag
     {

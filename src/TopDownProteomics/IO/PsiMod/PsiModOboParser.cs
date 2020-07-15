@@ -16,7 +16,6 @@ namespace TopDownProteomics.IO.PsiMod
         /// </summary>
         /// <param name="path">The path.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public IEnumerable<PsiModTerm> Parse(string path)
         {
             var oboParser = new OboParser();
@@ -28,7 +27,6 @@ namespace TopDownProteomics.IO.PsiMod
         /// </summary>
         /// <param name="text">The text.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public IEnumerable<PsiModTerm> ParseText(string text)
         {
             var oboParser = new OboParser();

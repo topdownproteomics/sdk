@@ -8,7 +8,7 @@ namespace TopDownProteomics.Tests
     [TestFixture]
     public class ProFormaParserTests
     {
-        public static ProFormaParser _parser = new ProFormaParser();
+        public static ProFormaParser _parser = new ProFormaParser(allowLegacySyntax: true);
 
         [Test]
         public void InvalidProFormaStrings()
@@ -444,10 +444,78 @@ namespace TopDownProteomics.Tests
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
         }
 
+        // List for meeting
+        //  * Double check using modification names w/o prefixes (4.2.1)
+        //  * RESID uses AA0000 for identifiers (4.2.2)
+        //  * What does pipe mean?
+        //    - For info tags, it means more information about the tag
+        //    - For ambiguity groups, it allows one to put a group name (THIS ONE seems closer to XLs)
+        //    - For joint representation of data, it means you are using multiple pieces of information in the same tag
+        //  * Do both sides of a crosslink always have the same ID?
+        //  * Future direction -> Metal bindings?
+        //  * Can we have ranges and ambiguity groups together? e.g. EM[Oxidation]EV(ST)[#g1]S[#g1]ES[Phospho|#g1]PEK
+        //  * What does this mean? EM[Oxidation]EVT[#g1]S[#g1]ES[Acetyl|Trimethyl|#g1]PEK
+        //    - Do both modifications apply to the group?
+        //  * What does this mean? EM[Oxidation]EVT[#g1]S[#g1]ES[Acetyl|#g1|info:found trimethyl here in pub XYZ]PEK
+        //    - How does it work if someone wants to write information about the whole group? or just one part?
+
+
+        // Questions for Ryan
+        //  ? Should I expose all functionality using interfaces or hide some details in specific classes?
+        //  ? Why would one want to syntax parse and not go on to Proteoform Group?
+        //    1. Filter/append and write back out
+        //  ? Can XLs and ambiguity groups use the same mechanism?
+
+        // Term
+        //  Sequence
+        //  N-Term LIST
+        //  C-Term LIST
+        //  Tags
+        //  Labile LIST
+        //  Unlocalized LIST
+        //  AmbiguityGroup LIST
+        //  Fixed Modifications LIST
+
+        // TagGroup
+        //  Name
+        //  Key, Value (? ONLY 1 pair for the whole group?)
+        //  MembershipDescriptor LIST
+        //  Required membership count (so you could say, e.g., you need 2 out of 3)
+        //  IsAmbiguous()
+
+        // MembershipDescriptor
+        //  Index (Start and End to support ranges in groups?)
+        //  Membership Weight
+        //  Type -> Fixed, Ambiguous
+
+        //////// AmbiguityGroup
+        ////////  Name
+        ////////  Tag? Descriptor? LIST?
+
+        //////// AmbiguityGroupTag
+        ////////  Index
+        ////////  Score
+
+        // Tag
+        //  Start Index (Range support)
+        //  End Index
+
+        // Descriptor
+        //  Key, Value
+        //  -- Crosslink Name (need this here if I do grouping like above?) --
+        //  Evidence Type: Unknown, Theoretical, Observed
+
+        // Fixed Modification
+        //  Type -> AA, Element
+        //  Target LIST -> only needed for AA
+        //  Descriptor -> any type for AA, should probably be Formula for element
+
         #region Version 2.0 Tests
         [Test]
         public void ModificationNameUsage_4_2_1()
         {
+            // Use standard descriptor.
+
             const string proFormaString = "EM[Oxidation]EVEES[U:Phospho]PEK";
             var term = _parser.ParseString(proFormaString);
 
@@ -463,6 +531,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void ModificationAccessionNumbers_4_2_2()
         {
+            // Use standard descriptor.
+
             const string proFormaString = "EM[MOD:00719]EVEES[MOD:00046]PEK";
             var term = _parser.ParseString(proFormaString);
 
@@ -475,6 +545,9 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Crosslinkers_XL_MOD_4_2_3()
         {
+            // Add cross link name to descriptor.
+
+            // Using the XL-MOD CV, arbitrary suffixes MUST be used to denote links between two residues.
             // EMEVTK[XLMOD:02001.XL1]SESPEK[XLMOD:02001.XL1]
             // EMK[XLMOD:02000.XL1]EVTK[XLMOD:02001.XL2]SESK[XLMOD:02000.XL1]PEK[XLMOD:02001.XL2]
 
@@ -483,6 +556,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Glycans_GNO_MOD_4_2_4()
         {
+            // Use standard descriptor.
+
             // NEEYN[GNO:G59626AS]K
             // YPVLN[GNO:G62765YT]VTMPN[GNO:G02815KT]NSNGKFDK
         }
@@ -490,6 +565,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void DeltaMassNotation_4_2_5()
         {
+            // Add evidence type to descriptor to handle prefixes.
+
             // No prefixes
             // EM[+15.9949]EVEES[+79.9663]PEK
             // EM[+15.995]EVEES[+79.966]PEK
@@ -504,12 +581,16 @@ namespace TopDownProteomics.Tests
         [Test]
         public void GapOfKnownMass_4_2_6()
         {
+            // Parse straight, consider some validation change (e.g. force a mass to be specified, etc.)
+
             // RTAAX[+367.0537]WT
         }
 
         [Test]
         public void ChemicalFormulas_4_2_7()
         {
+            // Use standard descriptor, add parser.
+
             // SEQUEN[Formula:C12H20O2]CE
             // SEQUEN[Formula:HN-1O2]CE
             // SEQUEN[Formula:[13]C2[12]C-2H2N]CE
@@ -519,6 +600,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void GlycanComposition_4_2_8()
         {
+            // Use standard descriptor, add parser.
+
             // SEQUEN[Glycan:Hex2Man]CE
             // SEQUEN[Glycan:HexNAc]CE
         }
@@ -526,6 +609,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void TerminalModifications_4_3_1()
         {
+            // Use standard descriptor
+
             // [iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK
             // [iTRAQ4plex]-EM[U:Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]-[Methyl]
         }
@@ -533,6 +618,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void LabileModifications_4_3_2()
         {
+            // Add labile descriptor list to term
+
             // {Hex}EM[U:Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]
             // {Hex}[iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]
             // {Hex}[iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]-[Methyl]
@@ -541,16 +628,20 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Ambiguity_UnknownPosition_4_4_1()
         {
+            // Use unlocalized list on term.
+
             // [Phospho]?EM[Hydroxylation]EVTSESPEK
             // [Phospho][Phospho]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
             // [Phospho]*2?[Acetyl]-EM[Hydroxylation]EVTSESPEK
 
-            // INVALID [Acetyl]-[Phospho]*2? EM[Hydroxylation]EVTSESPEK
+            // INVALID [Acetyl]-[Phospho]*2?EM[Hydroxylation]EVTSESPEK
         }
 
         [Test]
         public void Ambiguity_PossiblePositions_4_4_2()
         {
+            // Use TagGroup List on term.
+
             // This is read as a named group 'g1' indicates that a phosphorylation exists on either T5, S6 or S8
             // EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho|#g1]PEK
         }
@@ -558,6 +649,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Ambiguity_PossiblePositionsWithScores_4_4_3()
         {
+            // Use MembershipDescriptors to store scores.
+
             // The values of the modification localization scores can be indicated in parentheses within the same group and brackets. 
             // EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho|#g1(0.90)]PEK
 
@@ -575,6 +668,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Ambiguity_Ranges_4_4_4()
         {
+            // Use start and end indexes on Tag
+
             // Ranges of amino acids as possible locations for the modifications may be represented using parentheses within the amino acid sequence.
             // PROT(EOSFORMS)[+19.0523]ISK
             // PROT(EOC[Carbamidomethyl]FORMS)[+19.0523]ISK
@@ -589,6 +684,8 @@ namespace TopDownProteomics.Tests
         [Test]
         public void GlobalModifications_4_6()
         {
+            // Use Fixed Modification LIST on term
+
             // Representation of isotopes
             // <13C>ATPEILTVNSIGQLK
             // <15N>ATPEILTVNSIGQLK
@@ -598,22 +695,25 @@ namespace TopDownProteomics.Tests
             // Fixed protein modifications
             // <[S-carboxamidomethyl-L-cysteine]@C>ATPEILTCNSIGCLK
             // <[MOD:01090]@C>ATPEILTCNSIGCLK
+            // <[Oxidation]@C,M>MTPEILTCNSIGCLK
 
             // Fixed modifications MUST be written prior to ambiguous modifications, and similar to ambiguity notation, N-terminal modifications MUST be the last ones written, just next to the sequence. 
-            // INVALID: [Phospho]?<[MOD:01090]@C> EM[Hydroxylation]EVTSESPEK
-            // INVALID: [Acetyl]-<[MOD:01090]@C> EM[Hydroxylation]EVTSESPEK
+            // INVALID: [Phospho]?<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK
+            // INVALID: [Acetyl]-<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK
         }
 
         [Test]
         public void InfoTag_4_7()
         {
+            // Use standard descriptor.
+
             // ELV[INFO:AnyString]IS
             // ELVIS[Phospho|INFO:newly discovered]K
             // ELVIS[Phospho|INFO:newly discovered|INFO:really awesome]K
             // INVALID: ELVIS[Phospho|INFO:newly]discovered]K
         }
 
-        // TODO: 4.8 is up in the air a bit, wait to implement
+        // TODO: 4.8 is joint representation of data -> up in the air a bit, wait to implement
         #endregion
     }
 }

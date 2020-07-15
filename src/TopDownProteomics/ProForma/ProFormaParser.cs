@@ -10,6 +10,18 @@ namespace TopDownProteomics.ProForma
     public class ProFormaParser
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="ProFormaParser"/> class.
+        /// </summary>
+        /// <param name="allowLegacySyntax">if set to <c>true</c> [allow legacy syntax].</param>
+        public ProFormaParser(bool allowLegacySyntax)
+        {
+            AllowLegacySyntax = allowLegacySyntax;
+        }
+
+        /// <summary>Should the parser accept legacy syntax?</summary>
+        public bool AllowLegacySyntax { get; }
+
+        /// <summary>
         /// Parses the ProForma string.
         /// </summary>
         /// <param name="proFormaString">The pro forma string.</param>

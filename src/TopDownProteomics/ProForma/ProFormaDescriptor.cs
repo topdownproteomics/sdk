@@ -12,11 +12,6 @@
         /// <param name="value">The value.</param>
         public ProFormaDescriptor(string key, string value)
         {
-            //if (Enum.TryParse(key, true, out ProFormaKey parsedKey))
-            //    this.Key = parsedKey;
-            //else
-            //    throw new ProFormaParseException("The key " + key + " is not supported.");
-
             this.Key = key;
             this.Value = value;
         }
@@ -31,23 +26,16 @@
             this.Value = value;
         }
 
-        /// <summary>
-        /// The key.
-        /// </summary>
+        /// <summary>The key.</summary>
         public string Key { get; }
 
-        /// <summary>
-        /// The value.
-        /// </summary>
+        /// <summary>The value.</summary>
         public string Value { get; }
 
         /// <summary>
         /// String representation of <see cref="ProFormaDescriptor"/>
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return $"{Key}:{Value}";
-        }
+        public override string ToString() => $"{Key}:{Value}";
     }
 }

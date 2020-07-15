@@ -94,6 +94,15 @@ namespace TopDownProteomics.IO.Obo
                     }
                 }
             }
+
+            // Check for last term
+            if (inTerm)
+            {
+                if (id == null || name == null)
+                    throw new Exception("OBO Term must have both 'id' and 'name'.");
+
+                yield return new OboTerm(id, name, pairs);
+            }
         }
     }
 }
