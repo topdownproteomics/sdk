@@ -60,19 +60,21 @@ namespace TopDownProteomics.IO.Xlmod
                             }
                             break;
                         case "def":
-                            // "defString" [dbName1:acc1, dbName2:acc2]
-                            string[] splitQuot = pair.Value.Substring(1).Split('"');
-                            definition = splitQuot[0];
-
-                            string refs = splitQuot[1];
-                            refs = refs.Trim(' ', '[', ']');
-                            if (refs != "")
                             {
-                                string[] splitComma = refs.Split(',');
-                                foreach (string reference in splitComma.Select(s => s.Trim(' ')))
+                                // "defString" [dbName1:acc1, dbName2:acc2]
+                                int endOfQuote = valueSpan.LastIndexOf('"');
+                                definition = valueSpan.Slice(1, endOfQuote - 1).ToString();
+
+                                string refs = valueSpan.Slice(endOfQuote + 3, valueSpan.Length - endOfQuote - 4).ToString();
+                                
+                                if (refs != "")
                                 {
-                                    string[] splitColon2 = reference.Split(':');
-                                    Utility.LazyCreateAndAdd(ref externalReferences, new XlmodExternalReference(splitColon2[0], splitColon2[1]));
+                                    string[] splitComma = refs.Split(',');
+                                    foreach (string reference in splitComma.Select(s => s.Trim(' ')))
+                                    {
+                                        string[] splitColon2 = reference.Split(':');
+                                        Utility.LazyCreateAndAdd(ref externalReferences, new XlmodExternalReference(splitColon2[0], splitColon2[1]));
+                                    }
                                 }
                             }
                             break;
@@ -100,7 +102,7 @@ namespace TopDownProteomics.IO.Xlmod
                             break;
                         case "is_a":
                             // MOD:00000 ! description
-                            string modNum = pair.Value.Split('!')[0].Trim(' ');
+                            string modNum = valueSpan.Slice(0, valueSpan.IndexOf(' ') - 1).ToString();
                             Utility.LazyCreateAndAdd(ref isA, modNum);
                             break;
                     }
