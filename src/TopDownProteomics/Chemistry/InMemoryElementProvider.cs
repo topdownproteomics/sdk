@@ -61,12 +61,12 @@ namespace TopDownProteomics.Chemistry
         /// <param name="symbol">The symbol.</param>
         /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
         /// <returns></returns>
-        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        public IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null)
         {
             if (!fixedIsotopeNumber.HasValue)
-                return _by_symbol[symbol];
+                return _by_symbol[symbol.ToString()];
 
-            return this.GetFixedIsotopeElement(_by_symbol[symbol], fixedIsotopeNumber.Value);
+            return this.GetFixedIsotopeElement(_by_symbol[symbol.ToString()], fixedIsotopeNumber.Value);
         }
 
         private IElement GetFixedIsotopeElement(IElement element, int fixedIsotopeNumber)

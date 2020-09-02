@@ -197,7 +197,7 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void FormulaLookup()
         {
-            string formulaString = "C(2) H(2) O";
+            string formulaString = "C2H2O";
             ProFormaDescriptor proFormaDescriptor = new ProFormaDescriptor(ProFormaKey.Formula, formulaString);
             ChemicalFormula chemicalFormula = new ChemicalFormula(new IEntityCardinality<IElement>[]
             {

@@ -10,19 +10,13 @@ namespace TopDownProteomics.Chemistry
     /// </summary>
     public interface IElement : IHasMass, IEquatable<IElement>
     {
-        /// <summary>
-        /// Get the element's atomic number
-        /// </summary>
+        /// <summary>Get the element's atomic number</summary>
         int AtomicNumber { get; }
 
-        /// <summary>
-        /// Gets the element's symbol
-        /// </summary>
+        /// <summary>Gets the element's symbol</summary>
         string Symbol { get; }
 
-        /// <summary>
-        /// Gets the Isotopes that make up the element
-        /// </summary>
+        /// <summary>Gets the Isotopes that make up the element</summary>
         IReadOnlyCollection<IIsotope> Isotopes { get; }
     }
 }

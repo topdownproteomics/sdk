@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace TopDownProteomics.Chemistry
@@ -189,104 +190,140 @@ namespace TopDownProteomics.Chemistry
             return formula;
         }
 
-        /// <summary>  Attempts to parse the string into a ChemicalFormula.  The string must use the Unimod format.</summary>
+        /// <summary>  Attempts to parse the string into a ChemicalFormula.</summary>
         /// <param name="formula">The chemical formula. as a string</param>
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
         /// <returns>True if successful, otherwise false.</returns>
-        public static bool TryParseString(string formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
+        public static bool TryParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
         {
             chemicalFormula = ChemicalFormula.Empty; // Set to null in case of failure.
 
             IList<IEntityCardinality<IElement>> elementList = new List<IEntityCardinality<IElement>>();
 
-            string[] elements = formula.Split(' ');
+            int symbolStart = 0, symbolEnd = 0;
+            int digitStart = 0, digitEnd = 0;
+            int isotopeStart = 0, isotopeEnd = 0;
+            bool sawUpperCaseLetter = false;
 
-            foreach (string element in elements)
+            for (int i = 0; i < formula.Length; i++)
             {
-                int index = 0;
-                // Element symbol is first.
-                string symbol = "";
-                while (index < element.Length && char.IsLetter(element[index]))
+                // Check to see if this is the start of a new element
+                if (i > 0 && (formula[i] == '[' || (sawUpperCaseLetter && char.IsUpper(formula[i]))))
                 {
-                    symbol += element[index];
-                    index++;
+                    if (!HandleNewElement(formula, elementProvider, elementList, symbolStart, symbolEnd, digitStart, digitEnd, isotopeStart, isotopeEnd))
+                        return false;
+
+                    // Reset things
+                    sawUpperCaseLetter = false;
+                    digitStart = 0;
+                    digitEnd = 0;
+                    isotopeStart = 0;
+                    isotopeEnd = 0;
                 }
 
-                if (index >= element.Length) // No count given, so it must be 1.
+                if (formula[i] == '[')
                 {
-                    IEntityCardinality<IElement> elementAndCount = GetElement(symbol, 1, elementProvider);
-                    if (elementAndCount == null)
+                    isotopeStart = i++ + 1;
+                }
+                else if (formula[i] == ']')
+                {
+                    // Ignore because a new element is starting on the next loop
+                }
+                else if (char.IsLetter(formula[i]))
+                {
+                    if (char.IsUpper(formula[i]))
                     {
-                        return false; // Could happen if the symbol found was an empty string.
+                        // New element
+                        sawUpperCaseLetter = true;
+                        symbolStart = i;
+                        symbolEnd = i;
+
+                        if (isotopeStart != 0)
+                            isotopeEnd = i - 1;
                     }
                     else
                     {
-                        elementList.Add(elementAndCount);
+                        // Lowercase letter continuing the current element.
+                        symbolEnd = i;
                     }
+                }
+                else if (isotopeStart != 0 && isotopeEnd == 0)
+                {
+                    // In an isotope block looking for isotope numbers, do nothing
+                }
+                else if (formula[i] == '-')
+                {
+                    // Handle negative cardinalities
+                    if (digitStart == 0)
+                    {
+                        digitStart = i;
+                        digitEnd = i;
+                    }
+                }
+                else if (char.IsNumber(formula[i]))
+                {
+                    if (digitStart == 0)
+                        digitStart = i;
+
+                    digitEnd = i;
+                }
+                else if (char.IsWhiteSpace(formula[i]))
+                {
+                    // Ignore white space
                 }
                 else
                 {
-                    string countString = "";
-
-                    // There should be a left paren next, ignore it.
-                    if (element[index] == '(')
-                    {
-                        index++;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    // Next may be a minus sign.
-                    if (element[index] == '-')
-                    {
-                        countString += '-';
-                    }
-
-                    // Rest should be digits and a right paren.  Ignore the right paren.
-                    while (index < element.Length && char.IsDigit(element[index]))
-                    {
-                        countString += element[index];
-                        index++;
-                    }
-
-                    if (int.TryParse(countString, out int count))
-                    {
-                        elementList.Add(GetElement(symbol, count, elementProvider));
-                    }
-                    else
-                    {
-                        return false; // Parsing the count failed.
-                    }
-
-                    // Finally there should be a right paren.
-                    if (element[index] == ')')
-                    {
-                        index++;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    // This should be the end.
-                    if (index != element.Length)
-                    {
-                        return false;
-                    }
+                    // Known character, fail!
+                    return false;
                 }
             }
+
+            // Add the last element
+            if (!HandleNewElement(formula, elementProvider, elementList, symbolStart, symbolEnd, digitStart, digitEnd, isotopeStart, isotopeEnd))
+                return false;
 
             // Success!
             chemicalFormula = new ChemicalFormula(elementList);
             return true;
         }
 
-        private static IEntityCardinality<IElement> GetElement(string symbol, int count, IElementProvider elementProvider)
+        private static bool HandleNewElement(ReadOnlySpan<char> formula, IElementProvider elementProvider, 
+            IList<IEntityCardinality<IElement>> elementList, int symbolStart, int symbolEnd, 
+            int digitStart, int digitEnd, int isotopeStart, int isotopeEnd)
         {
-            return new EntityCardinality<IElement>(elementProvider.GetElement(symbol), count);
+            // Handle cardinality
+            int count = 1;
+            if (digitStart != 0)
+            {
+                var digitSpan = formula.Slice(digitStart, digitEnd - digitStart + 1);
+                if (!int.TryParse(digitSpan, out count))
+                    //throw new Exception($"Can't convert {digitSpan.ToString()} to an integer.");
+                    return false;
+            }
+
+            // Handle isotopes
+            int? isotope = null;
+            if (isotopeStart != 0)
+            {
+                var isotopeSpan = formula.Slice(isotopeStart, isotopeEnd - isotopeStart + 1);
+                int isotopeOut;
+                if (!int.TryParse(isotopeSpan, out isotopeOut))
+                    //throw new Exception($"Can't convert {digitSpan.ToString()} to an integer.");
+                    return false;
+
+                isotope = isotopeOut;
+            }
+
+            elementList.Add(GetElement(formula.Slice(symbolStart, symbolEnd - symbolStart + 1), 
+                isotope, count, elementProvider));
+
+            return true;
+        }
+
+        private static IEntityCardinality<IElement> GetElement(ReadOnlySpan<char> symbol, int? isotope, int count, IElementProvider elementProvider)
+        {
+            return new EntityCardinality<IElement>(elementProvider.GetElement(symbol, isotope), count);
         }
     }
 }

@@ -13,7 +13,7 @@
         /// <summary>
         /// The Unimod database identifier
         /// </summary>
-        public static readonly string Unimod = "Unimod";
+        public const string Unimod = "Unimod";
 
         /// <summary>
         /// The UniProt database identifier
@@ -23,17 +23,27 @@
         /// <summary>
         /// The RESID database identifier
         /// </summary>
-        public static readonly string Resid = "RESID";
+        public const string Resid = "RESID";
 
         /// <summary>
         /// The PSI-MOD database identifier
         /// </summary>
-        public static readonly string PsiMod = "PSI-MOD";
+        public const string PsiMod = "PSI-MOD";
 
         /// <summary>
         /// The BRNO identifier
         /// </summary>
         public static readonly string Brno = "BRNO";
+
+        /// <summary>
+        /// The XL-MOD identifier
+        /// </summary>
+        public static readonly string XlMod = "X";
+
+        /// <summary>
+        /// The GNO identifier
+        /// </summary>
+        public static readonly string Gno = "G";
 
         /// <summary>
         /// The mass

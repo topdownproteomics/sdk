@@ -30,9 +30,9 @@ namespace TopDownProteomics.ProForma
         /// <exception cref="ProFormaParseException">
         /// X is not allowed.
         /// </exception>
-        public ProFormaTerm ParseString(string proFormaString)
+        public ProFormaTerm ParseString(ReadOnlySpan<char> proFormaString)
         {
-            if (string.IsNullOrEmpty(proFormaString))
+            if (proFormaString.Length == 0)
                 throw new ArgumentNullException(nameof(proFormaString));
 
             List<ProFormaTag>? tags = null;
@@ -123,7 +123,7 @@ namespace TopDownProteomics.ProForma
             }
 
             if (openLeftBrackets != 0)
-                throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString}");
+                throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString.ToString()}");
 
             return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
         }

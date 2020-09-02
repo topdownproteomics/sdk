@@ -447,11 +447,14 @@ namespace TopDownProteomics.Tests
         // List for meeting
         //  * Double check using modification names w/o prefixes (4.2.1)
         //  * RESID uses AA0000 for identifiers (4.2.2)
+
         //  * What does pipe mean?
         //    - For info tags, it means more information about the tag
         //    - For ambiguity groups, it allows one to put a group name (THIS ONE seems closer to XLs)
         //    - For joint representation of data, it means you are using multiple pieces of information in the same tag
+        
         //  * Do both sides of a crosslink always have the same ID?
+
         //  * Future direction -> Metal bindings?
         //  * Can we have ranges and ambiguity groups together? e.g. EM[Oxidation]EV(ST)[#g1]S[#g1]ES[Phospho|#g1]PEK
         //  * What does this mean? EM[Oxidation]EVT[#g1]S[#g1]ES[Acetyl|Trimethyl|#g1]PEK
@@ -512,34 +515,65 @@ namespace TopDownProteomics.Tests
 
         #region Version 2.0 Tests
         [Test]
-        public void ModificationNameUsage_4_2_1()
+        [TestCase("EM[Oxidation]EVEES[Phospho]PEK")]
+        [TestCase("EM[L-methionine sulfoxide]EVEES[O-phospho-L-serine]PEK")]
+        [TestCase("EM[Oxidation]EVEES[Cation:Mg[II]]PEK")]
+        public void ModificationNameUsage_4_2_1(string proFormaString)
         {
-            // Use standard descriptor.
-
-            const string proFormaString = "EM[Oxidation]EVEES[U:Phospho]PEK";
             var term = _parser.ParseString(proFormaString);
 
-            //Assert.AreEqual(proFormaString, term.Sequence);
-            //Assert.AreEqual(2, term.Tags.Count);
+            Assert.AreEqual("EMEVEESPEK", term.Sequence);
+            Assert.AreEqual(2, term.Tags.Count);
 
-            // EM[L-methionine sulfoxide]EVEES[O-phospho-L-serine]PEK
-            // EM[Oxidation]EVE[Cation:Mg[II]]ES[Phospho]PEK
+            var desc1 = term.Tags[0].Descriptors.Single();
+            var desc2 = term.Tags[1].Descriptors.Single();
+
+            Assert.AreEqual(ProFormaKey.Mod, desc1.Key);
+            Assert.AreEqual(ProFormaKey.Mod, desc2.Key);
+        }
+
+        [Test]
+        public void ModificationNameUsage_4_2_1_Prefixes()
+        {
+            // RESID is R:
+            var term = _parser.ParseString("EM[R:Methionine sulfone]EVEES[O-phospho-L-serine]PEK");
+            var desc1 = term.Tags[0].Descriptors.Single();
+            var desc2 = term.Tags[1].Descriptors.Single();
+
+            Assert.AreEqual(ProFormaKey.Resid, desc1.Key);
+            Assert.AreEqual(ProFormaKey.Mod, desc2.Key);
+
+            // XL-MOD is X:
+            term = _parser.ParseString("EMEVTK[X:DSS#XL1]SESPEK");
+            desc1 = term.Tags[0].Descriptors.Single();
+
+            Assert.AreEqual(ProFormaKey.XlMod, desc1.Key);
+
+            // GNO is G:
+            term = _parser.ParseString("NEEYN[G:G59626AS]K");
+            desc1 = term.Tags[0].Descriptors.Single();
+
+            Assert.AreEqual(ProFormaKey.Gno, desc1.Key);
         }
 
         // TODO: 4.2.1.1 -> Validation, not parsing
 
         [Test]
-        public void ModificationAccessionNumbers_4_2_2()
+        [TestCase("EM[MOD:00719]EVEES[MOD:00046]PEK", ProFormaKey.PsiMod)]
+        [TestCase("EM[UNIMOD:15]EVEES[UNIMOD:56]PEK", ProFormaKey.Unimod)]
+        [TestCase("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK", ProFormaKey.Resid)]
+        public void ModificationAccessionNumbers_4_2_2(string proFormaString, string modType)
         {
-            // Use standard descriptor.
-
-            const string proFormaString = "EM[MOD:00719]EVEES[MOD:00046]PEK";
             var term = _parser.ParseString(proFormaString);
 
-            //Assert.AreEqual(proFormaString, term.Sequence);
-            //Assert.AreEqual(2, term.Tags.Count);
+            Assert.AreEqual("EMEVEESPEK", term.Sequence);
+            Assert.AreEqual(2, term.Tags.Count);
 
-            // EM[UNIMOD:15]EVEES[UNIMOD:56]PEK
+            var desc1 = term.Tags[0].Descriptors.Single();
+            var desc2 = term.Tags[1].Descriptors.Single();
+
+            Assert.AreEqual(modType, desc1.Key);
+            Assert.AreEqual(modType, desc2.Key);
         }
 
         [Test]
@@ -548,9 +582,21 @@ namespace TopDownProteomics.Tests
             // Add cross link name to descriptor.
 
             // Using the XL-MOD CV, arbitrary suffixes MUST be used to denote links between two residues.
-            // EMEVTK[XLMOD:02001.XL1]SESPEK[XLMOD:02001.XL1]
-            // EMK[XLMOD:02000.XL1]EVTK[XLMOD:02001.XL2]SESK[XLMOD:02000.XL1]PEK[XLMOD:02001.XL2]
+            // EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]
+            // EMK[XLMOD:02000#XL1]EVTK[XLMOD:02001#XL2]SESK[#XL1]PEK[#XL2]
 
+            // "Dead end" crosslinks
+            // EMEVTK[XLMOD:02001#XL1]SESPEK
+            // EMEVTK[XLMOD:02001]SESPEK
+
+            // Inter-chain crosslinks
+            // SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[XLMOD:02001#XL1]SESPEK
+            // SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[#XL1]SESPEK
+
+            // Disulfides
+            // EVTSEKC[MOD:00034#XL1]LEMSC[#XL1]EFD
+            // EVTSEKC[L-cystine (cross-link)#XL1]LEMSC[#XL1]EFD
+            // EVTSEKC[X:Disulfide#XL1]LEMSC[#XL1]EFD
         }
 
         [Test]
@@ -592,9 +638,10 @@ namespace TopDownProteomics.Tests
             // Use standard descriptor, add parser.
 
             // SEQUEN[Formula:C12H20O2]CE
+            // SEQUEN[Formula:C12 H20 O2]CE
             // SEQUEN[Formula:HN-1O2]CE
-            // SEQUEN[Formula:[13]C2[12]C-2H2N]CE
-            // SEQUEN[Formula:CH3(CH2)4CH3]CE
+            // SEQUEN[Formula:[13C2][12C-2]H2N]CE
+            // SEQUEN[Formula:[13C2]C-2H2N]CE
         }
 
         [Test]
@@ -602,8 +649,7 @@ namespace TopDownProteomics.Tests
         {
             // Use standard descriptor, add parser.
 
-            // SEQUEN[Glycan:Hex2Man]CE
-            // SEQUEN[Glycan:HexNAc]CE
+            // SEQUEN[Glycan:HexNAc1Hex2]CE
         }
 
         [Test]
@@ -613,6 +659,8 @@ namespace TopDownProteomics.Tests
 
             // [iTRAQ4plex]-EM[Hydroxylation]EVNES[Phospho]PEK
             // [iTRAQ4plex]-EM[U:Hydroxylation]EVNES[Phospho]PEK[iTRAQ4plex]-[Methyl]
+
+            // TODO: Add check for using negative delta mass ... might interfere with the dash notation
         }
 
         [Test]
@@ -632,9 +680,9 @@ namespace TopDownProteomics.Tests
 
             // [Phospho]?EM[Hydroxylation]EVTSESPEK
             // [Phospho][Phospho]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
-            // [Phospho]*2?[Acetyl]-EM[Hydroxylation]EVTSESPEK
+            // [Phospho]^2[Methyl]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
 
-            // INVALID [Acetyl]-[Phospho]*2?EM[Hydroxylation]EVTSESPEK
+            // INVALID [Acetyl]-[Phospho]^2?EM[Hydroxylation]EVTSESPEK
         }
 
         [Test]
@@ -643,36 +691,41 @@ namespace TopDownProteomics.Tests
             // Use TagGroup List on term.
 
             // This is read as a named group 'g1' indicates that a phosphorylation exists on either T5, S6 or S8
-            // EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho|#g1]PEK
+            // EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho#g1]PEK
+
+            // The following example is not valid because a single preferred location must be chosen for a modification:
+            // INVALID EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK
         }
 
         [Test]
-        public void Ambiguity_PossiblePositionsWithScores_4_4_3()
-        {
-            // Use MembershipDescriptors to store scores.
-
-            // The values of the modification localization scores can be indicated in parentheses within the same group and brackets. 
-            // EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho|#g1(0.90)]PEK
-
-            // Similarly, modification position preference may be specified in boolean notation (case insensitive). 
-            // In the following example, the last site is preferred. 
-            // TODO: Multiple sites may be listed as preferred.
-
-            // EM[Oxidation]EVT[#g1(False)]S[#g1(False)]ES[Phospho|#g1(True)]PEK
-
-            // The third option to represent localisation scores is to leave the position of the modification as unknown using the ‘?’ notation, 
-            //  but report the localization modification scores at specific sites.
-            // [Phospho|#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.90)]ES[#s1(0.90)]PEK
-        }
-
-        [Test]
-        public void Ambiguity_Ranges_4_4_4()
+        public void Ambiguity_Ranges_4_4_3()
         {
             // Use start and end indexes on Tag
 
             // Ranges of amino acids as possible locations for the modifications may be represented using parentheses within the amino acid sequence.
             // PROT(EOSFORMS)[+19.0523]ISK
             // PROT(EOC[Carbamidomethyl]FORMS)[+19.0523]ISK
+
+            // Overlapping ranges represent a more complex case and are not yet supported, and so, the following example would NOT be valid:
+            // INVALID P(ROT(EOSFORMS)[+19.0523]IS)[+19.0523]K
+
+
+            // Ranges + scores
+            // PROT(EOSFORMS)[+19.0523#g1(0.01)]ISK
+            // PROT(EOC[Carbamidomethyl]FORMS)[+19.05233#g1(0.09)]ISK
+        }
+
+        [Test]
+        public void Ambiguity_PossiblePositionsWithScores_4_4_4()
+        {
+            // Use MembershipDescriptors to store scores.
+
+            // The values of the modification localization scores can be indicated in parentheses within the same group and brackets. 
+            // EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho#g1(0.90)]PEK
+
+            // The additional option to represent localisation scores is to leave the position of the modification as unknown using the ‘?’ notation, 
+            //  but report the localization modification scores at specific sites.
+            // [Phospho#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.90)]ES[#s1(0.90)]PEK
         }
 
         [Test]
@@ -713,7 +766,15 @@ namespace TopDownProteomics.Tests
             // INVALID: ELVIS[Phospho|INFO:newly]discovered]K
         }
 
-        // TODO: 4.8 is joint representation of data -> up in the air a bit, wait to implement
+        [Test]
+        public void JointRepresentation_4_8()
+        {
+            // Alternative theoretical values
+            // ELVIS[U:Phospho|+79.966331]K
+
+            // Showing both the interpretation and measured mass:
+            // ELVIS[U:Phospho|Obs:+79.978]K
+        }
         #endregion
     }
 }

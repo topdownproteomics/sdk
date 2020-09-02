@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TopDownProteomics.Chemistry;
 
 namespace TopDownProteomics.Benchmarks
@@ -72,12 +73,13 @@ namespace TopDownProteomics.Benchmarks
             return _elements[atomicNumber];
         }
 
-        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        public IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null)
         {
             if (symbol == "C" && fixedIsotopeNumber == 13)
                 return _carbon13;
 
-            return _elements.Single(x => x?.Symbol == symbol);
+            var symbolString = symbol.ToString();
+            return _elements.Single(x => x?.Symbol == symbolString);
         }
     }
 }
