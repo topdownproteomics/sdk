@@ -61,20 +61,20 @@ namespace TopDownProteomics.ProForma.Validation
         public virtual bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
             var nonDefault = descriptor.Key == this.Key ||
-                (descriptor.Key == ProFormaKey.Mod && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
+                (descriptor.Key == ProFormaKey.KnownModificationName && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
 
             if (!this.IsDefaultModificationType)
                 return nonDefault;
 
             // If this is the default modification type, allow one more condition.
             return nonDefault ||
-                (descriptor.Key == ProFormaKey.Mod && !descriptor.Value.TrimEnd().EndsWith(")"));
+                (descriptor.Key == ProFormaKey.KnownModificationName && !descriptor.Value.TrimEnd().EndsWith(")"));
         }
 
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected abstract string Key { get; }
+        protected abstract ProFormaKey Key { get; }
 
         /// <summary>
         /// Removes the prefix.
@@ -120,7 +120,7 @@ namespace TopDownProteomics.ProForma.Validation
 
                 throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor}.");
             }
-            else if (descriptor.Key == ProFormaKey.Mod)
+            else if (descriptor.Key == ProFormaKey.KnownModificationName)
             {
                 int index = descriptor.Value.IndexOf(this.GetModNameDatabaseTag());
 

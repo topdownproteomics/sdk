@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
-        public ProFormaDescriptor(string key, string value)
+        public ProFormaDescriptor(ProFormaKey key, string value)
         {
             this.Key = key;
             this.Value = value;
@@ -22,12 +22,12 @@
         /// <param name="value"></param>
         public ProFormaDescriptor(string value)
         {
-            this.Key = ProFormaKey.Mod;
+            this.Key = ProFormaKey.KnownModificationName;
             this.Value = value;
         }
 
         /// <summary>The key.</summary>
-        public string Key { get; }
+        public ProFormaKey Key { get; }
 
         /// <summary>The value.</summary>
         public string Value { get; }

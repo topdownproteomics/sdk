@@ -72,7 +72,9 @@ namespace TopDownProteomics.Tests
         [Test]
         public void MultipleDescriptorTag()
         {
-            const string proFormaString = "SEQUEN[mod:Methyl|mass:+14.02]CE";
+            // Tweaking for v2
+
+            const string proFormaString = "SEQUEN[Methyl|+14.02]CE";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("SEQUENCE", term.Sequence);
@@ -83,7 +85,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(5, tag.ZeroBasedIndex);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
-            Assert.AreEqual(ProFormaKey.Mod, tag.Descriptors[0].Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag.Descriptors[0].Key);
             Assert.AreEqual("Methyl", tag.Descriptors[0].Value);
             Assert.AreEqual(ProFormaKey.Mass, tag.Descriptors[1].Key);
             Assert.AreEqual("+14.02", tag.Descriptors[1].Value);
@@ -101,14 +103,16 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(1, term.Tags.Count);
             Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mod, term.Tags.Single().Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, term.Tags.Single().Descriptors.Single().Key);
             Assert.AreEqual(modName, term.Tags.Single().Descriptors.Single().Value);
         }
 
         [Test]
         public void MixedDescriptor()
         {
-            const string proFormaString = "SEQUEN[Methyl|mass:+14.02]CE";
+            // Tweaking for v2
+
+            const string proFormaString = "SEQUEN[Methyl|+14.02]CE";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("SEQUENCE", term.Sequence);
@@ -119,13 +123,14 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(5, tag.ZeroBasedIndex);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
-            Assert.AreEqual(ProFormaKey.Mod, tag.Descriptors.First().Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag.Descriptors.First().Key);
             Assert.AreEqual("Methyl", tag.Descriptors.First().Value);
             Assert.AreEqual(ProFormaKey.Mass, tag.Descriptors.Last().Key);
             Assert.AreEqual("+14.02", tag.Descriptors.Last().Value);
         }
 
         [Test]
+        [Ignore("Invalid in v2.")]
         public void Rule6()
         {
             const string proFormaString = "[mass]+S[80]EQVE[14]NCE";
@@ -152,6 +157,7 @@ namespace TopDownProteomics.Tests
         /// Rule 6 with incompatible tag values. This is syntactically valid, but logically invalid. Pick up the error at the next level of validation.
         /// </summary>
         [Test]
+        [Ignore("Invalid in v2.")]
         public void Rule6_WithModificationNames()
         {
             const string proFormaString = "[mass]+S[Methyl]EQVE[14]NCE";
@@ -169,7 +175,9 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Rule7()
         {
-            const string proFormaString = "[mass:-17.027]-SEQVENCE-[Amidation]";
+            // Tweaking for v2
+
+            const string proFormaString = "[-17.027]-SEQVENCE-[Amidation]";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("SEQVENCE", term.Sequence);
@@ -184,11 +192,12 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("-17.027", nTerm.Value);
 
             var cTerm = term.CTerminalDescriptors[0];
-            Assert.AreEqual(ProFormaKey.Mod, cTerm.Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, cTerm.Key);
             Assert.AreEqual("Amidation", cTerm.Value);
         }
 
         [Test]
+        [Ignore("Invalid in v2.")]
         public void Rule7andRule6()
         {
             const string proFormaString = "[mass]+[-17.027]-SEQ[14.05]VENCE";
@@ -213,6 +222,7 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
+        [Ignore("Invalid in v2.")]
         [TestCase("[mass]+S[mod:Methyl]EQVE[14]NCE")]
         [TestCase("[mass]+[mod:Methyl]-SEQVENCE")]
         [TestCase("[Methyl]-[mass]+SEQ[14.05]VENCE")]
@@ -290,7 +300,7 @@ namespace TopDownProteomics.Tests
             ProFormaTag tag1 = term.UnlocalizedTags[0];
             Assert.AreEqual(-1, tag1.ZeroBasedIndex);
             Assert.AreEqual(1, tag1.Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.Single().Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag1.Descriptors.Single().Key);
             Assert.AreEqual("Phospho", tag1.Descriptors.Single().Value);
         }
 
@@ -306,7 +316,9 @@ namespace TopDownProteomics.Tests
         [Test]
         public void BestPractice_i()
         {
-            const string proFormaString = "[Acetyl]-S[Phospho|mass:79.966331]GRGK[Acetyl|Unimod:1|mass:42.010565]QGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKT[Unimod:21]ESHHKAKGK";
+            // Tweaking for v2
+
+            const string proFormaString = "[Acetyl]-S[Phospho|+79.966331]GRGK[Acetyl|UNIMOD:1|+42.010565]QGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKT[UNIMOD:21]ESHHKAKGK";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("SGRGKQGGKARAKAKTRSSRAGLQFPVGRVHRLLRKGNYAERVGAGAPVYLAAVLEYLTAEILELAGNAARDNKKTRIIPRHLQLAIRNDEELNKLLGKVTIAQGGVLPNIQAVLLPKKTESHHKAKGK", term.Sequence);
@@ -317,35 +329,36 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.CTerminalDescriptors);
 
             var nTerm = term.NTerminalDescriptors[0];
-            Assert.AreEqual(ProFormaKey.Mod, nTerm.Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, nTerm.Key);
             Assert.AreEqual("Acetyl", nTerm.Value);
 
             ProFormaTag tag1 = term.Tags[0];
             Assert.AreEqual(0, tag1.ZeroBasedIndex);
             Assert.AreEqual(2, tag1.Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mod, tag1.Descriptors.First().Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag1.Descriptors.First().Key);
             Assert.AreEqual("Phospho", tag1.Descriptors.First().Value);
             Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Last().Key);
-            Assert.AreEqual("79.966331", tag1.Descriptors.Last().Value);
+            Assert.AreEqual("+79.966331", tag1.Descriptors.Last().Value);
 
             ProFormaTag tag5 = term.Tags[1];
             Assert.AreEqual(4, tag5.ZeroBasedIndex);
             Assert.AreEqual(3, tag5.Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mod, tag5.Descriptors[0].Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag5.Descriptors[0].Key);
             Assert.AreEqual("Acetyl", tag5.Descriptors[0].Value);
             Assert.AreEqual(ProFormaKey.Unimod, tag5.Descriptors[1].Key);
-            Assert.AreEqual("1", tag5.Descriptors[1].Value);
+            Assert.AreEqual("UNIMOD:1", tag5.Descriptors[1].Value);
             Assert.AreEqual(ProFormaKey.Mass, tag5.Descriptors[2].Key);
-            Assert.AreEqual("42.010565", tag5.Descriptors[2].Value);
+            Assert.AreEqual("+42.010565", tag5.Descriptors[2].Value);
 
             ProFormaTag tag120 = term.Tags[2];
             Assert.AreEqual(119, tag120.ZeroBasedIndex);
             Assert.AreEqual(1, tag120.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Unimod, tag120.Descriptors.Single().Key);
-            Assert.AreEqual("21", tag120.Descriptors.Single().Value);
+            Assert.AreEqual("UNIMOD:21", tag120.Descriptors.Single().Value);
         }
 
         [Test]
+        [Ignore("Invalid in v2.")]
         public void BestPractice_ii()
         {
             const string proFormaString = "[Unimod]+[1]-S[21]GRGK[1]QGGKARAKAKTRSSRAGKVTIAQGGVLPNIQAVLLPKKT[21]ESHHKAKGK";
@@ -384,7 +397,9 @@ namespace TopDownProteomics.Tests
         [Test]
         public void BestPractice_iii()
         {
-            const string proFormaString = "MTLFQLREHWFVYKDDEKLTAFRNK[p-adenosine| N6-(phospho-5'-adenosine)-L-lysine(RESID)| RESID:AA0227| PSI-MOD:MOD:00232| N6AMPLys(PSI-MOD)]SMLFQRELRPNEEVTWK";
+            // Tweaking for v2
+
+            const string proFormaString = "MTLFQLREHWFVYKDDEKLTAFRNK[p-adenosine|R:N6-(phospho-5'-adenosine)-L-lysine| RESID:AA0227| MOD:00232| N6AMPLys]SMLFQRELRPNEEVTWK";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("MTLFQLREHWFVYKDDEKLTAFRNKSMLFQRELRPNEEVTWK", term.Sequence);
@@ -396,22 +411,24 @@ namespace TopDownProteomics.Tests
             ProFormaTag tag25 = term.Tags[0];
             Assert.AreEqual(24, tag25.ZeroBasedIndex);
             Assert.AreEqual(5, tag25.Descriptors.Count);
-            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[0].Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag25.Descriptors[0].Key);
             Assert.AreEqual("p-adenosine", tag25.Descriptors[0].Value);
-            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[1].Key);
-            Assert.AreEqual(" N6-(phospho-5'-adenosine)-L-lysine(RESID)", tag25.Descriptors[1].Value);
+            Assert.AreEqual(ProFormaKey.Resid, tag25.Descriptors[1].Key);
+            Assert.AreEqual("N6-(phospho-5'-adenosine)-L-lysine", tag25.Descriptors[1].Value);
             Assert.AreEqual(ProFormaKey.Resid, tag25.Descriptors[2].Key);
             Assert.AreEqual("AA0227", tag25.Descriptors[2].Value);
             Assert.AreEqual(ProFormaKey.PsiMod, tag25.Descriptors[3].Key);
             Assert.AreEqual("MOD:00232", tag25.Descriptors[3].Value);
-            Assert.AreEqual(ProFormaKey.Mod, tag25.Descriptors[4].Key);
-            Assert.AreEqual(" N6AMPLys(PSI-MOD)", tag25.Descriptors[4].Value);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, tag25.Descriptors[4].Key);
+            Assert.AreEqual("N6AMPLys", tag25.Descriptors[4].Value);
         }
 
         [Test]
         public void BestPractice_iv()
         {
-            const string proFormaString = "MTLFQLDEKLTA[mass:-37.995001|info:unknown modification]FRNKSMLFQRELRPNEEVTWK";
+            // Tweaking for v2
+
+            const string proFormaString = "MTLFQLDEKLTA[-37.995001|info:unknown modification]FRNKSMLFQRELRPNEEVTWK";
             var term = _parser.ParseString(proFormaString);
 
             Assert.AreEqual("MTLFQLDEKLTAFRNKSMLFQRELRPNEEVTWK", term.Sequence);
@@ -528,8 +545,8 @@ namespace TopDownProteomics.Tests
             var desc1 = term.Tags[0].Descriptors.Single();
             var desc2 = term.Tags[1].Descriptors.Single();
 
-            Assert.AreEqual(ProFormaKey.Mod, desc1.Key);
-            Assert.AreEqual(ProFormaKey.Mod, desc2.Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, desc1.Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, desc2.Key);
         }
 
         [Test]
@@ -541,7 +558,7 @@ namespace TopDownProteomics.Tests
             var desc2 = term.Tags[1].Descriptors.Single();
 
             Assert.AreEqual(ProFormaKey.Resid, desc1.Key);
-            Assert.AreEqual(ProFormaKey.Mod, desc2.Key);
+            Assert.AreEqual(ProFormaKey.KnownModificationName, desc2.Key);
 
             // XL-MOD is X:
             term = _parser.ParseString("EMEVTK[X:DSS#XL1]SESPEK");
@@ -562,7 +579,7 @@ namespace TopDownProteomics.Tests
         [TestCase("EM[MOD:00719]EVEES[MOD:00046]PEK", ProFormaKey.PsiMod)]
         [TestCase("EM[UNIMOD:15]EVEES[UNIMOD:56]PEK", ProFormaKey.Unimod)]
         [TestCase("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK", ProFormaKey.Resid)]
-        public void ModificationAccessionNumbers_4_2_2(string proFormaString, string modType)
+        public void ModificationAccessionNumbers_4_2_2(string proFormaString, ProFormaKey modType)
         {
             var term = _parser.ParseString(proFormaString);
 

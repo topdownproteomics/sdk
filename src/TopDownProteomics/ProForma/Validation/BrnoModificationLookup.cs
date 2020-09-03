@@ -33,7 +33,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            return descriptor.Key == ProFormaKey.Mod && descriptor.Value != null && descriptor.Value.EndsWith("(BRNO)");
+            return descriptor.Key == ProFormaKey.KnownModificationName && descriptor.Value != null && descriptor.Value.EndsWith("(BRNO)");
         }
 
         /// <summary>

@@ -44,7 +44,7 @@ namespace TopDownProteomics.ProForma
             var tag = new StringBuilder();
             bool inTag = false;
             bool inCTerminalTag = false;
-            string? prefixTag = null;
+            ProFormaKey prefixTag = ProFormaKey.None;
             int openLeftBrackets = 0;
 
             for (int i = 0; i < proFormaString.Length; i++)
@@ -85,8 +85,10 @@ namespace TopDownProteomics.ProForma
                         if (unlocalizedTags != null)
                             throw new ProFormaParseException("Prefix tag must come before an unlocalized modification.");
 
-                        prefixTag = tag.ToString();
-                        i++; // Skip the + character
+                        throw new Exception("Are we supporting prefix tags?");
+
+                        //prefixTag = tag.ToString();
+                        //i++; // Skip the + character
                     }
                     else
                     {
@@ -128,44 +130,34 @@ namespace TopDownProteomics.ProForma
             return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
         }
 
-        private ProFormaTag ProcessTag(string tag, int index, string? prefixTag)
+        private ProFormaTag ProcessTag(string tag, int index, ProFormaKey prefixTag = ProFormaKey.None)
         {
             var descriptors = this.ProcessTag(tag, prefixTag);
 
             return new ProFormaTag(index, descriptors);
         }
 
-        private IList<ProFormaDescriptor> ProcessTag(string tag, string? prefixTag)
+        private IList<ProFormaDescriptor> ProcessTag(string tag, ProFormaKey prefixTag = ProFormaKey.None)
         {
             var descriptors = new List<ProFormaDescriptor>();
             var descriptorText = tag.Split('|');
 
             for (int i = 0; i < descriptorText.Length; i++)
             {
-                int colon = descriptorText[i].IndexOf(':');
-                string key = colon < 0 ? "" : descriptorText[i].Substring(0, colon).TrimStart();
-                string value;
-                if (ProFormaKey.IsValidKey(key))
-                {
-                    value = descriptorText[i].Substring(colon + 1); // values may have colons
-                }
-                else
-                {
-                    key = "";
-                    value = descriptorText[i];
-                }
+
+                var (key, value) = this.ParseDescriptor(descriptorText[i].TrimStart());
 
                 // Prefix tag
-                if (!string.IsNullOrEmpty(prefixTag))
+                if (prefixTag != ProFormaKey.None)
                 {
-                    if (key.Length > 0)
+                    if (key != ProFormaKey.None)
                         throw new ProFormaParseException("Cannot use key-value pairs with a prefix key");
 
                     descriptors.Add(new ProFormaDescriptor(prefixTag, value));
                 }
 
                 // typical descriptor
-                else if (key.Length > 0)
+                else if (key != ProFormaKey.None)
                 {
                     descriptors.Add(new ProFormaDescriptor(key, value));
                 }
@@ -196,7 +188,7 @@ namespace TopDownProteomics.ProForma
                     descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.LeftBoundary, group));
                 }
 
-                // keyless descriptor (UniMod annotation)
+                // keyless descriptor (UniMod or PSI-MOD annotation)
                 else if (value.Length > 0)
                 {
                     descriptors.Add(new ProFormaDescriptor(value));
@@ -208,6 +200,46 @@ namespace TopDownProteomics.ProForma
             }
 
             return descriptors;
+        }
+
+        private Tuple<ProFormaKey, string> ParseDescriptor(string text)
+        {
+            if (text.Length == 0)
+                throw new ProFormaParseException("Cannot have an empty descriptor.");
+
+            // Handle delta mass (4.2.5)
+            if (text[0] == '+' || text[0] == '-')
+            {
+                return Tuple.Create(ProFormaKey.Mass, text);
+            }
+
+            // Let's look for a colon
+            int colon = text.IndexOf(':');
+
+            if (colon < 0)
+            {
+                // No colon, assume it is the name of a known modification and return
+                return Tuple.Create(ProFormaKey.KnownModificationName, text);
+            }
+
+            // Let's see if the bit before the colon is a known key
+            string keyText = text.Substring(0, colon).ToLower().Trim();
+
+            return keyText switch
+            {
+                "formula"                           => Tuple.Create(ProFormaKey.Formula, text.Substring(colon + 1)),
+                "info"                              => Tuple.Create(ProFormaKey.Info, text.Substring(colon + 1)),
+
+                var x when x == "mod"               => Tuple.Create(ProFormaKey.PsiMod, text),
+                var x when x == "unimod"            => Tuple.Create(ProFormaKey.Unimod, text),
+
+                // Special case for RESID id, don't inclue bit with colon
+                var x when x == "r" || x == "resid" => Tuple.Create(ProFormaKey.Resid, text.Substring(colon + 1)),
+
+                var x when x == "x" || x == "xlmod" => Tuple.Create(ProFormaKey.XlMod, text),
+                var x when x == "g" || x == "gno"   => Tuple.Create(ProFormaKey.Gno, text),
+                _                                   => Tuple.Create(ProFormaKey.KnownModificationName, text)
+            };
         }
     }
 }

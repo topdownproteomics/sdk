@@ -3,79 +3,66 @@
     /// <summary>
     /// Possible keys for a ProFormaDescriptor
     /// </summary>
-    public class ProFormaKey
+    public enum ProFormaKey
     {
         /// <summary>
-        /// The modification name
+        /// No key provided
         /// </summary>
-        public static readonly string Mod = "mod";
+        None = 0,
 
         /// <summary>
-        /// The Unimod database identifier
+        /// The modification name comes from one of the default ontologies.
         /// </summary>
-        public const string Unimod = "Unimod";
+        KnownModificationName = 1,
 
         /// <summary>
-        /// The UniProt database identifier
+        /// A delta mass of unknown annotation.
         /// </summary>
-        public static readonly string UniProt = "UniProt";
+        Mass = 2,
 
         /// <summary>
-        /// The RESID database identifier
+        /// A chemical formula in our notation
         /// </summary>
-        public const string Resid = "RESID";
-
-        /// <summary>
-        /// The PSI-MOD database identifier
-        /// </summary>
-        public const string PsiMod = "PSI-MOD";
-
-        /// <summary>
-        /// The BRNO identifier
-        /// </summary>
-        public static readonly string Brno = "BRNO";
-
-        /// <summary>
-        /// The XL-MOD identifier
-        /// </summary>
-        public static readonly string XlMod = "X";
-
-        /// <summary>
-        /// The GNO identifier
-        /// </summary>
-        public static readonly string Gno = "G";
-
-        /// <summary>
-        /// The mass
-        /// </summary>
-        public static readonly string Mass = "mass";
-
-        /// <summary>
-        /// The formula (in Unimod notation)
-        /// </summary>
-        public static readonly string Formula = "formula";
+        Formula = 3,
 
         /// <summary>
         /// The user defined extra information
         /// </summary>
-        public static readonly string Info = "info";
+        Info = 4,
 
         /// <summary>
-        /// Determines whether a key is one of the allowed keys
+        /// The Unimod database identifier
         /// </summary>
-        /// <param name="key">key in question</param>
-        /// <returns>true if <paramref name="key"/> is one of the standard keys</returns>
-        public static bool IsValidKey(string key)
-        {
-            return key == Mod
-                || key == Unimod
-                || key == UniProt
-                || key == Resid
-                || key == PsiMod
-                || key == Brno
-                || key == Mass
-                || key == Formula
-                || key == Info;
-        }
+        Unimod = 11,
+
+        /// <summary>
+        /// The UniProt database identifier
+        /// </summary>
+        UniProt = 12,
+
+        /// <summary>
+        /// The RESID database identifier
+        /// </summary>
+        Resid = 13,
+
+        /// <summary>
+        /// The PSI-MOD database identifier
+        /// </summary>
+        PsiMod = 14,
+
+        /// <summary>
+        /// The BRNO identifier
+        /// </summary>
+        Brno = 15,
+
+        /// <summary>
+        /// The XL-MOD identifier
+        /// </summary>
+        XlMod = 16,
+
+        /// <summary>
+        /// The GNO identifier
+        /// </summary>
+        Gno = 17
     }
 }

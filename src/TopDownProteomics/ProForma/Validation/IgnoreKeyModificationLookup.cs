@@ -8,13 +8,13 @@ namespace TopDownProteomics.ProForma.Validation
     /// <seealso cref="IProteoformModificationLookup" />
     public class IgnoreKeyModificationLookup : IProteoformModificationLookup
     {
-        private string _key;
+        private ProFormaKey _key;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IgnoreKeyModificationLookup"/> class.
         /// </summary>
         /// <param name="key">The key.</param>
-        public IgnoreKeyModificationLookup(string key)
+        public IgnoreKeyModificationLookup(ProFormaKey key)
         {
             _key = key;
         }
