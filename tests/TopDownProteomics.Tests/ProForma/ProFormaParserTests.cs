@@ -307,7 +307,6 @@ namespace TopDownProteomics.Tests
         [Test]
         [TestCase("[Acetyl]-[Phospho]?PROTEOFORM")] // terminal mods must be adjacent to sequence
         [TestCase("PROT[Phospho|#]EOFORMS[#]")] // empty group string
-        [TestCase("PROT[Phospho|->]EOFORMS[<-]")] // empty group string
         public void AmbiguityRulesInvalid(string proFormaString)
         {
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
@@ -559,18 +558,21 @@ namespace TopDownProteomics.Tests
 
             Assert.AreEqual(ProFormaKey.Resid, desc1.Key);
             Assert.AreEqual(ProFormaKey.KnownModificationName, desc2.Key);
+            Assert.AreEqual("Methionine sulfone", desc1.Value);
 
             // XL-MOD is X:
             term = _parser.ParseString("EMEVTK[X:DSS#XL1]SESPEK");
-            desc1 = term.Tags[0].Descriptors.Single();
+            var tag1 = term.TagGroups.Single();
 
-            Assert.AreEqual(ProFormaKey.XlMod, desc1.Key);
+            Assert.AreEqual(ProFormaKey.XlMod, tag1.Key);
+            Assert.AreEqual("DSS", tag1.Value);
 
             // GNO is G:
             term = _parser.ParseString("NEEYN[G:G59626AS]K");
             desc1 = term.Tags[0].Descriptors.Single();
 
             Assert.AreEqual(ProFormaKey.Gno, desc1.Key);
+            Assert.AreEqual("G59626AS", desc1.Value);
         }
 
         // TODO: 4.2.1.1 -> Validation, not parsing
@@ -596,33 +598,106 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Crosslinkers_XL_MOD_4_2_3()
         {
-            // Add cross link name to descriptor.
+            // Single group
+            var term = _parser.ParseString("EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.TagGroups?.Count);
 
-            // Using the XL-MOD CV, arbitrary suffixes MUST be used to denote links between two residues.
-            // EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]
-            // EMK[XLMOD:02000#XL1]EVTK[XLMOD:02001#XL2]SESK[#XL1]PEK[#XL2]
+            var tagGroup = term.TagGroups.Single();
+
+            Assert.AreEqual("XL1", tagGroup.Name);
+            Assert.AreEqual(ProFormaKey.XlMod, tagGroup.Key);
+            Assert.AreEqual("XLMOD:02001", tagGroup.Value);
+            Assert.AreEqual(2, tagGroup.Members.Count);
+            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedIndex);
+            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedIndex);
+
+            // Multiple groups
+            term = _parser.ParseString("EMK[XLMOD:02000#XL1]EVTK[XLMOD:02001#XL2]SESK[#XL1]PEK[#XL2]");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(2, term.TagGroups?.Count);
+
+            var tagGroup1 = term.TagGroups.Single(x=>x.Name == "XL1");
+            var tagGroup2 = term.TagGroups.Single(x => x.Name == "XL2");
+
+            Assert.AreEqual("XL1", tagGroup1.Name);
+            Assert.AreEqual(ProFormaKey.XlMod, tagGroup1.Key);
+            Assert.AreEqual("XLMOD:02000", tagGroup1.Value);
+            Assert.AreEqual(2, tagGroup1.Members.Count);
+            Assert.AreEqual(2, tagGroup1.Members[0].ZeroBasedIndex);
+            Assert.AreEqual(10, tagGroup1.Members[1].ZeroBasedIndex);
+
+            Assert.AreEqual("XL2", tagGroup2.Name);
+            Assert.AreEqual(ProFormaKey.XlMod, tagGroup2.Key);
+            Assert.AreEqual("XLMOD:02001", tagGroup2.Value);
+            Assert.AreEqual(2, tagGroup2.Members.Count);
+            Assert.AreEqual(6, tagGroup2.Members[0].ZeroBasedIndex);
+            Assert.AreEqual(13, tagGroup2.Members[1].ZeroBasedIndex);
 
             // "Dead end" crosslinks
-            // EMEVTK[XLMOD:02001#XL1]SESPEK
-            // EMEVTK[XLMOD:02001]SESPEK
+            term = _parser.ParseString("EMEVTK[XLMOD:02001#XL1]SESPEK");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.TagGroups?.Count);
 
-            // Inter-chain crosslinks
-            // SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[XLMOD:02001#XL1]SESPEK
-            // SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[#XL1]SESPEK
+            tagGroup = term.TagGroups.Single();
 
-            // Disulfides
-            // EVTSEKC[MOD:00034#XL1]LEMSC[#XL1]EFD
-            // EVTSEKC[L-cystine (cross-link)#XL1]LEMSC[#XL1]EFD
-            // EVTSEKC[X:Disulfide#XL1]LEMSC[#XL1]EFD
+            Assert.AreEqual("XL1", tagGroup.Name);
+            Assert.AreEqual(ProFormaKey.XlMod, tagGroup.Key);
+            Assert.AreEqual("XLMOD:02001", tagGroup.Value);
+            Assert.AreEqual(1, tagGroup.Members.Count);
+            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedIndex);
+        }
+
+        [Test]
+        [TestCase("SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[XLMOD:02001#XL1]SESPEK")]
+        [TestCase("SEK[XLMOD:02001#XL1]UENCE\\EMEVTK[#XL1]SESPEK")]
+        public void Crosslinks_4_2_3_No_Interchain(string proFormaString)
+        {
+            // Always throw, no support for inter-chain crosslinks
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString(proFormaString));
+        }
+
+        [Test]
+        [TestCase("EVTSEKC[MOD:00034#XL1]LEMSC[#XL1]EFD", ProFormaKey.PsiMod, "MOD:00034")]
+        [TestCase("EVTSEKC[L-cystine (cross-link)#XL1]LEMSC[#XL1]EFD", ProFormaKey.KnownModificationName, "L-cystine (cross-link)")]
+        [TestCase("EVTSEKC[X:Disulfide#XL1]LEMSC[#XL1]EFD", ProFormaKey.XlMod, "Disulfide")]
+        public void Crosslinks_4_2_3_Disulfides(string proFormaString, ProFormaKey proFormaKey, string value)
+        {
+            var term = _parser.ParseString(proFormaString);
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.TagGroups?.Count);
+
+            var tagGroup = term.TagGroups.Single();
+
+            Assert.AreEqual("XL1", tagGroup.Name);
+            Assert.AreEqual(proFormaKey, tagGroup.Key);
+            Assert.AreEqual(value, tagGroup.Value);
+            Assert.AreEqual(2, tagGroup.Members.Count);
+            Assert.AreEqual(6, tagGroup.Members[0].ZeroBasedIndex);
+            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedIndex);
+        }
+
+        [Test]
+        public void Crosslinks_4_2_3_Extra_Descriptors()
+        {
+            // If a tag with a group contains another descriptor, it is considered to be NOT part of that group.
+
+            var term = _parser.ParseString("EMEVTK[XLMOD:02001#XL1|info:stuff]SESPEK[#XL1]");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.AreEqual(1, term.TagGroups?.Count);
         }
 
         [Test]
         public void Glycans_GNO_MOD_4_2_4()
         {
-            // Use standard descriptor.
+            var term = _parser.ParseString("YPVLN[GNO:G62765YT]VTMPN[GNO:G02815KT]NSNGKFDK");
+            var desc1 = term.Tags[0].Descriptors.Single();
+            var desc2 = term.Tags[1].Descriptors.Single();
 
-            // NEEYN[GNO:G59626AS]K
-            // YPVLN[GNO:G62765YT]VTMPN[GNO:G02815KT]NSNGKFDK
+            Assert.AreEqual(ProFormaKey.Gno, desc1.Key);
+            Assert.AreEqual(ProFormaKey.Gno, desc2.Key);
+            Assert.AreEqual("GNO:G62765YT", desc1.Value);
+            Assert.AreEqual("GNO:G02815KT", desc2.Value);
         }
 
         [Test]
@@ -631,8 +706,14 @@ namespace TopDownProteomics.Tests
             // Add evidence type to descriptor to handle prefixes.
 
             // No prefixes
-            // EM[+15.9949]EVEES[+79.9663]PEK
-            // EM[+15.995]EVEES[+79.966]PEK
+            var term = _parser.ParseString("EM[+15.9949]EVEES[+79.9663]PEK");
+            var desc1 = term.Tags[0].Descriptors.Single();
+            var desc2 = term.Tags[1].Descriptors.Single();
+
+            Assert.AreEqual(ProFormaKey.Mass, desc1.Key);
+            Assert.AreEqual(ProFormaKey.Mass, desc2.Key);
+            Assert.AreEqual("+15.9949", desc1.Value);
+            Assert.AreEqual("+79.9663", desc2.Value);
 
             // Prefixes
             // TODO: One of these should not validate because these are theoretical masses.

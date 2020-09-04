@@ -37,7 +37,7 @@ namespace TopDownProteomics.Tests.ProForma
         public void NoTagsValid()
         {
             const string sequence = "SEQVENCE";
-            var term = new ProFormaTerm(sequence, null, null, null, null);
+            var term = new ProFormaTerm(sequence);
             var proteoform = _factory.CreateProteoformGroup(term, null);
 
             Assert.IsNotNull(proteoform.Residues);

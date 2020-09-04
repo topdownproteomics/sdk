@@ -35,16 +35,16 @@ namespace TopDownProteomics.ProForma
             if (proFormaString.Length == 0)
                 throw new ArgumentNullException(nameof(proFormaString));
 
-            List<ProFormaTag>? tags = null;
-            IList<ProFormaTag>? unlocalizedTags = null;
+            IList<ProFormaTag>? tags = null;
             IList<ProFormaDescriptor>? nTerminalDescriptors = null;
             IList<ProFormaDescriptor>? cTerminalDescriptors = null;
+            IList<ProFormaTag>? unlocalizedTags = null;
+            IDictionary<string, ProFormaTagGroup>? tagGroups = null;
 
             var sequence = new StringBuilder();
             var tag = new StringBuilder();
             bool inTag = false;
             bool inCTerminalTag = false;
-            ProFormaKey prefixTag = ProFormaKey.None;
             int openLeftBrackets = 0;
 
             for (int i = 0; i < proFormaString.Length; i++)
@@ -55,14 +55,16 @@ namespace TopDownProteomics.ProForma
                     inTag = true;
                 else if (current == ']' && --openLeftBrackets == 0)
                 {
+                    string tagText = tag.ToString();
+
                     // Handle terminal modifications and prefix tags
                     if (inCTerminalTag)
                     {
-                        cTerminalDescriptors = this.ProcessTag(tag.ToString(), prefixTag);
+                        cTerminalDescriptors = this.ProcessTag(tagText, -1, ref tagGroups);
                     }
                     else if (sequence.Length == 0 && proFormaString[i + 1] == '-')
                     {
-                        nTerminalDescriptors = this.ProcessTag(tag.ToString(), prefixTag);
+                        nTerminalDescriptors = this.ProcessTag(tagText, -1, ref tagGroups);
                         i++; // Skip the - character
                     }
                     else if (sequence.Length == 0 && proFormaString[i + 1] == '?')
@@ -74,28 +76,27 @@ namespace TopDownProteomics.ProForma
                         if (unlocalizedTags == null)
                             unlocalizedTags = new List<ProFormaTag>();
 
-                        unlocalizedTags.Add(this.ProcessTag(tag.ToString(), -1, prefixTag));
+                        this.ProcessTag(tagText, -1, ref unlocalizedTags, ref tagGroups);
                         i++; // skip the ? character
                     }
-                    else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
-                    {
-                        // Make sure the prefix came before the N-terminal modification
-                        if (nTerminalDescriptors != null)
-                            throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
-                        if (unlocalizedTags != null)
-                            throw new ProFormaParseException("Prefix tag must come before an unlocalized modification.");
+                    //else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
+                    //{
+                    //    // Make sure the prefix came before the N-terminal modification
+                    //    if (nTerminalDescriptors != null)
+                    //        throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
+                    //    if (unlocalizedTags != null)
+                    //        throw new ProFormaParseException("Prefix tag must come before an unlocalized modification.");
 
-                        throw new Exception("Are we supporting prefix tags?");
+                    //    throw new Exception("Are we supporting prefix tags?");
 
-                        //prefixTag = tag.ToString();
-                        //i++; // Skip the + character
-                    }
+                    //    //prefixTag = tag.ToString();
+                    //    //i++; // Skip the + character
+                    //}
                     else
                     {
-                        if (tags == null)
-                            tags = new List<ProFormaTag>();
+                        //if (tags == null) tags = new List<ProFormaTag>();
 
-                        tags.Add(this.ProcessTag(tag.ToString(), sequence.Length - 1, prefixTag));
+                        this.ProcessTag(tagText, sequence.Length - 1, ref tags, ref tagGroups);
                     }
 
                     inTag = false;
@@ -127,70 +128,52 @@ namespace TopDownProteomics.ProForma
             if (openLeftBrackets != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), unlocalizedTags, nTerminalDescriptors, cTerminalDescriptors, tags);
+            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, unlocalizedTags, tagGroups?.Values);
         }
 
-        private ProFormaTag ProcessTag(string tag, int index, ProFormaKey prefixTag = ProFormaKey.None)
+        private void ProcessTag(string tag, int index, ref IList<ProFormaTag>? tags, ref IDictionary<string, ProFormaTagGroup>? tagGroups)
         {
-            var descriptors = this.ProcessTag(tag, prefixTag);
+            var descriptors = this.ProcessTag(tag, index, ref tagGroups);
 
-            return new ProFormaTag(index, descriptors);
+            // Only add a tag if descriptors come back
+            if (descriptors != null)
+            {
+                if (tags == null) tags = new List<ProFormaTag>();
+
+                tags.Add(new ProFormaTag(index, descriptors));
+            }
         }
 
-        private IList<ProFormaDescriptor> ProcessTag(string tag, ProFormaKey prefixTag = ProFormaKey.None)
+        private IList<ProFormaDescriptor>? ProcessTag(string tag, int index, ref IDictionary<string, ProFormaTagGroup>? tagGroups)
         {
-            var descriptors = new List<ProFormaDescriptor>();
+            IList<ProFormaDescriptor>? descriptors = null;
             var descriptorText = tag.Split('|');
 
             for (int i = 0; i < descriptorText.Length; i++)
             {
+                var (key, value, group) = this.ParseDescriptor(descriptorText[i].TrimStart());
 
-                var (key, value) = this.ParseDescriptor(descriptorText[i].TrimStart());
-
-                // Prefix tag
-                if (prefixTag != ProFormaKey.None)
+                if (!string.IsNullOrEmpty(group))
                 {
-                    if (key != ProFormaKey.None)
-                        throw new ProFormaParseException("Cannot use key-value pairs with a prefix key");
+                    if (tagGroups == null) tagGroups = new Dictionary<string, ProFormaTagGroup>();
 
-                    descriptors.Add(new ProFormaDescriptor(prefixTag, value));
+                    if (!tagGroups.ContainsKey(group))
+                    {
+                        tagGroups.Add(group, new ProFormaTagGroup(group, key, value, new List<ProFormaMembershipDescriptor>()));
+                    }
+
+                    tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(index));
                 }
-
-                // typical descriptor
-                else if (key != ProFormaKey.None)
+                else if (key != ProFormaKey.None) // typical descriptor
                 {
+                    if (descriptors == null) descriptors = new List<ProFormaDescriptor>();
+
                     descriptors.Add(new ProFormaDescriptor(key, value));
                 }
-
-                // ambiguity descriptors
-                else if (value.StartsWith(ProFormaAmbiguityAffix.PossibleSite))
+                else if (value.Length > 0) // keyless descriptor (UniMod or PSI-MOD annotation)
                 {
-                    string group = value.Substring(ProFormaAmbiguityAffix.PossibleSite.Length);
-                    if (group.Length == 0)
-                        throw new ProFormaParseException("Cannot use empty group name following the possible site ambiguity prefix, " + ProFormaAmbiguityAffix.PossibleSite + ".");
+                    if (descriptors == null) descriptors = new List<ProFormaDescriptor>();
 
-                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.PossibleSite, group));
-                }
-                else if (value.StartsWith(ProFormaAmbiguityAffix.RightBoundary))
-                {
-                    string group = value.Substring(ProFormaAmbiguityAffix.RightBoundary.Length);
-                    if (group.Length == 0)
-                        throw new ProFormaParseException("Cannot use empty group name following the range prefix, " + ProFormaAmbiguityAffix.RightBoundary + ".");
-
-                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.RightBoundary, group));
-                }
-                else if (value.EndsWith(ProFormaAmbiguityAffix.LeftBoundary))
-                {
-                    string group = value.Substring(0, value.Length - ProFormaAmbiguityAffix.LeftBoundary.Length + 1);
-                    if (group.Length == 0)
-                        throw new ProFormaParseException("Cannot use empty group name before the range suffix, " + ProFormaAmbiguityAffix.LeftBoundary + ".");
-
-                    descriptors.Add(new ProFormaAmbiguityDescriptor(ProFormaAmbiguityAffix.LeftBoundary, group));
-                }
-
-                // keyless descriptor (UniMod or PSI-MOD annotation)
-                else if (value.Length > 0)
-                {
                     descriptors.Add(new ProFormaDescriptor(value));
                 }
                 else
@@ -202,7 +185,7 @@ namespace TopDownProteomics.ProForma
             return descriptors;
         }
 
-        private Tuple<ProFormaKey, string> ParseDescriptor(string text)
+        private Tuple<ProFormaKey, string, string?> ParseDescriptor(string text)
         {
             if (text.Length == 0)
                 throw new ProFormaParseException("Cannot have an empty descriptor.");
@@ -210,7 +193,20 @@ namespace TopDownProteomics.ProForma
             // Handle delta mass (4.2.5)
             if (text[0] == '+' || text[0] == '-')
             {
-                return Tuple.Create(ProFormaKey.Mass, text);
+                return Tuple.Create(ProFormaKey.Mass, text, (string?)null);
+            }
+
+            // Let's look for a group
+            int groupIndex = text.IndexOf('#');
+            string? groupName = null;
+
+            if (groupIndex >= 0)
+            {
+                groupName = text.Substring(groupIndex + 1);
+                text = text.Substring(0, groupIndex);
+
+                if (string.IsNullOrEmpty(groupName))
+                    throw new ProFormaParseException("Group name cannot be empty.");
             }
 
             // Let's look for a colon
@@ -219,7 +215,7 @@ namespace TopDownProteomics.ProForma
             if (colon < 0)
             {
                 // No colon, assume it is the name of a known modification and return
-                return Tuple.Create(ProFormaKey.KnownModificationName, text);
+                return Tuple.Create(ProFormaKey.KnownModificationName, text, groupName);
             }
 
             // Let's see if the bit before the colon is a known key
@@ -227,18 +223,21 @@ namespace TopDownProteomics.ProForma
 
             return keyText switch
             {
-                "formula"                           => Tuple.Create(ProFormaKey.Formula, text.Substring(colon + 1)),
-                "info"                              => Tuple.Create(ProFormaKey.Info, text.Substring(colon + 1)),
+                "formula" => Tuple.Create(ProFormaKey.Formula, text.Substring(colon + 1), groupName),
+                "info" => Tuple.Create(ProFormaKey.Info, text.Substring(colon + 1), groupName),
 
-                var x when x == "mod"               => Tuple.Create(ProFormaKey.PsiMod, text),
-                var x when x == "unimod"            => Tuple.Create(ProFormaKey.Unimod, text),
+                var x when x == "mod" => Tuple.Create(ProFormaKey.PsiMod, text, groupName),
+                var x when x == "unimod" => Tuple.Create(ProFormaKey.Unimod, text, groupName),
+                var x when x == "xlmod" => Tuple.Create(ProFormaKey.XlMod, text, groupName),
+                var x when x == "gno" => Tuple.Create(ProFormaKey.Gno, text, groupName),
 
                 // Special case for RESID id, don't inclue bit with colon
-                var x when x == "r" || x == "resid" => Tuple.Create(ProFormaKey.Resid, text.Substring(colon + 1)),
+                var x when x == "r" || x == "resid" => Tuple.Create(ProFormaKey.Resid, text.Substring(colon + 1), groupName),
 
-                var x when x == "x" || x == "xlmod" => Tuple.Create(ProFormaKey.XlMod, text),
-                var x when x == "g" || x == "gno"   => Tuple.Create(ProFormaKey.Gno, text),
-                _                                   => Tuple.Create(ProFormaKey.KnownModificationName, text)
+                var x when x == "x" => Tuple.Create(ProFormaKey.XlMod, text.Substring(colon + 1), groupName),
+                var x when x == "g" => Tuple.Create(ProFormaKey.Gno, text.Substring(colon + 1), groupName),
+
+                _ => Tuple.Create(ProFormaKey.KnownModificationName, text, groupName)
             };
         }
     }
