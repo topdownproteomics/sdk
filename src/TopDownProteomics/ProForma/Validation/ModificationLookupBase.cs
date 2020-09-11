@@ -60,21 +60,21 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public virtual bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            var nonDefault = descriptor.Key == this.Key ||
-                (descriptor.Key == ProFormaKey.KnownModificationName && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
+            var nonDefault = descriptor.EvidenceType == this.Key ||
+                (descriptor.Key == ProFormaKey.Name && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
 
             if (!this.IsDefaultModificationType)
                 return nonDefault;
 
             // If this is the default modification type, allow one more condition.
             return nonDefault ||
-                (descriptor.Key == ProFormaKey.KnownModificationName && !descriptor.Value.TrimEnd().EndsWith(")"));
+                (descriptor.Key == ProFormaKey.Name && !descriptor.Value.TrimEnd().EndsWith(")"));
         }
 
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected abstract ProFormaKey Key { get; }
+        protected abstract ProFormaEvidenceType Key { get; }
 
         /// <summary>
         /// Removes the prefix.
@@ -106,7 +106,7 @@ namespace TopDownProteomics.ProForma.Validation
             if (descriptor.Value == null)
                 throw new ProteoformModificationLookupException($"Value is NULL in descriptor {descriptor}.");
 
-            if (descriptor.Key == this.Key)
+            if (descriptor.EvidenceType == this.Key)
             {
                 string value = this.RemovePrefix(descriptor.Value);
 
@@ -120,7 +120,7 @@ namespace TopDownProteomics.ProForma.Validation
 
                 throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor}.");
             }
-            else if (descriptor.Key == ProFormaKey.KnownModificationName)
+            else if (descriptor.Key == ProFormaKey.Name)
             {
                 int index = descriptor.Value.IndexOf(this.GetModNameDatabaseTag());
 

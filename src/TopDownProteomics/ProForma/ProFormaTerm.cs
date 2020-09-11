@@ -14,15 +14,18 @@ namespace TopDownProteomics.ProForma
         /// <param name="tags">The tags.</param>
         /// <param name="nTerminalDescriptors">The n terminal descriptors.</param>
         /// <param name="cTerminalDescriptors">The c terminal descriptors.</param>
+        /// <param name="labileDescriptors">The labile modification descriptors.</param>
         /// <param name="unlocalizedTags">Unlocalized modification tags.</param>
         /// <param name="tagGroups">The tag groups.</param>
         public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null, 
-            IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaTag>? unlocalizedTags = null, 
+            IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaDescriptor>? labileDescriptors = null,
+            IList<ProFormaTag>? unlocalizedTags = null, 
             ICollection<ProFormaTagGroup>? tagGroups = null)
         {
             this.Sequence = sequence;
             this.NTerminalDescriptors = nTerminalDescriptors;
             this.CTerminalDescriptors = cTerminalDescriptors;
+            this.LabileDescriptors = labileDescriptors;
             this.Tags = tags;
             this.UnlocalizedTags = unlocalizedTags;
             this.TagGroups = tagGroups;
@@ -31,11 +34,14 @@ namespace TopDownProteomics.ProForma
         /// <summary>The amino acid sequence.</summary>
         public string Sequence { get; }
 
-        /// <summary>The N-Terminal descriptor.</summary>
+        /// <summary>N-Terminal descriptors.</summary>
         public IList<ProFormaDescriptor>? NTerminalDescriptors { get; }
 
-        /// <summary>The C-Terminal descriptor.</summary>
+        /// <summary>C-Terminal descriptors.</summary>
         public IList<ProFormaDescriptor>? CTerminalDescriptors { get; }
+
+        /// <summary>Labile modifications (not visible in the fragmentation MS2 spectrum) descriptors.</summary>
+        public IList<ProFormaDescriptor>? LabileDescriptors { get; }
 
         /// <summary>All tags on this term.</summary>
         public IList<ProFormaTag>? Tags { get; }

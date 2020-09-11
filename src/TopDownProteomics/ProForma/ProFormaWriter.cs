@@ -67,7 +67,7 @@ namespace TopDownProteomics.ProForma
 
         private string CreateDescriptorText(IList<ProFormaDescriptor> descriptors)
         {
-            return string.Join("|", descriptors.Select(x => $"{x.ToString()}"));
+            return string.Join("|", descriptors.Select(x => $"{x}"));
         }
     }
 }

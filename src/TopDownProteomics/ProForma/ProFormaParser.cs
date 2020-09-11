@@ -38,6 +38,7 @@ namespace TopDownProteomics.ProForma
             IList<ProFormaTag>? tags = null;
             IList<ProFormaDescriptor>? nTerminalDescriptors = null;
             IList<ProFormaDescriptor>? cTerminalDescriptors = null;
+            IList<ProFormaDescriptor>? labileDescriptors = null;
             IList<ProFormaTag>? unlocalizedTags = null;
             IDictionary<string, ProFormaTagGroup>? tagGroups = null;
 
@@ -46,12 +47,24 @@ namespace TopDownProteomics.ProForma
             bool inTag = false;
             bool inCTerminalTag = false;
             int openLeftBrackets = 0;
+            int openLeftBraces = 0;
 
             for (int i = 0; i < proFormaString.Length; i++)
             {
                 char current = proFormaString[i];
 
-                if (current == '[' && openLeftBrackets++ == 0)
+                if (current == '{' && openLeftBraces++ == 0)
+                    inTag = true;
+                else if (current == '}' && --openLeftBraces == 0)
+                {
+                    string tagText = tag.ToString();
+
+                    labileDescriptors = this.ProcessTag(tagText, sequence.Length - 1, ref tagGroups);
+
+                    inTag = false;
+                    tag.Clear();
+                }
+                else if (current == '[' && openLeftBrackets++ == 0)
                     inTag = true;
                 else if (current == ']' && --openLeftBrackets == 0)
                 {
@@ -118,8 +131,8 @@ namespace TopDownProteomics.ProForma
                     // Validate amino acid character
                     if (!char.IsUpper(current))
                         throw new ProFormaParseException($"{current} is not an upper case letter.");
-                    else if (current == 'X')
-                        throw new ProFormaParseException("X is not allowed.");
+                    //else if (current == 'X')
+                    //    throw new ProFormaParseException("X is not allowed.");
 
                     sequence.Append(current);
                 }
@@ -128,7 +141,11 @@ namespace TopDownProteomics.ProForma
             if (openLeftBrackets != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, unlocalizedTags, tagGroups?.Values);
+            if (openLeftBraces != 0)
+                throw new ProFormaParseException($"There are {Math.Abs(openLeftBraces)} open braces in ProForma string {proFormaString.ToString()}");
+
+            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, labileDescriptors, 
+                unlocalizedTags, tagGroups?.Values);
         }
 
         private void ProcessTag(string tag, int index, ref IList<ProFormaTag>? tags, ref IDictionary<string, ProFormaTagGroup>? tagGroups)
@@ -151,7 +168,7 @@ namespace TopDownProteomics.ProForma
 
             for (int i = 0; i < descriptorText.Length; i++)
             {
-                var (key, value, group) = this.ParseDescriptor(descriptorText[i].TrimStart());
+                var (key, evidence, value, group) = this.ParseDescriptor(descriptorText[i].TrimStart());
 
                 if (!string.IsNullOrEmpty(group))
                 {
@@ -159,7 +176,7 @@ namespace TopDownProteomics.ProForma
 
                     if (!tagGroups.ContainsKey(group))
                     {
-                        tagGroups.Add(group, new ProFormaTagGroup(group, key, value, new List<ProFormaMembershipDescriptor>()));
+                        tagGroups.Add(group, new ProFormaTagGroup(group, key, evidence, value, new List<ProFormaMembershipDescriptor>()));
                     }
 
                     tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(index));
@@ -168,7 +185,7 @@ namespace TopDownProteomics.ProForma
                 {
                     if (descriptors == null) descriptors = new List<ProFormaDescriptor>();
 
-                    descriptors.Add(new ProFormaDescriptor(key, value));
+                    descriptors.Add(new ProFormaDescriptor(key, evidence, value));
                 }
                 else if (value.Length > 0) // keyless descriptor (UniMod or PSI-MOD annotation)
                 {
@@ -185,16 +202,10 @@ namespace TopDownProteomics.ProForma
             return descriptors;
         }
 
-        private Tuple<ProFormaKey, string, string?> ParseDescriptor(string text)
+        private Tuple<ProFormaKey, ProFormaEvidenceType, string, string?> ParseDescriptor(string text)
         {
             if (text.Length == 0)
                 throw new ProFormaParseException("Cannot have an empty descriptor.");
-
-            // Handle delta mass (4.2.5)
-            if (text[0] == '+' || text[0] == '-')
-            {
-                return Tuple.Create(ProFormaKey.Mass, text, (string?)null);
-            }
 
             // Let's look for a group
             int groupIndex = text.IndexOf('#');
@@ -209,35 +220,49 @@ namespace TopDownProteomics.ProForma
                     throw new ProFormaParseException("Group name cannot be empty.");
             }
 
+            // Check for naked group tag
+            if (string.IsNullOrEmpty(text))
+                return Tuple.Create(ProFormaKey.None, ProFormaEvidenceType.None, text, groupName);
+
+            static ProFormaKey getKey(bool isMass) => isMass ? ProFormaKey.Mass : ProFormaKey.Name;
+
             // Let's look for a colon
             int colon = text.IndexOf(':');
 
             if (colon < 0)
             {
-                // No colon, assume it is the name of a known modification and return
-                return Tuple.Create(ProFormaKey.KnownModificationName, text, groupName);
+                bool isMass2 = text[0] == '+' || text[0] == '-';
+
+                return Tuple.Create(getKey(isMass2), ProFormaEvidenceType.None, text, groupName);
             }
 
             // Let's see if the bit before the colon is a known key
             string keyText = text.Substring(0, colon).ToLower().Trim();
+            bool isMass = text[colon + 1] == '+' || text[colon + 1] == '-';
 
             return keyText switch
             {
-                "formula" => Tuple.Create(ProFormaKey.Formula, text.Substring(colon + 1), groupName),
-                "info" => Tuple.Create(ProFormaKey.Info, text.Substring(colon + 1), groupName),
+                "formula" => Tuple.Create(ProFormaKey.Formula, ProFormaEvidenceType.None, text.Substring(colon + 1), groupName),
+                "glycan" => Tuple.Create(ProFormaKey.Glycan, ProFormaEvidenceType.None, text.Substring(colon + 1), groupName),
+                "info" => Tuple.Create(ProFormaKey.Info, ProFormaEvidenceType.None, text.Substring(colon + 1), groupName),
 
-                var x when x == "mod" => Tuple.Create(ProFormaKey.PsiMod, text, groupName),
-                var x when x == "unimod" => Tuple.Create(ProFormaKey.Unimod, text, groupName),
-                var x when x == "xlmod" => Tuple.Create(ProFormaKey.XlMod, text, groupName),
-                var x when x == "gno" => Tuple.Create(ProFormaKey.Gno, text, groupName),
+                var x when x == "mod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, text, groupName),
+                var x when x == "unimod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, text, groupName),
+                var x when x == "xlmod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.XlMod, text, groupName),
+                var x when x == "gno" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Gno, text, groupName),
 
                 // Special case for RESID id, don't inclue bit with colon
-                var x when x == "r" || x == "resid" => Tuple.Create(ProFormaKey.Resid, text.Substring(colon + 1), groupName),
+                var x when x == "resid" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, text.Substring(colon + 1), groupName),
 
-                var x when x == "x" => Tuple.Create(ProFormaKey.XlMod, text.Substring(colon + 1), groupName),
-                var x when x == "g" => Tuple.Create(ProFormaKey.Gno, text.Substring(colon + 1), groupName),
+                // Handle names and masses
+                var x when x == "u" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Unimod, text.Substring(colon + 1), groupName),
+                var x when x == "m" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.PsiMod, text.Substring(colon + 1), groupName),
+                var x when x == "r" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Resid, text.Substring(colon + 1), groupName),
+                var x when x == "x" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.XlMod, text.Substring(colon + 1), groupName),
+                var x when x == "g" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Gno, text.Substring(colon + 1), groupName),
+                var x when x == "obs" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Observed, text.Substring(colon + 1), groupName),
 
-                _ => Tuple.Create(ProFormaKey.KnownModificationName, text, groupName)
+                _ => Tuple.Create(ProFormaKey.Name, ProFormaEvidenceType.None, text, groupName)
             };
         }
     }

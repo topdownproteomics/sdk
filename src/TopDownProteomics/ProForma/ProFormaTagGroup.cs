@@ -13,11 +13,24 @@ namespace TopDownProteomics.ProForma
         /// <param name="value">The value.</param>
         /// <param name="members">The members.</param>
         public ProFormaTagGroup(string name, ProFormaKey key, string value, IList<ProFormaMembershipDescriptor> members)
+            : this(name, key, ProFormaEvidenceType.None, value, members) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProFormaTagGroup" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="evidenceType">Type of the evidence.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="members">The members.</param>
+        public ProFormaTagGroup(string name, ProFormaKey key, ProFormaEvidenceType evidenceType, string value,
+            IList<ProFormaMembershipDescriptor> members)
         {
-            Name = name;
-            Key = key;
-            Value = value;
-            Members = members;
+            this.Name = name;
+            this.Key = key;
+            this.EvidenceType = evidenceType;
+            this.Value = value;
+            this.Members = members;
         }
 
         /// <summary>The name of the group.</summary>
@@ -25,6 +38,9 @@ namespace TopDownProteomics.ProForma
 
         /// <summary>The key.</summary>
         public ProFormaKey Key { get; }
+
+        /// <summary>The type of the evidence.</summary>
+        public ProFormaEvidenceType EvidenceType { get; }
 
         /// <summary>The value.</summary>
         public string Value { get; }
