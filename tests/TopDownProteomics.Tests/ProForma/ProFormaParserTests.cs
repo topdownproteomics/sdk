@@ -8,7 +8,7 @@ namespace TopDownProteomics.Tests
     [TestFixture]
     public class ProFormaParserTests
     {
-        public static ProFormaParser _parser = new ProFormaParser(allowLegacySyntax: true);
+        public static ProFormaParser _parser = new ProFormaParser();
 
         [Test]
         public void InvalidProFormaStrings()
@@ -297,8 +297,8 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.NTerminalDescriptors);
             Assert.IsNull(term.CTerminalDescriptors);
 
-            ProFormaTag tag1 = term.UnlocalizedTags[0];
-            Assert.AreEqual(-1, tag1.ZeroBasedIndex);
+            var tag1 = term.UnlocalizedTags[0];
+            Assert.AreEqual(1, tag1.Count);
             Assert.AreEqual(1, tag1.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Name, tag1.Descriptors.Single().Key);
             Assert.AreEqual("Phospho", tag1.Descriptors.Single().Value);
@@ -479,7 +479,7 @@ namespace TopDownProteomics.Tests
         //    - For info tags, it means more information about the tag
         //    - For ambiguity groups, it allows one to put a group name (THIS ONE seems closer to XLs)
         //    - For joint representation of data, it means you are using multiple pieces of information in the same tag
-        
+
         //  * Do both sides of a crosslink always have the same ID?
 
         //  * Future direction -> Metal bindings?
@@ -637,7 +637,7 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.Tags);
             Assert.AreEqual(2, term.TagGroups?.Count);
 
-            var tagGroup1 = term.TagGroups.Single(x=>x.Name == "XL1");
+            var tagGroup1 = term.TagGroups.Single(x => x.Name == "XL1");
             var tagGroup2 = term.TagGroups.Single(x => x.Name == "XL2");
 
             Assert.AreEqual("XL1", tagGroup1.Name);
@@ -899,24 +899,81 @@ namespace TopDownProteomics.Tests
         public void Ambiguity_UnknownPosition_4_4_1()
         {
             // Use unlocalized list on term.
+            var term = _parser.ParseString("[Phospho]?EM[Hydroxylation]EVTSESPEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.AreEqual(1, term.UnlocalizedTags?.Count);
 
-            // [Phospho]?EM[Hydroxylation]EVTSESPEK
-            // [Phospho][Phospho]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
-            // [Phospho]^2[Methyl]?[Acetyl]-EM[Hydroxylation]EVTSESPEK
+            var tag = term.Tags.Single().Descriptors.Single();
+            Assert.AreEqual("Hydroxylation", tag.Value);
+            Assert.AreEqual(ProFormaKey.Name, tag.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, tag.EvidenceType);
 
-            // INVALID [Acetyl]-[Phospho]^2?EM[Hydroxylation]EVTSESPEK
+            var unlocal = term.UnlocalizedTags.Single().Descriptors.Single();
+            Assert.AreEqual(1, term.UnlocalizedTags.Single().Count);
+            Assert.AreEqual("Phospho", unlocal.Value);
+            Assert.AreEqual(ProFormaKey.Name, unlocal.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, unlocal.EvidenceType);
+
+
+            // Check multiple unlocalized mods with a terminal mod
+            term = _parser.ParseString("[Phospho][Phospho2]?[Acetyl]-EM[Hydroxylation]EVTSESPEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors?.Count);
+            Assert.AreEqual(2, term.UnlocalizedTags?.Count);
+
+            var nTerm = term.NTerminalDescriptors.Single();
+            Assert.AreEqual("Acetyl", nTerm.Value);
+
+            unlocal = term.UnlocalizedTags.First().Descriptors.Single();
+            Assert.AreEqual(1, term.UnlocalizedTags.First().Count);
+            Assert.AreEqual("Phospho", unlocal.Value);
+            var unlocal2 = term.UnlocalizedTags.Last().Descriptors.Single();
+            Assert.AreEqual(1, term.UnlocalizedTags.Last().Count);
+            Assert.AreEqual("Phospho2", unlocal2.Value);
+
+
+            // Check ^{count} format
+            term = _parser.ParseString("[Phospho]^2[Methyl]?[Acetyl]-EM[Hydroxylation]EVTSESPEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors?.Count);
+            Assert.AreEqual(2, term.UnlocalizedTags?.Count);
+
+            nTerm = term.NTerminalDescriptors.Single();
+            Assert.AreEqual("Acetyl", nTerm.Value);
+
+            unlocal = term.UnlocalizedTags.First().Descriptors.Single();
+            Assert.AreEqual(2, term.UnlocalizedTags.First().Count);
+            Assert.AreEqual("Phospho", unlocal.Value);
+            unlocal2 = term.UnlocalizedTags.Last().Descriptors.Single();
+            Assert.AreEqual(1, term.UnlocalizedTags.Last().Count);
+            Assert.AreEqual("Methyl", unlocal2.Value);
+
+
+            // INVALID to have terminal mod before unlocalized mods
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Acetyl]-[Phospho]^2?EM[Hydroxylation]EVTSESPEK"));
         }
 
         [Test]
         public void Ambiguity_PossiblePositions_4_4_2()
         {
-            // Use TagGroup List on term.
-
             // This is read as a named group 'g1' indicates that a phosphorylation exists on either T5, S6 or S8
-            // EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho#g1]PEK
+            var term = _parser.ParseString("EM[Oxidation]EVT[#g1]S[#g1]ES[Phospho#g1]PEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.IsNull(term.UnlocalizedTags);
+            Assert.AreEqual(1, term.TagGroups.Count);
+
+            var group = term.TagGroups.Single();
+            Assert.AreEqual("g1", group.Name);
+            Assert.AreEqual("Phospho", group.Value);
+            Assert.AreEqual(ProFormaKey.Name, group.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, group.EvidenceType);
+            Assert.AreEqual(3, group.Members?.Count);
+            CollectionAssert.AreEquivalent(new[] { 4, 5, 7 }, group.Members.Select(x => x.ZeroBasedIndex));
 
             // The following example is not valid because a single preferred location must be chosen for a modification:
-            // INVALID EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK"));
         }
 
         [Test]

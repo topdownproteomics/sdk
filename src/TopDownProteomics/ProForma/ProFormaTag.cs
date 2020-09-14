@@ -18,14 +18,10 @@ namespace TopDownProteomics.ProForma
             Descriptors = descriptors;
         }
 
-        /// <summary>
-        /// Gets the zero-based index in the sequence.
-        /// </summary>
+        /// <summary>Gets the zero-based index in the sequence.</summary>
         public int ZeroBasedIndex { get; }
 
-        /// <summary>
-        /// Gets the descriptors.
-        /// </summary>
+        /// <summary>Gets the descriptors.</summary>
         public IList<ProFormaDescriptor> Descriptors { get; }
     }
 }

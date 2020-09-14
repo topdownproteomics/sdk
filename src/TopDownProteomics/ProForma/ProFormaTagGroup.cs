@@ -37,13 +37,13 @@ namespace TopDownProteomics.ProForma
         public string Name { get; }
 
         /// <summary>The key.</summary>
-        public ProFormaKey Key { get; }
+        public ProFormaKey Key { get; internal set; }
 
         /// <summary>The type of the evidence.</summary>
-        public ProFormaEvidenceType EvidenceType { get; }
+        public ProFormaEvidenceType EvidenceType { get; internal set; }
 
         /// <summary>The value.</summary>
-        public string Value { get; }
+        public string Value { get; internal set; }
 
         /// <summary>The members of the group.</summary>
         public IList<ProFormaMembershipDescriptor> Members { get; }

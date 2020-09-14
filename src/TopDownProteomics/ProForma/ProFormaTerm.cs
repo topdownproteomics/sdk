@@ -19,7 +19,7 @@ namespace TopDownProteomics.ProForma
         /// <param name="tagGroups">The tag groups.</param>
         public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null, 
             IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaDescriptor>? labileDescriptors = null,
-            IList<ProFormaTag>? unlocalizedTags = null, 
+            IList<ProFormaUnlocalizedTag>? unlocalizedTags = null, 
             ICollection<ProFormaTagGroup>? tagGroups = null)
         {
             this.Sequence = sequence;
@@ -47,7 +47,7 @@ namespace TopDownProteomics.ProForma
         public IList<ProFormaTag>? Tags { get; }
 
         /// <summary>Descriptors for modifications that are completely unlocalized.</summary>
-        public IList<ProFormaTag>? UnlocalizedTags { get; }
+        public IList<ProFormaUnlocalizedTag>? UnlocalizedTags { get; }
 
         /// <summary>All tag groups for this term.</summary>
         public ICollection<ProFormaTagGroup>? TagGroups { get; }

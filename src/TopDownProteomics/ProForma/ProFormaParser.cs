@@ -12,14 +12,7 @@ namespace TopDownProteomics.ProForma
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaParser"/> class.
         /// </summary>
-        /// <param name="allowLegacySyntax">if set to <c>true</c> [allow legacy syntax].</param>
-        public ProFormaParser(bool allowLegacySyntax)
-        {
-            AllowLegacySyntax = allowLegacySyntax;
-        }
-
-        /// <summary>Should the parser accept legacy syntax?</summary>
-        public bool AllowLegacySyntax { get; }
+        public ProFormaParser() { }
 
         /// <summary>
         /// Parses the ProForma string.
@@ -39,7 +32,7 @@ namespace TopDownProteomics.ProForma
             IList<ProFormaDescriptor>? nTerminalDescriptors = null;
             IList<ProFormaDescriptor>? cTerminalDescriptors = null;
             IList<ProFormaDescriptor>? labileDescriptors = null;
-            IList<ProFormaTag>? unlocalizedTags = null;
+            IList<ProFormaUnlocalizedTag>? unlocalizedTags = null;
             IDictionary<string, ProFormaTagGroup>? tagGroups = null;
 
             var sequence = new StringBuilder();
@@ -49,8 +42,13 @@ namespace TopDownProteomics.ProForma
             int openLeftBrackets = 0;
             int openLeftBraces = 0;
 
+            // Don't love doing a global index of performance wise, but would need to restructure things to handle multiple unlocalized tags
+            int unlocalizedIndex = proFormaString.IndexOf('?');
+
             for (int i = 0; i < proFormaString.Length; i++)
             {
+                if (unlocalizedIndex == i) continue; // Skip unlocalized separator
+
                 char current = proFormaString[i];
 
                 if (current == '{' && openLeftBraces++ == 0)
@@ -80,35 +78,41 @@ namespace TopDownProteomics.ProForma
                         nTerminalDescriptors = this.ProcessTag(tagText, -1, ref tagGroups);
                         i++; // Skip the - character
                     }
-                    else if (sequence.Length == 0 && proFormaString[i + 1] == '?')
+                    else if (unlocalizedIndex >= i)
                     {
                         // Make sure the prefix came before the N-terminal modification
                         if (nTerminalDescriptors != null)
                             throw new ProFormaParseException($"Unlocalized modification must come before an N-terminal modification.");
 
                         if (unlocalizedTags == null)
-                            unlocalizedTags = new List<ProFormaTag>();
+                            unlocalizedTags = new List<ProFormaUnlocalizedTag>();
 
-                        this.ProcessTag(tagText, -1, ref unlocalizedTags, ref tagGroups);
-                        i++; // skip the ? character
+                        var descriptors = this.ProcessTag(tagText, -1, ref tagGroups);
+
+                        if (descriptors != null)
+                        {
+                            int count = 1;
+
+                            // Check for higher count
+                            if (proFormaString[i + 1] == '^')
+                            {
+                                int j = i + 2;
+                                while (char.IsDigit(proFormaString[j]))
+                                    j++;
+
+                                if (!int.TryParse(proFormaString.Slice(i + 2, j - i - 2), out count))
+                                    throw new ProFormaParseException("Can't process number after '^' character.");
+
+                                i = j - 1; // Point i at the last digit
+                            }
+
+                            unlocalizedTags.Add(new ProFormaUnlocalizedTag(count, descriptors));
+                        }
+
+                        //i++; // skip the ? character
                     }
-                    //else if (sequence.Length == 0 && proFormaString[i + 1] == '+')
-                    //{
-                    //    // Make sure the prefix came before the N-terminal modification
-                    //    if (nTerminalDescriptors != null)
-                    //        throw new ProFormaParseException($"Prefix tag must come before an N-terminal modification.");
-                    //    if (unlocalizedTags != null)
-                    //        throw new ProFormaParseException("Prefix tag must come before an unlocalized modification.");
-
-                    //    throw new Exception("Are we supporting prefix tags?");
-
-                    //    //prefixTag = tag.ToString();
-                    //    //i++; // Skip the + character
-                    //}
                     else
                     {
-                        //if (tags == null) tags = new List<ProFormaTag>();
-
                         this.ProcessTag(tagText, sequence.Length - 1, ref tags, ref tagGroups);
                     }
 
@@ -144,7 +148,7 @@ namespace TopDownProteomics.ProForma
             if (openLeftBraces != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBraces)} open braces in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, labileDescriptors, 
+            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, labileDescriptors,
                 unlocalizedTags, tagGroups?.Values);
         }
 
@@ -176,7 +180,21 @@ namespace TopDownProteomics.ProForma
 
                     if (!tagGroups.ContainsKey(group))
                     {
-                        tagGroups.Add(group, new ProFormaTagGroup(group, key, evidence, value, new List<ProFormaMembershipDescriptor>()));
+                        tagGroups.Add(group, new ProFormaTagGroupChangingValue(group, key, evidence, new List<ProFormaMembershipDescriptor>()));
+                    }
+
+                    var currentGroup = tagGroups[group];
+
+                    // Fix up name of TagGroup
+                    if (!string.IsNullOrEmpty(value) && currentGroup is ProFormaTagGroupChangingValue x)
+                    {
+                        // Only allow the value of the group to be set once
+                        if (!string.IsNullOrEmpty(x.Value))
+                            throw new ProFormaParseException($"You may only set the value of the group {group} once.");
+
+                        x.ValueFlux = value;
+                        x.Key = key;
+                        x.EvidenceType = evidence;
                     }
 
                     tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(index));
@@ -200,6 +218,44 @@ namespace TopDownProteomics.ProForma
             }
 
             return descriptors;
+        }
+
+        private class ProFormaTagGroupChangingValue : ProFormaTagGroup
+        {
+            public ProFormaTagGroupChangingValue(string name, ProFormaKey key, ProFormaEvidenceType evidenceType, 
+                IList<ProFormaMembershipDescriptor> members) : base(name, key, evidenceType, string.Empty, members)
+            {
+            }
+
+            public string? ValueFlux 
+            {
+                get => this.Value;
+                set
+                {
+                    if (value != null)
+                        this.Value = value;
+                }
+            }
+
+            public ProFormaKey? KeyFlux
+            {
+                get => this.Key;
+                set
+                {
+                    if (value.HasValue)
+                        this.Key = value.Value;
+                }
+            }
+
+            public ProFormaEvidenceType? EvidenceFlux
+            {
+                get => this.EvidenceType;
+                set
+                {
+                    if (value.HasValue)
+                        this.EvidenceType = value.Value;
+                }
+            }
         }
 
         private Tuple<ProFormaKey, ProFormaEvidenceType, string, string?> ParseDescriptor(string text)

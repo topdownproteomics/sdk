@@ -33,7 +33,7 @@ namespace TopDownProteomics.Tests.ProteoformHash
                     new BrnoModificationLookup(_elementProvider)
                 });
 
-            ProFormaParser proFormaParser = new ProFormaParser(allowLegacySyntax: true);
+            ProFormaParser proFormaParser = new ProFormaParser();
             ProteoformGroupFactory proteoformGroupFactory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
             _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup);
         }
