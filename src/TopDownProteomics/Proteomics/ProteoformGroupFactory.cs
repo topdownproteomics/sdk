@@ -59,7 +59,7 @@ namespace TopDownProteomics.Proteomics
                 foreach (var tag in term.Tags)
                 {
                     IProteoformModification? modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
-                        $"Multiple modifications at index: {tag.ZeroBasedIndex}");
+                        $"Multiple modifications at index: {tag.ZeroBasedStartIndex}");
 
                     // Lazy create the modifications list and add
                     if (modificationAtIndex != null)
@@ -67,7 +67,7 @@ namespace TopDownProteomics.Proteomics
                         if (modifications == null)
                             modifications = new List<IProteoformModificationWithIndex>();
 
-                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedIndex);
+                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedStartIndex);
                         modifications.Add(proteoformModificationWithIndex);
                     }
                 }

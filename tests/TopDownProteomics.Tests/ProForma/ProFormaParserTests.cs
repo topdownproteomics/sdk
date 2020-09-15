@@ -37,7 +37,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
-            Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
+            Assert.AreEqual(2, term.Tags.Single().ZeroBasedStartIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Info, term.Tags.Single().Descriptors.Single().Key);
             Assert.AreEqual(value, term.Tags.Single().Descriptors.Single().Value);
@@ -82,7 +82,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(1, term.Tags.Count);
 
             ProFormaTag tag = term.Tags.Single();
-            Assert.AreEqual(5, tag.ZeroBasedIndex);
+            Assert.AreEqual(5, tag.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
             Assert.AreEqual(ProFormaKey.Name, tag.Descriptors[0].Key);
@@ -101,7 +101,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(sequence, term.Sequence);
             Assert.IsNotNull(term.Tags);
             Assert.AreEqual(1, term.Tags.Count);
-            Assert.AreEqual(2, term.Tags.Single().ZeroBasedIndex);
+            Assert.AreEqual(2, term.Tags.Single().ZeroBasedStartIndex);
             Assert.AreEqual(1, term.Tags.Single().Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Name, term.Tags.Single().Descriptors.Single().Key);
             Assert.AreEqual(modName, term.Tags.Single().Descriptors.Single().Value);
@@ -120,7 +120,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(1, term.Tags.Count);
 
             ProFormaTag tag = term.Tags.Single();
-            Assert.AreEqual(5, tag.ZeroBasedIndex);
+            Assert.AreEqual(5, tag.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag.Descriptors.Count);
 
             Assert.AreEqual(ProFormaKey.Name, tag.Descriptors.First().Key);
@@ -141,13 +141,13 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(2, term.Tags.Count);
 
             ProFormaTag tag80 = term.Tags[0];
-            Assert.AreEqual(0, tag80.ZeroBasedIndex);
+            Assert.AreEqual(0, tag80.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag80.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mass, tag80.Descriptors.Single().Key);
             Assert.AreEqual("80", tag80.Descriptors.Single().Value);
 
             ProFormaTag tag14 = term.Tags[1];
-            Assert.AreEqual(4, tag14.ZeroBasedIndex);
+            Assert.AreEqual(4, tag14.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag14.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mass, tag14.Descriptors.Single().Key);
             Assert.AreEqual("14", tag14.Descriptors.Single().Value);
@@ -215,7 +215,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("-17.027", nTerm.Value);
 
             ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(2, tag1.ZeroBasedIndex);
+            Assert.AreEqual(2, tag1.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag1.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mass, tag1.Descriptors.Single().Key);
             Assert.AreEqual("14.05", tag1.Descriptors.Single().Value);
@@ -243,14 +243,14 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.CTerminalDescriptors);
 
             ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(3, tag1.ZeroBasedIndex);
+            Assert.AreEqual(3, tag1.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag1.Descriptors.Count);
             Assert.AreEqual(1, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Count());
             Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Affix);
             Assert.AreEqual("eg", tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Group);
 
             ProFormaTag tag2 = term.Tags[1];
-            Assert.AreEqual(6, tag2.ZeroBasedIndex);
+            Assert.AreEqual(6, tag2.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag2.Descriptors.Count);
             Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, tag2.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaAmbiguityAffix.PossibleSite, (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Affix);
@@ -270,14 +270,14 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.CTerminalDescriptors);
 
             ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(3, tag1.ZeroBasedIndex);
+            Assert.AreEqual(3, tag1.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag1.Descriptors.Count);
             Assert.AreEqual(1, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Count());
             Assert.AreEqual(ProFormaAmbiguityAffix.LeftBoundary, tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Affix);
             Assert.AreEqual("A", tag1.Descriptors.OfType<ProFormaAmbiguityDescriptor>().Single().Group);
 
             ProFormaTag tag2 = term.Tags[1];
-            Assert.AreEqual(11, tag2.ZeroBasedIndex);
+            Assert.AreEqual(11, tag2.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag2.Descriptors.Count);
             Assert.AreEqual(ProFormaAmbiguityAffix.RightBoundary, tag2.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaAmbiguityAffix.RightBoundary, (tag2.Descriptors.Single() as ProFormaAmbiguityDescriptor).Affix);
@@ -332,7 +332,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("Acetyl", nTerm.Value);
 
             ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(0, tag1.ZeroBasedIndex);
+            Assert.AreEqual(0, tag1.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag1.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Name, tag1.Descriptors.First().Key);
             Assert.AreEqual("Phospho", tag1.Descriptors.First().Value);
@@ -340,7 +340,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("+79.966331", tag1.Descriptors.Last().Value);
 
             ProFormaTag tag5 = term.Tags[1];
-            Assert.AreEqual(4, tag5.ZeroBasedIndex);
+            Assert.AreEqual(4, tag5.ZeroBasedStartIndex);
             Assert.AreEqual(3, tag5.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Name, tag5.Descriptors[0].Key);
             Assert.AreEqual("Acetyl", tag5.Descriptors[0].Value);
@@ -351,7 +351,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("+42.010565", tag5.Descriptors[2].Value);
 
             ProFormaTag tag120 = term.Tags[2];
-            Assert.AreEqual(119, tag120.ZeroBasedIndex);
+            Assert.AreEqual(119, tag120.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag120.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Identifier, tag120.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaEvidenceType.Unimod, tag120.Descriptors.Single().EvidenceType);
@@ -378,21 +378,21 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("1", nTerm.Value);
 
             ProFormaTag tag1 = term.Tags[0];
-            Assert.AreEqual(0, tag1.ZeroBasedIndex);
+            Assert.AreEqual(0, tag1.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag1.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Identifier, tag1.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaEvidenceType.Unimod, tag1.Descriptors.Single().EvidenceType);
             Assert.AreEqual("21", tag1.Descriptors.Single().Value);
 
             ProFormaTag tag5 = term.Tags[1];
-            Assert.AreEqual(4, tag5.ZeroBasedIndex);
+            Assert.AreEqual(4, tag5.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag5.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Identifier, tag5.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaEvidenceType.Unimod, tag5.Descriptors.Single().EvidenceType);
             Assert.AreEqual("1", tag5.Descriptors.Single().Value);
 
             ProFormaTag tag44 = term.Tags[2];
-            Assert.AreEqual(43, tag44.ZeroBasedIndex);
+            Assert.AreEqual(43, tag44.ZeroBasedStartIndex);
             Assert.AreEqual(1, tag44.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Identifier, tag44.Descriptors.Single().Key);
             Assert.AreEqual(ProFormaEvidenceType.Unimod, tag44.Descriptors.Single().EvidenceType);
@@ -414,7 +414,7 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.CTerminalDescriptors);
 
             ProFormaTag tag25 = term.Tags[0];
-            Assert.AreEqual(24, tag25.ZeroBasedIndex);
+            Assert.AreEqual(24, tag25.ZeroBasedStartIndex);
             Assert.AreEqual(5, tag25.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Name, tag25.Descriptors[0].Key);
             Assert.AreEqual("p-adenosine", tag25.Descriptors[0].Value);
@@ -446,7 +446,7 @@ namespace TopDownProteomics.Tests
             Assert.IsNull(term.CTerminalDescriptors);
 
             ProFormaTag tag12 = term.Tags[0];
-            Assert.AreEqual(11, tag12.ZeroBasedIndex);
+            Assert.AreEqual(11, tag12.ZeroBasedStartIndex);
             Assert.AreEqual(2, tag12.Descriptors.Count);
             Assert.AreEqual(ProFormaKey.Mass, tag12.Descriptors[0].Key); // Unimod
             Assert.AreEqual("-37.995001", tag12.Descriptors[0].Value);
@@ -629,8 +629,8 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaEvidenceType.XlMod, tagGroup.EvidenceType);
             Assert.AreEqual("XLMOD:02001", tagGroup.Value);
             Assert.AreEqual(2, tagGroup.Members.Count);
-            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedIndex);
-            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedIndex);
+            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedStartIndex);
+            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedStartIndex);
 
             // Multiple groups
             term = _parser.ParseString("EMK[XLMOD:02000#XL1]EVTK[XLMOD:02001#XL2]SESK[#XL1]PEK[#XL2]");
@@ -645,16 +645,16 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaEvidenceType.XlMod, tagGroup1.EvidenceType);
             Assert.AreEqual("XLMOD:02000", tagGroup1.Value);
             Assert.AreEqual(2, tagGroup1.Members.Count);
-            Assert.AreEqual(2, tagGroup1.Members[0].ZeroBasedIndex);
-            Assert.AreEqual(10, tagGroup1.Members[1].ZeroBasedIndex);
+            Assert.AreEqual(2, tagGroup1.Members[0].ZeroBasedStartIndex);
+            Assert.AreEqual(10, tagGroup1.Members[1].ZeroBasedStartIndex);
 
             Assert.AreEqual("XL2", tagGroup2.Name);
             Assert.AreEqual(ProFormaKey.Identifier, tagGroup2.Key);
             Assert.AreEqual(ProFormaEvidenceType.XlMod, tagGroup2.EvidenceType);
             Assert.AreEqual("XLMOD:02001", tagGroup2.Value);
             Assert.AreEqual(2, tagGroup2.Members.Count);
-            Assert.AreEqual(6, tagGroup2.Members[0].ZeroBasedIndex);
-            Assert.AreEqual(13, tagGroup2.Members[1].ZeroBasedIndex);
+            Assert.AreEqual(6, tagGroup2.Members[0].ZeroBasedStartIndex);
+            Assert.AreEqual(13, tagGroup2.Members[1].ZeroBasedStartIndex);
 
             // "Dead end" crosslinks
             term = _parser.ParseString("EMEVTK[XLMOD:02001#XL1]SESPEK");
@@ -668,7 +668,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaEvidenceType.XlMod, tagGroup.EvidenceType);
             Assert.AreEqual("XLMOD:02001", tagGroup.Value);
             Assert.AreEqual(1, tagGroup.Members.Count);
-            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedIndex);
+            Assert.AreEqual(5, tagGroup.Members[0].ZeroBasedStartIndex);
         }
 
         [Test]
@@ -697,8 +697,8 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(evidenceType, tagGroup.EvidenceType);
             Assert.AreEqual(value, tagGroup.Value);
             Assert.AreEqual(2, tagGroup.Members.Count);
-            Assert.AreEqual(6, tagGroup.Members[0].ZeroBasedIndex);
-            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedIndex);
+            Assert.AreEqual(6, tagGroup.Members[0].ZeroBasedStartIndex);
+            Assert.AreEqual(11, tagGroup.Members[1].ZeroBasedStartIndex);
         }
 
         [Test]
@@ -970,7 +970,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaKey.Name, group.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, group.EvidenceType);
             Assert.AreEqual(3, group.Members?.Count);
-            CollectionAssert.AreEquivalent(new[] { 4, 5, 7 }, group.Members.Select(x => x.ZeroBasedIndex));
+            CollectionAssert.AreEquivalent(new[] { 4, 5, 7 }, group.Members.Select(x => x.ZeroBasedStartIndex));
 
             // The following example is not valid because a single preferred location must be chosen for a modification:
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK"));
@@ -979,38 +979,112 @@ namespace TopDownProteomics.Tests
         [Test]
         public void Ambiguity_Ranges_4_4_3()
         {
-            // Use start and end indexes on Tag
-
             // Ranges of amino acids as possible locations for the modifications may be represented using parentheses within the amino acid sequence.
-            // PROT(EOSFORMS)[+19.0523]ISK
-            // PROT(EOC[Carbamidomethyl]FORMS)[+19.0523]ISK
+            var term = _parser.ParseString("PROT(EOSFORMS)[+19.0523]ISK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            var tag = term.Tags.Single();
+            Assert.AreEqual(4, tag.ZeroBasedStartIndex);
+            Assert.AreEqual(11, tag.ZeroBasedEndIndex);
+
+            // Range must end next to a tag
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("PROT(EOSFO)RMS[+19.0523]ISK"));
+
+            // Range with a tag inside
+            term = _parser.ParseString("PROT(EOC[Carbamidomethyl]FORMS)[+19.0523]ISK");
+            Assert.AreEqual(2, term.Tags?.Count);
+            tag = term.Tags.First();
+            Assert.AreEqual(6, tag.ZeroBasedStartIndex);
+            Assert.AreEqual(6, tag.ZeroBasedEndIndex);
+            Assert.AreEqual("Carbamidomethyl", tag.Descriptors.Single().Value);
+
+            var tag2 = term.Tags.Last();
+            Assert.AreEqual(4, tag2.ZeroBasedStartIndex);
+            Assert.AreEqual(11, tag2.ZeroBasedEndIndex);
+            Assert.AreEqual("+19.0523", tag2.Descriptors.Single().Value);
 
             // Overlapping ranges represent a more complex case and are not yet supported, and so, the following example would NOT be valid:
-            // INVALID P(ROT(EOSFORMS)[+19.0523]IS)[+19.0523]K
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("P(ROT(EOSFORMS)[+19.0523]IS)[+19.0523]K"));
 
+            // Ranges + groups + scores
+            term = _parser.ParseString("PROT(EOSFORMS)[+19.0523#g1(0.01)]ISK[#g1(0.99)]");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.TagGroups?.Count);
+            var member1 = term.TagGroups.Single().Members.First();
+            Assert.AreEqual(4, member1.ZeroBasedStartIndex);
+            Assert.AreEqual(11, member1.ZeroBasedEndIndex);
+            Assert.AreEqual(0.01, member1.Weight, 0.001);
+            var member2 = term.TagGroups.Single().Members.Last();
+            Assert.AreEqual(14, member2.ZeroBasedStartIndex);
+            Assert.AreEqual(14, member2.ZeroBasedEndIndex);
+            Assert.AreEqual(0.99, member2.Weight, 0.001);
 
-            // Ranges + scores
-            // PROT(EOSFORMS)[+19.0523#g1(0.01)]ISK
-            // PROT(EOC[Carbamidomethyl]FORMS)[+19.05233#g1(0.09)]ISK
+            // More complex with inner tag not part of the group
+            term = _parser.ParseString("PR[#g1(0.91)]OT(EOC[Carbamidomethyl]FORMS)[+19.05233#g1(0.09)]ISK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.AreEqual(1, term.TagGroups?.Count);
+            member1 = term.TagGroups.Single().Members.First();
+            Assert.AreEqual(1, member1.ZeroBasedStartIndex);
+            Assert.AreEqual(1, member1.ZeroBasedEndIndex);
+            Assert.AreEqual(0.91, member1.Weight, 0.001);
+            member2 = term.TagGroups.Single().Members.Last();
+            Assert.AreEqual(4, member2.ZeroBasedStartIndex);
+            Assert.AreEqual(11, member2.ZeroBasedEndIndex);
+            Assert.AreEqual(0.09, member2.Weight, 0.001);
         }
 
         [Test]
         public void Ambiguity_PossiblePositionsWithScores_4_4_4()
         {
-            // Use MembershipDescriptors to store scores.
-
             // The values of the modification localization scores can be indicated in parentheses within the same group and brackets. 
-            // EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho#g1(0.90)]PEK
+            var term = _parser.ParseString("EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho#g1(0.90)]PEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.AreEqual(1, term.TagGroups?.Count);
+            var group = term.TagGroups.Single();
+            Assert.AreEqual("g1", group.Name);
+            Assert.AreEqual("Phospho", group.Value);
+            Assert.AreEqual(3, group.Members.Count);
+
+            var member0 = group.Members[0];
+            Assert.AreEqual(4, member0.ZeroBasedStartIndex);
+            Assert.AreEqual(0.01, member0.Weight, 0.001);
+            var member1 = group.Members[1];
+            Assert.AreEqual(5, member1.ZeroBasedStartIndex);
+            Assert.AreEqual(0.09, member1.Weight, 0.001);
+            var member2 = group.Members[2];
+            Assert.AreEqual(7, member2.ZeroBasedStartIndex);
+            Assert.AreEqual(0.90, member2.Weight, 0.001);
+
+            // Weights must be double values
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation]EVT[#g1(0.01)]S[#g1(ABC)]ES[Phospho#g1(0.90)]PEK"));
 
             // The additional option to represent localisation scores is to leave the position of the modification as unknown using the ‘?’ notation, 
             //  but report the localization modification scores at specific sites.
-            // [Phospho#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.90)]ES[#s1(0.90)]PEK
+            term = _parser.ParseString("[Phospho#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.09)]ES[#s1(0.90)]PEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.AreEqual(1, term.TagGroups?.Count);
+            Assert.IsNull(term.UnlocalizedTags);
+            group = term.TagGroups.Single();
+            Assert.AreEqual("s1", group.Name);
+            Assert.AreEqual("Phospho", group.Value);
+            Assert.AreEqual(3, group.Members.Count);
+
+            member0 = group.Members[0];
+            Assert.AreEqual(4, member0.ZeroBasedStartIndex);
+            Assert.AreEqual(0.01, member0.Weight, 0.001);
+            member1 = group.Members[1];
+            Assert.AreEqual(5, member1.ZeroBasedStartIndex);
+            Assert.AreEqual(0.09, member1.Weight, 0.001);
+            member2 = group.Members[2];
+            Assert.AreEqual(7, member2.ZeroBasedStartIndex);
+            Assert.AreEqual(0.90, member2.Weight, 0.001);
         }
 
         [Test]
         public void NoMultipleModificationsSameSite_4_5()
         {
-            // TODO: Example?
+            // Currently, there is no need to chain two mods together on the same residue, since complex glycans are not explicitly supported (see Section 3.4).
+            //  The solution in those rare cases not involving glycans is to have a single PSI-MOD/RESID  entry for the combination of mods.
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation][Phospho]EVTSESPEK"));
         }
 
         [Test]
@@ -1037,12 +1111,32 @@ namespace TopDownProteomics.Tests
         [Test]
         public void InfoTag_4_7()
         {
-            // Use standard descriptor.
+            // Simple info tag.
+            var term = _parser.ParseString("ELV[INFO:AnyString]IS");
+            Assert.AreEqual(1, term.Tags.Count);
+            var desc = term.Tags.Single().Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Info, desc.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, desc.EvidenceType);
+            Assert.AreEqual("AnyString", desc.Value);
 
-            // ELV[INFO:AnyString]IS
-            // ELVIS[Phospho|INFO:newly discovered]K
-            // ELVIS[Phospho|INFO:newly discovered|INFO:really awesome]K
-            // INVALID: ELVIS[Phospho|INFO:newly]discovered]K
+            // Multiple descriptors
+            term = _parser.ParseString("ELVIS[Phospho|INFO:newly discovered|info:really awesome]K");
+            Assert.AreEqual(1, term.Tags.Count);
+            var desc0 = term.Tags.Single().Descriptors[0];
+            Assert.AreEqual(ProFormaKey.Name, desc0.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, desc0.EvidenceType);
+            Assert.AreEqual("Phospho", desc0.Value);
+            var desc1 = term.Tags.Single().Descriptors[1];
+            Assert.AreEqual(ProFormaKey.Info, desc1.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, desc1.EvidenceType);
+            Assert.AreEqual("newly discovered", desc1.Value);
+            var desc2 = term.Tags.Single().Descriptors[2];
+            Assert.AreEqual(ProFormaKey.Info, desc2.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, desc2.EvidenceType);
+            Assert.AreEqual("really awesome", desc2.Value);
+
+            // Can't use [] in info tag
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("ELVIS[Phospho|INFO:newly]discovered]K"));
         }
 
         [Test]

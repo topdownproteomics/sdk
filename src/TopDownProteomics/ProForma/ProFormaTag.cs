@@ -14,12 +14,29 @@ namespace TopDownProteomics.ProForma
         /// <param name="descriptors">The descriptors.</param>
         public ProFormaTag(int zeroBasedIndex, IList<ProFormaDescriptor> descriptors)
         {
-            ZeroBasedIndex = zeroBasedIndex;
-            Descriptors = descriptors;
+            this.ZeroBasedStartIndex = zeroBasedIndex;
+            this.ZeroBasedEndIndex = zeroBasedIndex;
+            this.Descriptors = descriptors;
         }
 
-        /// <summary>Gets the zero-based index in the sequence.</summary>
-        public int ZeroBasedIndex { get; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProFormaTag" /> class.
+        /// </summary>
+        /// <param name="zeroBasedStartIndex">The zero-based start index of the modified amino acid in the sequence.</param>
+        /// <param name="zeroBasedEndIndex">The zero-based end index of the modified amino acid in the sequence.</param>
+        /// <param name="descriptors">The descriptors.</param>
+        public ProFormaTag(int zeroBasedStartIndex, int zeroBasedEndIndex, IList<ProFormaDescriptor> descriptors)
+        {
+            this.ZeroBasedStartIndex = zeroBasedStartIndex;
+            this.ZeroBasedEndIndex = zeroBasedEndIndex;
+            this.Descriptors = descriptors;
+        }
+
+        /// <summary>Gets the zero-based start index in the sequence.</summary>
+        public int ZeroBasedStartIndex { get; }
+
+        /// <summary>Gets the zero-based end index in the sequence.</summary>
+        public int ZeroBasedEndIndex { get; }
 
         /// <summary>Gets the descriptors.</summary>
         public IList<ProFormaDescriptor> Descriptors { get; }

@@ -38,11 +38,11 @@ namespace TopDownProteomics.ProForma
             if (term.Tags != null)
             {
                 int startIndex = 0;
-                foreach (var tag in term.Tags.OrderBy(x => x.ZeroBasedIndex))
+                foreach (var tag in term.Tags.OrderBy(x => x.ZeroBasedStartIndex))
                 {
                     // Write sequence up to tag
-                    sb.Append(term.Sequence.Substring(startIndex, tag.ZeroBasedIndex - startIndex + 1));
-                    startIndex = tag.ZeroBasedIndex + 1;
+                    sb.Append(term.Sequence.Substring(startIndex, tag.ZeroBasedStartIndex - startIndex + 1));
+                    startIndex = tag.ZeroBasedStartIndex + 1;
 
                     // Write the tag
                     sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]");
