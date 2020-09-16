@@ -17,10 +17,11 @@ namespace TopDownProteomics.ProForma
         /// <param name="labileDescriptors">The labile modification descriptors.</param>
         /// <param name="unlocalizedTags">Unlocalized modification tags.</param>
         /// <param name="tagGroups">The tag groups.</param>
+        /// <param name="globalModifications">The global modifications.</param>
         public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null, 
             IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaDescriptor>? labileDescriptors = null,
-            IList<ProFormaUnlocalizedTag>? unlocalizedTags = null, 
-            ICollection<ProFormaTagGroup>? tagGroups = null)
+            IList<ProFormaUnlocalizedTag>? unlocalizedTags = null, ICollection<ProFormaTagGroup>? tagGroups = null,
+            IList<ProFormaGlobalModification>? globalModifications = null)
         {
             this.Sequence = sequence;
             this.NTerminalDescriptors = nTerminalDescriptors;
@@ -29,10 +30,14 @@ namespace TopDownProteomics.ProForma
             this.Tags = tags;
             this.UnlocalizedTags = unlocalizedTags;
             this.TagGroups = tagGroups;
+            this.GlobalModifications = globalModifications;
         }
 
         /// <summary>The amino acid sequence.</summary>
         public string Sequence { get; }
+
+        /// <summary>Modifications that apply globally based on a target or targets.</summary>
+        public IList<ProFormaGlobalModification>? GlobalModifications { get; }
 
         /// <summary>N-Terminal descriptors.</summary>
         public IList<ProFormaDescriptor>? NTerminalDescriptors { get; }

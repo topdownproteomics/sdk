@@ -1093,19 +1093,58 @@ namespace TopDownProteomics.Tests
             // Use Fixed Modification LIST on term
 
             // Representation of isotopes
-            // <13C>ATPEILTVNSIGQLK
-            // <15N>ATPEILTVNSIGQLK
-            // <D>ATPEILTVNSIGQLK
-            // <13C><15N>ATPEILTVNSIGQLK
+            var term = _parser.ParseString("<13C>ATPEILTVNSIGQLK");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.GlobalModifications.Count);
+            
+            var globalMod = term.GlobalModifications.Single().Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Name, globalMod.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, globalMod.EvidenceType);
+            Assert.AreEqual("13C", globalMod.Value);
+            Assert.IsNull(term.GlobalModifications.Single().TargetAminoAcids);
 
-            // Fixed protein modifications
-            // <[S-carboxamidomethyl-L-cysteine]@C>ATPEILTCNSIGCLK
-            // <[MOD:01090]@C>ATPEILTCNSIGCLK
-            // <[Oxidation]@C,M>MTPEILTCNSIGCLK
+            // Two isotopes
+            term = _parser.ParseString("<13C><15N>ATPEILTVNSIGQLK");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(2, term.GlobalModifications.Count);
 
-            // Fixed modifications MUST be written prior to ambiguous modifications, and similar to ambiguity notation, N-terminal modifications MUST be the last ones written, just next to the sequence. 
-            // INVALID: [Phospho]?<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK
-            // INVALID: [Acetyl]-<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK
+            var globalMod0 = term.GlobalModifications[0].Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Name, globalMod0.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, globalMod0.EvidenceType);
+            Assert.AreEqual("13C", globalMod0.Value);
+            var globalMod1 = term.GlobalModifications[1].Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Name, globalMod1.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, globalMod1.EvidenceType);
+            Assert.AreEqual("15N", globalMod1.Value);
+
+            // Fixed protein modifications (single target)
+            term = _parser.ParseString("<[MOD:01090]@C>ATPEILTCNSIGCLK");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.GlobalModifications.Count);
+
+            globalMod = term.GlobalModifications.Single().Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Identifier, globalMod.Key);
+            Assert.AreEqual(ProFormaEvidenceType.PsiMod, globalMod.EvidenceType);
+            Assert.AreEqual("MOD:01090", globalMod.Value);
+            Assert.IsNotNull(term.GlobalModifications.Single().TargetAminoAcids);
+            CollectionAssert.AreEquivalent(new[] { 'C' }, term.GlobalModifications.Single().TargetAminoAcids);
+
+            // Fixed protein modifications (multiple targets)
+            term = _parser.ParseString("<[Oxidation]@C,M>MTPEILTCNSIGCLK");
+            Assert.IsNull(term.Tags);
+            Assert.AreEqual(1, term.GlobalModifications.Count);
+
+            globalMod = term.GlobalModifications.Single().Descriptors.Single();
+            Assert.AreEqual(ProFormaKey.Name, globalMod.Key);
+            Assert.AreEqual(ProFormaEvidenceType.None, globalMod.EvidenceType);
+            Assert.AreEqual("Oxidation", globalMod.Value);
+            Assert.IsNotNull(term.GlobalModifications.Single().TargetAminoAcids);
+            CollectionAssert.AreEquivalent(new[] { 'C', 'M' }, term.GlobalModifications.Single().TargetAminoAcids);
+
+            // Fixed modifications MUST be written prior to ambiguous modifications, and similar to ambiguity notation, 
+            //  N-terminal modifications MUST be the last ones written, just next to the sequence.
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Phospho]?<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK"));
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Acetyl]-<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK"));
         }
 
         [Test]
