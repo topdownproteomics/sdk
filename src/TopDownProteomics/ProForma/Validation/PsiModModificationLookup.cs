@@ -18,9 +18,17 @@ namespace TopDownProteomics.ProForma.Validation
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance is default modification type.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is default modification type; otherwise, <c>false</c>.
+        /// </value>
+        protected override bool IsDefaultModificationType => true;
+
+        /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected override ProFormaEvidenceType Key => ProFormaEvidenceType.PsiMod;
+        protected override ProFormaEvidenceType EvidenceType => ProFormaEvidenceType.PsiMod;
 
         /// <summary>
         /// Initializes the <see cref="ResidModificationLookup" /> class.

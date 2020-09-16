@@ -95,9 +95,9 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteAmbiguousUnlocalizedTags()
         {
-            var term = new ProFormaTerm("SEQUENCE", tags: new[]
+            var term = new ProFormaTerm("SEQUENCE", unlocalizedTags: new[]
             {
-                new ProFormaTag(-1, new[]
+                new ProFormaUnlocalizedTag(1, new[]
                 {
                     new ProFormaDescriptor(ProFormaKey.Mass, "+14.05"),
                 }),
@@ -110,20 +110,20 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteMultipleAmbiguousUnlocalizedTags()
         {
-            var term = new ProFormaTerm("SEQUENCE", tags: new[]
+            var term = new ProFormaTerm("SEQUENCE", unlocalizedTags: new[]
             {
-                new ProFormaTag(-1, new[]
+                new ProFormaUnlocalizedTag(1, new[]
                 {
                     new ProFormaDescriptor(ProFormaKey.Mass, "+14.05"),
                 }),
-                new ProFormaTag(-1, new[]
+                new ProFormaUnlocalizedTag(2, new[]
                 {
                     new ProFormaDescriptor(ProFormaKey.Mass, "79.98"),
                 }),
             });
             var result = _writer.WriteString(term);
 
-            Assert.AreEqual("[mass:+14.05]?[mass:79.98]?SEQUENCE", result);
+            Assert.AreEqual("[mass:+14.05][mass:79.98]^2?SEQUENCE", result);
         }
 
         [Test]
@@ -197,13 +197,13 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void WriteUnlocalizedAmbiguousTagsTerminalMod()
         {
-            var term = new ProFormaTerm("SEQUENCE", new[]
+            var term = new ProFormaTerm("SEQUENCE", unlocalizedTags: new[]
             {
-                new ProFormaTag(-1, new[]
+                new ProFormaUnlocalizedTag(1, new[]
                 {
                     new ProFormaDescriptor(ProFormaKey.Mass, "14.05")
                 }),
-            }, new[] { new ProFormaDescriptor(ProFormaKey.Info, "unknown") }, null, null);
+            }, nTerminalDescriptors: new[] { new ProFormaDescriptor(ProFormaKey.Info, "unknown") });
             var result = _writer.WriteString(term);
 
             Assert.AreEqual("[mass:14.05]?[info:unknown]-SEQUENCE", result);

@@ -98,10 +98,10 @@ namespace TopDownProteomics.Tests.ProForma
         {
             this.DescriptorHandling(_unimodLookup, ProFormaEvidenceType.Unimod, true);
             this.DescriptorHandling(_residLookup, ProFormaEvidenceType.Resid, false);
-            this.DescriptorHandling(_psiModLookup, ProFormaEvidenceType.PsiMod, false);
+            this.DescriptorHandling(_psiModLookup, ProFormaEvidenceType.PsiMod, true);
             this.DescriptorHandling(_uniProtModLookup, ProFormaEvidenceType.UniProt, false);
 
-            Assert.IsTrue(_formulaLookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Formula, "C(2) H(2) O")));
+            Assert.IsTrue(_formulaLookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Formula, "Anything")));
         }
         private void DescriptorHandling(IProteoformModificationLookup lookup, ProFormaEvidenceType key, bool isDefault)
         {
@@ -111,13 +111,12 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.IsTrue(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, key, null)));
 
             // If using modification name, must have no ending or end in proper ending
-            Assert.IsTrue(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something({key})")));
-            Assert.IsTrue(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something ({key})")));
-            Assert.IsFalse(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something (Other_Type) ")));
-            Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something")), isDefault);
+            Assert.IsTrue(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, key, "Something")));
+            Assert.IsFalse(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, "Something")));
+            Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, "Something")), isDefault);
 
             // This is malformed and must be interpreted as a mod "name" ... will fail when looking up modification
-            Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something [{key}]")), isDefault);
+            //Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something [{key}]")), isDefault);
         }
 
         [Test]
@@ -178,23 +177,23 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void FindByName()
         {
-            this.FindByName(_unimodLookup, ProFormaKey.Name, ProFormaEvidenceType.Unimod, true, "Trimethyl");
-            this.FindByName(_residLookup, ProFormaKey.Name, ProFormaEvidenceType.Resid, false, "O-phospho-L-threonine");
-            this.FindByName(_psiModLookup, ProFormaKey.Name, ProFormaEvidenceType.PsiMod, false, "3-hydroxy-L-proline");
-            this.FindByName(_uniProtModLookup, ProFormaKey.Name, ProFormaEvidenceType.UniProt, false, "(2-aminosuccinimidyl)acetic acid (Asp-Gly)");
+            this.FindByName(_unimodLookup, ProFormaEvidenceType.Unimod, true, "Trimethyl");
+            this.FindByName(_residLookup, ProFormaEvidenceType.Resid, false, "O-phospho-L-threonine");
+            this.FindByName(_psiModLookup, ProFormaEvidenceType.PsiMod, false, "3-hydroxy-L-proline");
+            this.FindByName(_uniProtModLookup, ProFormaEvidenceType.UniProt, false, "(2-aminosuccinimidyl)acetic acid (Asp-Gly)");
         }
-        private void FindByName(IProteoformModificationLookup lookup, ProFormaKey key, ProFormaEvidenceType evidenceType,
+        private void FindByName(IProteoformModificationLookup lookup, ProFormaEvidenceType evidenceType,
             bool isDefault, string correctName)
         {
             if (isDefault)
-                Assert.IsNotNull(lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, evidenceType, correctName)));
+                Assert.IsNotNull(lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.None, correctName)));
 
-            Assert.IsNotNull(lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, evidenceType, $"{correctName}({key})")));
+            Assert.IsNotNull(lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, evidenceType, correctName)));
 
+            Assert.Throws<ProteoformModificationLookupException>(
+                () => lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.None, "Something")));
             Assert.Throws<ProteoformModificationLookupException>(
                 () => lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, evidenceType, "Something")));
-            Assert.Throws<ProteoformModificationLookupException>(
-                () => lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, evidenceType, $"Something({key})")));
         }
 
         [Test]
@@ -224,7 +223,7 @@ namespace TopDownProteomics.Tests.ProForma
                 _elementProvider);
             this.FindById(psiModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, 402, "MOD:");
 
-            IProteoformModification mod = psiModLookup.GetModification(new ProFormaDescriptor(ProFormaKey.Identifier, 
+            IProteoformModification mod = psiModLookup.GetModification(new ProFormaDescriptor(ProFormaKey.Identifier,
                 ProFormaEvidenceType.PsiMod, "MOD:00402"));
 
             ChemicalFormula chemicalFormula = new ChemicalFormula(

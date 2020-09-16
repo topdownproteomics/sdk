@@ -292,6 +292,9 @@ namespace TopDownProteomics.Chemistry
             IList<IEntityCardinality<IElement>> elementList, int symbolStart, int symbolEnd, 
             int digitStart, int digitEnd, int isotopeStart, int isotopeEnd)
         {
+            if (formula.Length == 0)
+                return false;
+
             // Handle cardinality
             int count = 1;
             if (digitStart != 0)
@@ -315,10 +318,19 @@ namespace TopDownProteomics.Chemistry
                 isotope = isotopeOut;
             }
 
-            elementList.Add(GetElement(formula.Slice(symbolStart, symbolEnd - symbolStart + 1), 
-                isotope, count, elementProvider));
+            try
+            {
+                var element = GetElement(formula.Slice(symbolStart, symbolEnd - symbolStart + 1),
+                    isotope, count, elementProvider);
 
-            return true;
+                elementList.Add(element);
+
+                return true;
+            }
+            catch // Failed to get element for some reason
+            {
+                return false;
+            }
         }
 
         private static IEntityCardinality<IElement> GetElement(ReadOnlySpan<char> symbol, int? isotope, int count, IElementProvider elementProvider)

@@ -437,6 +437,7 @@ namespace TopDownProteomics.ProForma
                 var x when x == "r" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Resid, text.Substring(colon + 1), groupName, weight),
                 var x when x == "x" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.XlMod, text.Substring(colon + 1), groupName, weight),
                 var x when x == "g" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Gno, text.Substring(colon + 1), groupName, weight),
+                var x when x == "b" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Brno, text.Substring(colon + 1), groupName, weight),
                 var x when x == "obs" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Observed, text.Substring(colon + 1), groupName, weight),
 
                 _ => Tuple.Create(ProFormaKey.Name, ProFormaEvidenceType.None, text, groupName, weight)

@@ -106,6 +106,9 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.IsNull(proteoform.Modifications);
         }
 
+        private ProFormaDescriptor CreateBrnoDescriptor(string name) => 
+            new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, name);
+
         [Test]
         public void HandleModificationNameTag()
         {
@@ -114,7 +117,7 @@ namespace TopDownProteomics.Tests.ProForma
 
             var term = new ProFormaTerm(sequence, tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("ac(BRNO)") })
+                new ProFormaTag(3, new[] { this.CreateBrnoDescriptor("ac") })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
@@ -133,7 +136,7 @@ namespace TopDownProteomics.Tests.ProForma
             const string sequence = "SEQVENCE";
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            ProFormaDescriptor descriptor = new ProFormaDescriptor("ac(BRNO)");
+            ProFormaDescriptor descriptor = this.CreateBrnoDescriptor("ac");
             var term = new ProFormaTerm(sequence, null, new[] { descriptor }, null, null);
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
@@ -165,7 +168,7 @@ namespace TopDownProteomics.Tests.ProForma
 
             var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("wrong(BRNO)") })
+                new ProFormaTag(3, new[] { this.CreateBrnoDescriptor("wrong") })
             });
             Assert.Throws<ProteoformModificationLookupException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
         }
@@ -177,7 +180,7 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new IgnoreKeyModificationLookup(ProFormaKey.Mass),
                 new IgnoreKeyModificationLookup(ProFormaKey.Info),
-                //new BrnoModificationLookup(_elementProvider),
+                new BrnoModificationLookup(_elementProvider),
                 _residLookup
             });
 
@@ -186,7 +189,7 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
+                    this.CreateBrnoDescriptor("ph"),
                     new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 })
             });
@@ -200,8 +203,8 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 })
             });
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
@@ -211,11 +214,11 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("ac")
                 }),
                 new ProFormaTag(7, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
+                    this.CreateBrnoDescriptor("me1"),
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -227,7 +230,7 @@ namespace TopDownProteomics.Tests.ProForma
             {
                 new ProFormaTag(7, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
+                    this.CreateBrnoDescriptor("me1"),
                     new ProFormaDescriptor(ProFormaKey.Info, "hello!")
                 })
             });
@@ -240,7 +243,7 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null,
                 new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
+                    this.CreateBrnoDescriptor("ph"),
                     new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 }, null, null
             );
@@ -251,8 +254,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null,
                 new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 }, null, null
             );
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
@@ -261,7 +264,7 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null, null,
                 new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
+                    this.CreateBrnoDescriptor("ph"),
                     new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 }, null
             );
@@ -272,8 +275,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null, null,
                 new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 }, null
             );
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));

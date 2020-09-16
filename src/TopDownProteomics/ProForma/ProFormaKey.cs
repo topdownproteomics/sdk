@@ -123,6 +123,9 @@
         XlMod = 6,
 
         /// <summary>The GNO identifier</summary>
-        Gno = 7
+        Gno = 7,
+
+        /// <summary>The BRNO identifier (https://doi.org/10.1038/nsmb0205-110)</summary>
+        Brno = 8
     }
 }

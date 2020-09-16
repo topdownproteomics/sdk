@@ -29,7 +29,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected override ProFormaEvidenceType Key => ProFormaEvidenceType.Unimod;
+        protected override ProFormaEvidenceType EvidenceType => ProFormaEvidenceType.Unimod;
 
         /// <summary>
         /// Initializes the <see cref="ResidModificationLookup" /> class.

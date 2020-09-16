@@ -19,7 +19,7 @@ namespace TopDownProteomics.Tests.ProteoformHash
         IProteoformModificationLookup _lookup;
         string _acetylDescriptorString = "[formula:C2H2O]";
         ChemicalProteoformHashGenerator _chemicalProteoformHashGenerator;
-        string _acetylBrnoString = "[mod:ac(BRNO)]";
+        string _acetylBrnoString = "[B:ac]";
 
         [OneTimeSetUp]
         public void Setup()

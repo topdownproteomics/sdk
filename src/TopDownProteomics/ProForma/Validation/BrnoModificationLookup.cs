@@ -33,7 +33,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            return descriptor.Key == ProFormaKey.Name && descriptor.Value != null && descriptor.Value.EndsWith("(BRNO)");
+            return descriptor.Key == ProFormaKey.Name && 
+                descriptor.EvidenceType == ProFormaEvidenceType.Brno && 
+                descriptor.Value != null;
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         public IProteoformModification GetModification(ProFormaDescriptor descriptor)
         {
-            string abbreviation = descriptor.Value.Substring(0, descriptor.Value.IndexOf("("));
+            string abbreviation = descriptor.Value;
 
             switch (abbreviation)
             {

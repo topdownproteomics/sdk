@@ -24,8 +24,14 @@ namespace TopDownProteomics.ProForma
                 foreach (var tag in term.UnlocalizedTags)
                 {
                     if (tag.Descriptors != null && tag.Descriptors.Count > 0)
-                        sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]?");
+                        sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]");
+
+                    if (tag.Count != 1)
+                        sb.Append($"^{tag.Count}");
                 }
+
+                // Only write out a single question mark
+                sb.Append('?');
             }
 
             // Check N-terminal modifications

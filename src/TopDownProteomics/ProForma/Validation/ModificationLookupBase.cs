@@ -60,21 +60,21 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public virtual bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            var nonDefault = descriptor.EvidenceType == this.Key ||
-                (descriptor.Key == ProFormaKey.Name && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
+            var nonDefault = descriptor.EvidenceType == this.EvidenceType && 
+                (descriptor.Key == ProFormaKey.Name || descriptor.Key == ProFormaKey.Identifier);
 
             if (!this.IsDefaultModificationType)
                 return nonDefault;
 
             // If this is the default modification type, allow one more condition.
             return nonDefault ||
-                (descriptor.Key == ProFormaKey.Name && !descriptor.Value.TrimEnd().EndsWith(")"));
+                (descriptor.Key == ProFormaKey.Name && descriptor.EvidenceType == ProFormaEvidenceType.None);
         }
 
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected abstract ProFormaEvidenceType Key { get; }
+        protected abstract ProFormaEvidenceType EvidenceType { get; }
 
         /// <summary>
         /// Removes the prefix.
@@ -91,7 +91,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </value>
         protected virtual bool IsDefaultModificationType => false;
 
-        private string GetModNameDatabaseTag() => $"({this.Key})";
+        //private string GetModNameDatabaseTag() => $"({this.Key})";
 
         /// <summary>
         /// Gets the modification.
@@ -106,7 +106,19 @@ namespace TopDownProteomics.ProForma.Validation
             if (descriptor.Value == null)
                 throw new ProteoformModificationLookupException($"Value is NULL in descriptor {descriptor}.");
 
-            if (descriptor.EvidenceType == this.Key)
+            if (descriptor.Key == ProFormaKey.Name)
+            {
+                string value = descriptor.Value;
+
+                IProteoformModification modification = _modifications
+                    .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
+
+                if (modification == null)
+                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor}.");
+
+                return modification;
+            }
+            else if (descriptor.Key == ProFormaKey.Identifier)
             {
                 string value = this.RemovePrefix(descriptor.Value);
 
@@ -119,26 +131,6 @@ namespace TopDownProteomics.ProForma.Validation
                 }
 
                 throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor}.");
-            }
-            else if (descriptor.Key == ProFormaKey.Name)
-            {
-                int index = descriptor.Value.IndexOf(this.GetModNameDatabaseTag());
-
-                if (index < 0 && !this.IsDefaultModificationType)
-                    throw new ProteoformModificationLookupException($"Couldn't find database name in descriptor {descriptor}.");
-
-                string value = descriptor.Value;
-
-                if (index >= 0)
-                    value = value.Substring(0, index).Trim();
-
-                IProteoformModification modification = _modifications
-                    .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
-
-                if (modification == null)
-                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor}.");
-
-                return modification;
             }
 
             throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor}.");
