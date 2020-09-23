@@ -13,6 +13,6 @@
     <copyright>Copyright 2018</copyright>
   </metadata>
   <files>
-    <file src="src\TopDownProteomics\bin\Release\netstandard2.0\TopDownProteomics.dll" target="lib\netstandard2.1" />
+    <file src="src\TopDownProteomics\bin\Release\netstandard2.1\TopDownProteomics.dll" target="lib\netstandard2.1" />
   </files>
 </package>
