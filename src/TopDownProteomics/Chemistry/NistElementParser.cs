@@ -19,12 +19,11 @@ namespace TopDownProteomics.Chemistry
             var lines = File.ReadAllLines(filePath);
             var elements = new List<IElement>();
             int currentAtomNumber = -1;
-            string currentSymbol = null;
+            string? currentSymbol = null;
             int currentMassNumber = -1;
-            List<IIsotope> currentIsotopes = null;
+            List<IIsotope>? currentIsotopes = null;
             double currentRelativeAtomicMass = 0.0;
-            double currentIsotopicComposition = 0.0;
-
+            
             for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].StartsWith("Atomic Number = "))
@@ -33,7 +32,7 @@ namespace TopDownProteomics.Chemistry
 
                     if (currentAtomNumber > 0 && atomicNumber > currentAtomNumber)
                     {
-                        if (currentIsotopes != null)
+                        if (currentSymbol != null && currentIsotopes != null)
                         {
                             // Add new element
                             elements.Add(new Element(currentAtomNumber, currentSymbol, currentIsotopes));
@@ -65,6 +64,7 @@ namespace TopDownProteomics.Chemistry
                     int equalSign = lines[i].LastIndexOf('=');
                     int openParen = lines[i].IndexOf('(');
 
+                    double currentIsotopicComposition;
                     if (openParen < 0)
                     {
                         if (lines[i].Length > equalSign + 2 && lines[i][equalSign + 2] == '1')
@@ -84,7 +84,7 @@ namespace TopDownProteomics.Chemistry
             }
 
             // Add last element
-            if (currentIsotopes != null)
+            if (currentSymbol != null && currentIsotopes != null)
                 elements.Add(new Element(currentAtomNumber, currentSymbol, currentIsotopes));
 
             return elements;

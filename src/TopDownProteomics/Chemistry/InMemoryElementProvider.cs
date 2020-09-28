@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -10,7 +11,6 @@ namespace TopDownProteomics.Chemistry
     /// <seealso cref="IElementProvider" />
     public class InMemoryElementProvider : IElementProvider
     {
-        private IElement[] _elements;
         private IElement[] _by_atomic_number;
         private Dictionary<string, IElement> _by_symbol;
 
@@ -20,23 +20,25 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elements">The elements.</param>
         public InMemoryElementProvider(IElement[] elements)
         {
-            _elements = elements;
+            if (elements is null)
+                throw new ArgumentNullException(nameof(elements));
 
-            if (elements != null)
-                this.IndexElements(elements);
+            (_by_atomic_number, _by_symbol) = this.IndexElements(elements);
         }
 
-        private void IndexElements(IElement[] elements)
+        private Tuple<IElement[], Dictionary<string, IElement>> IndexElements(IElement[] elements)
         {
             int capacity = elements.Max(x => x.AtomicNumber);
-            _by_atomic_number = new IElement[capacity + 1];
-            _by_symbol = new Dictionary<string, IElement>(elements.Length);
+            var by_atomic_number = new IElement[capacity + 1];
+            var by_symbol = new Dictionary<string, IElement>(elements.Length);
 
             for (int i = 0; i < elements.Length; i++)
             {
-                _by_atomic_number[elements[i].AtomicNumber] = elements[i];
-                _by_symbol[elements[i].Symbol] = elements[i];
+                by_atomic_number[elements[i].AtomicNumber] = elements[i];
+                by_symbol[elements[i].Symbol] = elements[i];
             }
+
+            return Tuple.Create(by_atomic_number, by_symbol);
         }
 
         /// <summary>
@@ -59,12 +61,12 @@ namespace TopDownProteomics.Chemistry
         /// <param name="symbol">The symbol.</param>
         /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
         /// <returns></returns>
-        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        public IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null)
         {
             if (!fixedIsotopeNumber.HasValue)
-                return _by_symbol[symbol];
+                return _by_symbol[symbol.ToString()];
 
-            return this.GetFixedIsotopeElement(_by_symbol[symbol], fixedIsotopeNumber.Value);
+            return this.GetFixedIsotopeElement(_by_symbol[symbol.ToString()], fixedIsotopeNumber.Value);
         }
 
         private IElement GetFixedIsotopeElement(IElement element, int fixedIsotopeNumber)

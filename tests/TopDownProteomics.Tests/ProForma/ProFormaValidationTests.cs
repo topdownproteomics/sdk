@@ -29,7 +29,7 @@ namespace TopDownProteomics.Tests.ProForma
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(ResidXmlParserTest.GetResidFilePath()).ToArray();
 
-            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == 38 || x.Id == 74),
+            _residLookup = ResidModificationLookup.CreateFromModifications(modifications.Where(x => x.Id == "AA0038" || x.Id == "AA0074"),
                 _elementProvider);
         }
 
@@ -37,7 +37,7 @@ namespace TopDownProteomics.Tests.ProForma
         public void NoTagsValid()
         {
             const string sequence = "SEQVENCE";
-            var term = new ProFormaTerm(sequence, null, null, null, null);
+            var term = new ProFormaTerm(sequence);
             var proteoform = _factory.CreateProteoformGroup(term, null);
 
             Assert.IsNotNull(proteoform.Residues);
@@ -53,9 +53,9 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void TagsWithoutLookupThrowException()
         {
-            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Mass, "14.05") })
             });
 
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, null));
@@ -66,9 +66,9 @@ namespace TopDownProteomics.Tests.ProForma
         {
             IProteoformModificationLookup modificationLookup = new IgnoreKeyModificationLookup(ProFormaKey.Mass);
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") })
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Mass, "14.05") })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
@@ -84,21 +84,21 @@ namespace TopDownProteomics.Tests.ProForma
                 new IgnoreKeyModificationLookup(ProFormaKey.Info)
             });
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("mass", "14.05") }),
-                new ProFormaTag(5, new[] { new ProFormaDescriptor("info", "not important") })
-            });
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Mass, "14.05") }),
+                new ProFormaTag(5, new[] { new ProFormaDescriptor(ProFormaKey.Info, "not important") })
+            }); ;
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
             Assert.IsNull(proteoform.Modifications);
 
-            term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
                 new ProFormaTag(3, new[]
                 {
-                    new ProFormaDescriptor("mass", "14.05"),
-                    new ProFormaDescriptor("info", "not important")
+                    new ProFormaDescriptor(ProFormaKey.Mass, "14.05"),
+                    new ProFormaDescriptor(ProFormaKey.Info, "not important")
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -106,15 +106,18 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.IsNull(proteoform.Modifications);
         }
 
+        private ProFormaDescriptor CreateBrnoDescriptor(string name) => 
+            new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, name);
+
         [Test]
         public void HandleModificationNameTag()
         {
             const string sequence = "SEQVENCE";
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            var term = new ProFormaTerm(sequence, null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm(sequence, tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("ac(BRNO)") })
+                new ProFormaTag(3, new[] { this.CreateBrnoDescriptor("ac") })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
@@ -133,7 +136,7 @@ namespace TopDownProteomics.Tests.ProForma
             const string sequence = "SEQVENCE";
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            ProFormaDescriptor descriptor = new ProFormaDescriptor("ac(BRNO)");
+            ProFormaDescriptor descriptor = this.CreateBrnoDescriptor("ac");
             var term = new ProFormaTerm(sequence, null, new[] { descriptor }, null, null);
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
@@ -163,9 +166,9 @@ namespace TopDownProteomics.Tests.ProForma
         {
             var modificationLookup = new BrnoModificationLookup(_elementProvider);
 
-            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("wrong(BRNO)") })
+                new ProFormaTag(3, new[] { this.CreateBrnoDescriptor("wrong") })
             });
             Assert.Throws<ProteoformModificationLookupException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
         }
@@ -182,12 +185,12 @@ namespace TopDownProteomics.Tests.ProForma
             });
 
             // Modifications have same chemical formula ... OK
-            var term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
-                    new ProFormaDescriptor("RESID", "AA0038")
+                    this.CreateBrnoDescriptor("ph"),
+                    new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -196,26 +199,26 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.AreEqual(4, proteoform.Modifications.Single().ZeroBasedIndex);
 
             // Modifications have different chemical formulas ... throw!
-            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 })
             });
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
 
             // What about different mods at different indexes?
-            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
             {
                 new ProFormaTag(4, new[]
                 {
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("ac")
                 }),
                 new ProFormaTag(7, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
+                    this.CreateBrnoDescriptor("me1"),
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -223,12 +226,12 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.AreEqual(2, proteoform.Modifications.Count);
 
             // What about descriptors that don't have chemical formulas?
-            term = new ProFormaTerm("SEQVKENCE", null, null, null, new List<ProFormaTag>
+            term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
             {
                 new ProFormaTag(7, new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("info", "hello!")
+                    this.CreateBrnoDescriptor("me1"),
+                    new ProFormaDescriptor(ProFormaKey.Info, "hello!")
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -240,8 +243,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null,
                 new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
-                    new ProFormaDescriptor("RESID", "AA0038")
+                    this.CreateBrnoDescriptor("ph"),
+                    new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 }, null, null
             );
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -251,8 +254,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null,
                 new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 }, null, null
             );
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
@@ -261,8 +264,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null, null,
                 new[]
                 {
-                    new ProFormaDescriptor("ph(BRNO)"),
-                    new ProFormaDescriptor("RESID", "AA0038")
+                    this.CreateBrnoDescriptor("ph"),
+                    new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038")
                 }, null
             );
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
@@ -272,8 +275,8 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQVKENCE", null, null,
                 new[]
                 {
-                    new ProFormaDescriptor("me1(BRNO)"),
-                    new ProFormaDescriptor("ac(BRNO)")
+                    this.CreateBrnoDescriptor("me1"),
+                    this.CreateBrnoDescriptor("ac")
                 }, null
             );
             Assert.Throws<ProteoformGroupCreateException>(() => _factory.CreateProteoformGroup(term, modificationLookup));
@@ -282,9 +285,9 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void HandleDatabaseAccessionTag()
         {
-            var term = new ProFormaTerm("SEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0038") })
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0038") })
             });
             var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
 
@@ -302,9 +305,9 @@ namespace TopDownProteomics.Tests.ProForma
         [Test]
         public void HandleFormalCharge()
         {
-            var term = new ProFormaTerm("KEQVENCE", null, null, null, new List<ProFormaTag>
+            var term = new ProFormaTerm("KEQVENCE", tags: new List<ProFormaTag>
             {
-                new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0074") })
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0074") })
             });
             var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
 

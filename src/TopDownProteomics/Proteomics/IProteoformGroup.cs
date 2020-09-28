@@ -10,24 +10,17 @@ namespace TopDownProteomics.Proteomics
     /// </summary>
     public interface IProteoformGroup : IHasMass
     {
-        /// <summary>
-        /// The amino acid residues.
-        /// </summary>
+        /// <summary>The amino acid residues.</summary>
         IReadOnlyList<IResidue> Residues { get; }
 
-        /// <summary>
-        /// The N terminal modification on this proteoform.
-        /// </summary>
-        IProteoformModification NTerminalModification { get; }
-        /// <summary>
-        /// The C terminal modification on this proteoform.
-        /// </summary>
-        IProteoformModification CTerminalModification { get; }
+        /// <summary>The N terminal modification on this proteoform.</summary>
+        IProteoformModification? NTerminalModification { get; }
+        
+        /// <summary>The C terminal modification on this proteoform.</summary>
+        IProteoformModification? CTerminalModification { get; }
 
-        /// <summary>
-        /// The modifications on this proteoform.
-        /// </summary>
-        IReadOnlyCollection<IProteoformModificationWithIndex> Modifications { get; }
+        /// <summary>The modifications on this proteoform.</summary>
+        IReadOnlyCollection<IProteoformModificationWithIndex>? Modifications { get; }
     }
 
     /// <summary>
@@ -40,7 +33,7 @@ namespace TopDownProteomics.Proteomics
         /// </summary>
         /// <param name="proteoform">The proteoform.</param>
         /// <returns></returns>
-        public static string GetSequence(this IProteoformGroup proteoform)
+        public static string? GetSequence(this IProteoformGroup proteoform)
         {
             if (proteoform?.Residues == null)
                 return null;

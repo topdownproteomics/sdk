@@ -44,9 +44,14 @@ namespace TopDownProteomics.IO.Resid
             int formalCharge = GetFormulaCharge(elem, "/FormulaBlock/FormalCharge");
             double? monoMass = GetMass(elem, "/FormulaBlock/Weight[@type='physical']");
             double? avMass = GetMass(elem, "/FormulaBlock/Weight[@type='chemical']");
-            string diffFormula = null; //(string)elem.XPathSelectElement("/CorrectionBlock/Formula"); ;
+            string? diffFormula = null; //(string)elem.XPathSelectElement("/CorrectionBlock/Formula"); ;
             double? diffMonoMass = null; // this.GetMass(elem, "/CorrectionBlock/Weight[@type='physical']");
             double? diffAvMass = null; // this.GetMass(elem, "/CorrectionBlock/Weight[@type='chemical']");
+            string? swissprotTerm = null;
+
+            // Ensure that we have a full mass
+            if (!monoMass.HasValue || !avMass.HasValue)
+                throw new Exception("You must have both monoisotopic and average masses.");
 
             var correctionBlocks = new List<XElement>(elem.XPathSelectElements("/CorrectionBlock"));
 
@@ -87,9 +92,6 @@ namespace TopDownProteomics.IO.Resid
                     terminus = Terminus.C;
             }
 
-            var modification = new ResidModification(id, name, formula, monoMass.Value, avMass.Value,
-                diffFormula, diffMonoMass, diffAvMass, terminus, aminoAcid, formalCharge);
-
             var features = new List<string>(elem.XPathSelectElements("/Features/Feature[@type='UniProt']").Select(x => x.Value));
 
             if (features.Count > 0)
@@ -98,13 +100,14 @@ namespace TopDownProteomics.IO.Resid
                 {
                     if (feature.StartsWith("MOD_RES"))
                     {
-                        modification.SwissprotTerm = feature.Substring(8);
+                        swissprotTerm = feature.Substring(8);
                         break;
                     }
                 }
             }
 
-            return modification;
+            return new ResidModification(code, name, formula, monoMass.Value, avMass.Value,
+                diffFormula, diffMonoMass, diffAvMass, terminus, aminoAcid, swissprotTerm, formalCharge);
         }
         private double? GetMass(XElement elem, string xPath)
         {

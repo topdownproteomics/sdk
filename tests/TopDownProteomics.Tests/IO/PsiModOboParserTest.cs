@@ -21,7 +21,7 @@ namespace TopDownProteomics.Tests.IO
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2027, result.Count);
-            Assert.AreEqual(812, result[812].Id);
+            Assert.AreEqual("MOD:00812", result[812].Id);
             Assert.AreEqual("alkylated residue", result[1].Name);
             Assert.AreEqual("A protein modification that effectively converts an L-serine residue to O3-glycosylserine.", result[2].Definition);
             Assert.AreEqual("This term is for organizational use only and should not be assigned. [JSG]", result[3].Comment);
@@ -57,10 +57,10 @@ namespace TopDownProteomics.Tests.IO
             Assert.AreEqual(Terminus.N, result[30].Terminus);
             Assert.AreEqual(Terminus.C, result[90].Terminus);
 
-            Assert.AreEqual(0, result[4].IsA.Count);
+            Assert.IsNull(result[4].IsA);
             Assert.AreEqual(2, result[5].IsA.Count);
-            CollectionAssert.Contains(result[5].IsA.ToList(), 396);
-            CollectionAssert.Contains(result[5].IsA.ToList(), 917);
+            CollectionAssert.Contains(result[5].IsA.ToList(), "MOD:00396");
+            CollectionAssert.Contains(result[5].IsA.ToList(), "MOD:00917");
 
             PsiModTerm formylMethionine = result[30];
             Assert.AreEqual(9, formylMethionine.ExternalReferences.Count);
@@ -73,7 +73,7 @@ namespace TopDownProteomics.Tests.IO
             CollectionAssert.Contains(formylMethionine.Synonyms.Select(x => x.Type).ToList(), "PSI-MOD-alternate");
 
             // Check formal charge
-            Assert.AreEqual(83, result[83].Id);
+            Assert.AreEqual("MOD:00083", result[83].Id);
             PsiModTerm trimethylLysine = result[83];
             Assert.AreEqual(1, trimethylLysine.FormalCharge);
 
@@ -84,8 +84,8 @@ namespace TopDownProteomics.Tests.IO
             Assert.AreEqual(-3, hexakis.FormalCharge);
 
             PsiModTerm stearoylated = result[2001];
-            Assert.AreEqual(2001, stearoylated.Id);
-            Assert.AreEqual(0, stearoylated.ExternalReferences.Count);
+            Assert.AreEqual("MOD:02001", stearoylated.Id);
+            Assert.IsNull(stearoylated.ExternalReferences);
         }
     }
 }

@@ -1,14 +1,14 @@
-﻿namespace TopDownProteomics.IO.PsiMod
+﻿namespace TopDownProteomics.IO.Xlmod
 {
-    /// <summary>PsiMod External Reference</summary>
-    public class PsiModExternalReference
+    /// <summary>XLMOD External Reference</summary>
+    public class XlmodExternalReference
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PsiModExternalReference"/> class.
+        /// Initializes a new instance of the <see cref="XlmodExternalReference"/> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="id">The identifier.</param>
-        public PsiModExternalReference(string name, string id)
+        public XlmodExternalReference(string name, string id)
         {
             Name = name;
             Id = id;

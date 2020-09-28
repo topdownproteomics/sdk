@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TopDownProteomics.IO.Obo;
 
 namespace TopDownProteomics.IO.Unimod
@@ -37,9 +36,11 @@ namespace TopDownProteomics.IO.Unimod
             IList<UnimodModification> modifications = new List<UnimodModification>();
             foreach (OboTerm term in terms)
             {
-                UnimodModification modification = this.ConvertToModification(term);
-                if (modification != null)
+                // Skip the first modification as it is not a real one
+                if (term.Id != "UNIMOD:0")
                 {
+                    UnimodModification modification = this.ConvertToModification(term);
+
                     modifications.Add(modification);
                 }
             }
@@ -50,34 +51,32 @@ namespace TopDownProteomics.IO.Unimod
         private UnimodModification ConvertToModification(OboTerm term)
         {
             string code = term.Id;
-            int id = Convert.ToInt32(code.Substring(7));
             string name = term.Name;
 
-            string definition = null;
-            string diffFormula = null;
+            string? definition = null;
+            string? diffFormula = null;
             double diffMonoMass = 0;
             double diffAvMass = 0;
 
-            foreach (OboTagValuePair pair in term.ValuePairs)
+            if (term.ValuePairs != null)
             {
-                if (pair.Tag == "def")
-                    definition = pair.Value.Replace("\\", string.Empty);
-                else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_composition"))
-                    diffFormula = pair.Value.Replace("\"", string.Empty).Substring(18);
-                else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_mono_mass"))
-                    diffMonoMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
-                else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_avge_mass"))
-                    diffAvMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
+                foreach (OboTagValuePair pair in term.ValuePairs)
+                {
+                    if (pair.Tag == "def")
+                        definition = pair.Value.Replace("\\", string.Empty);
+                    else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_composition"))
+                        diffFormula = pair.Value.Replace("\"", string.Empty).Substring(18);
+                    else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_mono_mass"))
+                        diffMonoMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
+                    else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_avge_mass"))
+                        diffAvMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
+                }
             }
 
-            // The root node is not a real modification and has no diffFormula.
-            // Unsure if other real modifications could have this unset as well, but they aren't currently supported anyway.
-            if (diffFormula == null)
-            {
-                return null;
-            }
+            if (definition != null && diffFormula != null)
+                return new UnimodModification(code, name, definition, diffFormula, diffMonoMass, diffAvMass);
 
-            return new UnimodModification(id, name, definition, diffFormula, diffMonoMass, diffAvMass);
+            throw new Exception("Could not find required 'definition' field.");
         }
     }
 }

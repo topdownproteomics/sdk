@@ -18,9 +18,17 @@ namespace TopDownProteomics.ProForma.Validation
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance is default modification type.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is default modification type; otherwise, <c>false</c>.
+        /// </value>
+        protected override bool IsDefaultModificationType => true;
+
+        /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected override string Key => ProFormaKey.PsiMod;
+        protected override ProFormaEvidenceType EvidenceType => ProFormaEvidenceType.PsiMod;
 
         /// <summary>
         /// Initializes the <see cref="ResidModificationLookup" /> class.
@@ -43,9 +51,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula GetChemicalFormula(PsiModTerm modification)
+        protected override IChemicalFormula? GetChemicalFormula(PsiModTerm modification)
         {
-            string formula = modification.DiffFormula;
+            string? formula = modification.DiffFormula;
 
             if (string.IsNullOrEmpty(formula) || formula == "none")
                 return null;

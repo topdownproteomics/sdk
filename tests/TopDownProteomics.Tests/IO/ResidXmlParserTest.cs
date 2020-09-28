@@ -17,7 +17,7 @@ namespace TopDownProteomics.Tests.IO
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(GetResidFilePath()).ToList();
 
-            ResidModification r42 = modifications.Single(x => x.Id == 42);
+            ResidModification r42 = modifications.Single(x => x.Id == "AA0042");
             Assert.IsNotNull(r42);
             Assert.AreEqual("N-acetyl-L-aspartic acid", r42.Name);
             Assert.AreEqual("C 6 H 8 N 1 O 4", r42.Formula);
@@ -37,14 +37,14 @@ namespace TopDownProteomics.Tests.IO
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(GetResidFilePath()).ToList();
 
-            ResidModification r1 = modifications.Single(x => x.Id == 1);
+            ResidModification r1 = modifications.Single(x => x.Id == "AA0001");
             Assert.IsFalse(r1.DiffAverageMass.HasValue);
 
-            ResidModification r21 = modifications.Single(x => x.Id == 21);
+            ResidModification r21 = modifications.Single(x => x.Id == "AA0021");
             Assert.IsTrue(r21.DiffAverageMass.HasValue);
             Assert.AreEqual(r21.DiffAverageMass.Value, 28.01, 0.0001);
 
-            ResidModification r42 = modifications.Single(x => x.Id == 42);
+            ResidModification r42 = modifications.Single(x => x.Id == "AA0042");
             Assert.IsTrue(r42.DiffMonoisotopicMass.HasValue);
             Assert.AreEqual(r42.DiffMonoisotopicMass.Value, 42.010565, 0.0001);
         }
@@ -55,7 +55,7 @@ namespace TopDownProteomics.Tests.IO
             var parser = new ResidXmlParser();
             var modifications = parser.Parse(GetResidFilePath()).ToList();
 
-            ResidModification r74 = modifications.Single(x => x.Id == 74);
+            ResidModification r74 = modifications.Single(x => x.Id == "AA0074");
             Assert.AreEqual(1, r74.FormalCharge);
             //Assert.AreEqual(42.04695, r74.GetDeltaMass(MassType.Monoisotopic), 0.0001);
         }

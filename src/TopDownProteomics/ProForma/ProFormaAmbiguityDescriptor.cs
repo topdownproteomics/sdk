@@ -16,7 +16,7 @@ namespace TopDownProteomics.ProForma
         /// <param name="affix"></param>
         /// <param name="group"></param>
         public ProFormaAmbiguityDescriptor(string affix, string group)
-            : base(affix, group)
+            : base(ProFormaKey.None, group)
         {
             Affix = affix;
             Group = group;

@@ -14,7 +14,7 @@
         /// <param name="deltaComposition">The delta composition.</param>
         /// <param name="deltaMonoisotopicMass">The delta monoisotopic mass.</param>
         /// <param name="deltaAverageMass">The delta average mass.</param>
-        public UnimodModification(int id, string name, string definition, string deltaComposition, double deltaMonoisotopicMass, double deltaAverageMass)
+        public UnimodModification(string id, string name, string definition, string deltaComposition, double deltaMonoisotopicMass, double deltaAverageMass)
         {
             this.Id = id;
             this.Name = name;
@@ -24,34 +24,22 @@
             this.DeltaAverageMass = deltaAverageMass;
         }
 
-        /// <summary>
-        /// Gets the modification identifier.
-        /// </summary>
-        public int Id { get; }
+        /// <summary>Gets the modification identifier.</summary>
+        public string Id { get; }
 
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
+        /// <summary>Gets the name.</summary>
         public string Name { get; }
 
-        /// <summary>
-        /// Gets the definition.
-        /// </summary>
+        /// <summary>Gets the definition.</summary>
         public string Definition { get; }
 
-        /// <summary>
-        /// Gets the delta composition.
-        /// </summary>
+        /// <summary>Gets the delta composition.</summary>
         public string DeltaComposition { get; }
 
-        /// <summary>
-        /// Gets the delta monoisotopic mass.
-        /// </summary>
+        /// <summary>Gets the delta monoisotopic mass.</summary>
         public double DeltaMonoisotopicMass { get; }
 
-        /// <summary>
-        /// Gets the delta average mass.
-        /// </summary>
+        /// <summary>Gets the delta average mass.</summary>
         public double DeltaAverageMass { get; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright 2012, 2013, 2014 Derek J. Bailey
 // Modified work copyright 2016, 2017 Stefan Solntsev
+// Modified work copyright 2018 Ryan Fellers
 //
 // This file (IsotopicDistribution.cs) is part of Chemistry Library.
 //
@@ -19,123 +20,60 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TopDownProteomics.Chemistry;
+using TopDownProteomics.MassSpectrometry;
 
-namespace UWMadison.Chemistry
+namespace TopDownProteomics.Tools
 {
     /// <summary>
-    /// Calculates the isotopic distributions of molecules
+    /// Generates isotopic distributions that include fine structure.
     /// </summary>
-    /// <remarks>
-    /// C# version by Derek Bailey 2014
-    /// Modified by Stefan Solntsev 2016
-    ///
-    /// This is a port of software written in C++ and detailed in the following publication:
-    ///
-    /// Molecular Isotopic Distribution Analysis (MIDAs) with Adjustable Mass Accuracy.
-    /// Gelio Alves, Aleksy Y. Ogurtsov, and Yi-Kuo Yu
-    /// J. Am. Soc. Mass Spectrom. (2014) 25:57-70
-    /// DOI: 10.1007/s13361-013-0733-7
-    ///
-    /// Please cite that publication if using these algorithms in your own publications.
-    ///
-    /// Only calculates the fine grained distribution.
-    /// </remarks>
-    public class IsotopicDistribution
+    public class FineStructureIsotopicGenerator
     {
-        #region Private Fields
-
         private const double defaultFineResolution = 0.01;
         private const double defaultMinProbability = 1e-200;
         private const double defaultMolecularWeightResolution = 1e-12;
+
         private static readonly double[] factorLnArray = new double[50003];
         private static int _factorLnTop = 1;
-        private readonly double[] masses;
-        private readonly double[] intensities;
-
-        #endregion Private Fields
-
-        #region Private Constructors
-
-        private IsotopicDistribution(int count)
-        {
-            masses = new double[count];
-            intensities = new double[count];
-        }
-
-        #endregion Private Constructors
-
-        #region Public Properties
 
         /// <summary>
-        /// Gets the masses.
+        /// Generates the isotopic distribution.
         /// </summary>
-        public IEnumerable<double> Masses { get { return masses; } }
-
-        /// <summary>
-        /// Gets the intensities.
-        /// </summary>
-        public IEnumerable<double> Intensities { get { return intensities; } }
-
-        #endregion Public Properties
-
-        #region Public Methods
-
-        /// <summary>
-        /// Gets the distribution.
-        /// </summary>
-        /// <param name="formula">The formula.</param>
+        /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        public static IsotopicDistribution GetDistribution(ChemicalFormula formula)
+        public IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula)
         {
-            return GetDistribution(formula, defaultFineResolution, defaultMinProbability, defaultMolecularWeightResolution);
+            return this.GetDistribution(chemicalFormula, defaultFineResolution, defaultMinProbability, defaultMolecularWeightResolution);
         }
 
         /// <summary>
-        /// Gets the distribution.
+        /// Generates the isotopic distribution.
         /// </summary>
-        /// <param name="formula">The formula.</param>
-        /// <param name="fineResolution">The fine resolution.</param>
-        /// <returns></returns>
-        public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution)
-        {
-            return GetDistribution(formula, fineResolution, defaultMinProbability, defaultMolecularWeightResolution);
-        }
-
-        /// <summary>
-        /// Gets the distribution.
-        /// </summary>
-        /// <param name="formula">The formula.</param>
+        /// <param name="chemicalFormula">The chemical formula.</param>
         /// <param name="fineResolution">The fine resolution.</param>
         /// <param name="minProbability">The minimum probability.</param>
         /// <returns></returns>
-        public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution, double minProbability)
+        public IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula, double fineResolution, double minProbability)
         {
-            return GetDistribution(formula, fineResolution, minProbability, defaultMolecularWeightResolution);
+            return this.GetDistribution(chemicalFormula, fineResolution, minProbability, defaultMolecularWeightResolution);
         }
 
-        /// <summary>
-        /// Gets the distribution.
-        /// </summary>
-        /// <param name="formula">The formula.</param>
-        /// <param name="fineResolution">The fine resolution.</param>
-        /// <param name="minProbability">The minimum probability.</param>
-        /// <param name="molecularWeightResolution">The molecular weight resolution.</param>
-        /// <returns></returns>
-        public static IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution, double minProbability, double molecularWeightResolution)
+        private IsotopicDistribution GetDistribution(IChemicalFormula formula, double fineResolution, double minProbability, double molecularWeightResolution)
         {
             var a = GetNewFineAndMergeResolutions(fineResolution);
             fineResolution = a.Item1;
             double _mergeFineResolution = a.Item2;
-            List<List<Composition>> elementalComposition = new List<List<Composition>>();
+            var elementalComposition = new List<List<Composition>>();
 
             // Get all the unique elements that might have isotopes
-            foreach (var elementAndCount in formula.Elements)
+            foreach (var elementAndCount in formula.GetElements())
             {
-                int count = elementAndCount.Value;
-                List<Composition> isotopeComposition = new List<Composition>();
-                foreach (Isotope isotope in elementAndCount.Key.Isotopes.OrderBy(iso => iso.AtomicMass))
+                int count = elementAndCount.Count;
+                var isotopeComposition = new List<Composition>();
+                foreach (Isotope isotope in elementAndCount.Entity.Isotopes.OrderBy(iso => iso.AtomicMass))
                 {
-                    Composition c = new Composition
+                    var c = new Composition
                     {
                         Atoms = count,
                         MolecularWeight = isotope.AtomicMass,
@@ -160,77 +98,49 @@ namespace UWMadison.Chemistry
             }
             IsotopicDistribution dist = CalculateFineGrain(elementalComposition, molecularWeightResolution, _mergeFineResolution, fineResolution, minProbability);
 
-            double additionalMass = 0;
-            foreach (var isotopeAndCount in formula.Isotopes)
-                additionalMass += isotopeAndCount.Key.AtomicMass * isotopeAndCount.Value;
+            // RTF: Not handling isotopes right now
+            //double additionalMass = 0;
+            //foreach (var isotopeAndCount in formula.Isotopes)
+            //    additionalMass += isotopeAndCount.Key.AtomicMass * isotopeAndCount.Value;
 
-            for (int i = 0; i < dist.masses.Length; i++)
-                dist.masses[i] += additionalMass;
+            //for (int i = 0; i < dist.masses.Length; i++)
+            //    dist.masses[i] += additionalMass;
 
             return dist;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
-
-        /// <summary>
-        /// Calculates the fineResolution and mergeFineResolution parameters
-        /// </summary>
-        /// <returns>Tuple of fineResolution and mergeFineResolution</returns>
-        private static Tuple<double, double> GetNewFineAndMergeResolutions(double fineResolution)
+        private Tuple<double, double> GetNewFineAndMergeResolutions(double fineResolution)
         {
             return new Tuple<double, double>(fineResolution / 2.0, fineResolution);
         }
 
-        private static List<Polynomial> MergeFinePolynomial(List<Polynomial> tPolynomial, double _mwResolution, double _mergeFineResolution)
+        private IsotopicDistribution CalculateFineGrain(List<List<Composition>> elementalComposition, double _mwResolution, double _mergeFineResolution, double _fineResolution, double _fineMinProb)
         {
-            // Sort by mass (i.e. power)
-            tPolynomial.Sort((a, b) => a.Power.CompareTo(b.Power));
+            List<Polynomial> fPolynomial = this.MultiplyFinePolynomial(elementalComposition, _fineResolution, _mwResolution, _fineMinProb);
+            fPolynomial = this.MergeFinePolynomial(fPolynomial, _mwResolution, _mergeFineResolution);
 
-            int count = tPolynomial.Count;
+            // Convert polynomial to spectrum
+            int count = fPolynomial.Count;
+            double[] masses = new double[count];
+            double[] intensities = new double[count];
 
-            for (int k = 1; k <= 9; k++)
+            double totalProbability = 0;
+            double basePeak = 0;
+            int i = 0;
+
+            foreach (Polynomial polynomial in fPolynomial)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    double power = tPolynomial[i].Power;
-
-                    if (double.IsNaN(power))
-                        continue;
-
-                    double probability = tPolynomial[i].Probablity;
-                    Polynomial tempPolynomial;
-                    tempPolynomial.Power = power * probability;
-                    tempPolynomial.Probablity = probability;
-
-                    for (int j = i + 1; j < count; j++)
-                    {
-                        double value = Math.Abs(tPolynomial[i].Power * _mwResolution - tPolynomial[j].Power * _mwResolution);
-
-                        double threshold = (k <= 8) ? k * _mergeFineResolution / 8 : _mergeFineResolution + _mergeFineResolution / 100;
-
-                        // Combine terms if their mass difference (i.e. power difference) is less than some threshold
-                        if (value <= threshold)
-                        {
-                            tempPolynomial.Power = tempPolynomial.Power + tPolynomial[j].Power * tPolynomial[j].Probablity;
-                            tempPolynomial.Probablity = tempPolynomial.Probablity + tPolynomial[j].Probablity;
-                            tPolynomial[i] = new Polynomial { Power = tempPolynomial.Power / tempPolynomial.Probablity, Probablity = tempPolynomial.Probablity };
-                            tPolynomial[j] = new Polynomial { Probablity = double.NaN, Power = double.NaN };
-                        }
-                        else
-                            break;
-                    }
-
-                    tPolynomial[i] = new Polynomial { Power = tempPolynomial.Power / tempPolynomial.Probablity, Probablity = tempPolynomial.Probablity };
-                }
+                totalProbability += polynomial.Probablity;
+                if (polynomial.Probablity > basePeak)
+                    basePeak = polynomial.Probablity;
+                masses[i] = polynomial.Power * _mwResolution;
+                intensities[i] = polynomial.Probablity;
+                i++;
             }
 
-            // return only non-zero terms
-            return tPolynomial.Where(poly => !double.IsNaN(poly.Power)).ToList();
+            return new IsotopicDistribution(masses, intensities);
         }
-
-        private static List<Polynomial> MultiplyFinePolynomial(List<List<Composition>> elementalComposition, double _fineResolution, double _mwResolution, double _fineMinProb)
+        private List<Polynomial> MultiplyFinePolynomial(List<List<Composition>> elementalComposition, double _fineResolution, double _mwResolution, double _fineMinProb)
         {
             const int nc = 10;
             const int ncAddValue = 1;
@@ -312,8 +222,18 @@ namespace UWMadison.Chemistry
 
             return tPolynomial;
         }
-
-        private static void MultiplyFineFinalPolynomial(List<Polynomial> tPolynomial, List<Polynomial> fPolynomial, List<Polynomial> fgidPolynomial, double _fineResolution, double _mwResolution, double _fineMinProb)
+        private static double FactorLn(int n)
+        {
+            if (n <= 1)
+                return 0;
+            while (_factorLnTop <= n)
+            {
+                int j = _factorLnTop++;
+                factorLnArray[j + 1] = factorLnArray[j] + Math.Log(_factorLnTop);
+            }
+            return factorLnArray[n];
+        }
+        private void MultiplyFineFinalPolynomial(List<Polynomial> tPolynomial, List<Polynomial> fPolynomial, List<Polynomial> fgidPolynomial, double _fineResolution, double _mwResolution, double _fineMinProb)
         {
             int i = tPolynomial.Count;
             int j = fPolynomial.Count;
@@ -350,7 +270,7 @@ namespace UWMadison.Chemistry
 
                     var poww = tempPolynomial.Power;
                     var probb = tempPolynomial.Probablity;
-                    if (double.IsNaN(poww) || double.IsNaN(prob))
+                    if (double.IsNaN(poww) || double.IsNaN(probb))
                         fgidPolynomial[indext] = new Polynomial { Power = power * prob, Probablity = prob };
                     else
                         fgidPolynomial[indext] = new Polynomial { Power = poww + power * prob, Probablity = probb + prob };
@@ -378,8 +298,7 @@ namespace UWMadison.Chemistry
             if (j < index)
                 tPolynomial.RemoveRange(j, tPolynomial.Count - j);
         }
-
-        private static void MultipleFinePolynomialRecursiveHelper(int[] mins, int[] maxs, int[] indices, int index, IList<Polynomial> fPolynomial, IList<Composition> elementalComposition, int atoms, double minProb, int maxValue)
+        private void MultipleFinePolynomialRecursiveHelper(int[] mins, int[] maxs, int[] indices, int index, IList<Polynomial> fPolynomial, IList<Composition> elementalComposition, int atoms, double minProb, int maxValue)
         {
             for (indices[index] = mins[index]; indices[index] <= maxs[index]; indices[index]++)
             {
@@ -411,73 +330,66 @@ namespace UWMadison.Chemistry
                 }
             }
         }
-
-        private static double FactorLn(int n)
+        private List<Polynomial> MergeFinePolynomial(List<Polynomial> tPolynomial, double _mwResolution, double _mergeFineResolution)
         {
-            if (n <= 1)
-                return 0;
-            while (_factorLnTop <= n)
+            // Sort by mass (i.e. power)
+            tPolynomial.Sort((a, b) => a.Power.CompareTo(b.Power));
+
+            int count = tPolynomial.Count;
+
+            for (int k = 1; k <= 9; k++)
             {
-                int j = _factorLnTop++;
-                factorLnArray[j + 1] = factorLnArray[j] + Math.Log(_factorLnTop);
+                for (int i = 0; i < count; i++)
+                {
+                    double power = tPolynomial[i].Power;
+
+                    if (double.IsNaN(power))
+                        continue;
+
+                    double probability = tPolynomial[i].Probablity;
+                    Polynomial tempPolynomial;
+                    tempPolynomial.Power = power * probability;
+                    tempPolynomial.Probablity = probability;
+
+                    for (int j = i + 1; j < count; j++)
+                    {
+                        double value = Math.Abs(tPolynomial[i].Power * _mwResolution - tPolynomial[j].Power * _mwResolution);
+
+                        double threshold = (k <= 8) ? k * _mergeFineResolution / 8 : _mergeFineResolution + _mergeFineResolution / 100;
+
+                        // Combine terms if their mass difference (i.e. power difference) is less than some threshold
+                        if (value <= threshold)
+                        {
+                            tempPolynomial.Power = tempPolynomial.Power + tPolynomial[j].Power * tPolynomial[j].Probablity;
+                            tempPolynomial.Probablity = tempPolynomial.Probablity + tPolynomial[j].Probablity;
+                            tPolynomial[i] = new Polynomial { Power = tempPolynomial.Power / tempPolynomial.Probablity, Probablity = tempPolynomial.Probablity };
+                            tPolynomial[j] = new Polynomial { Probablity = double.NaN, Power = double.NaN };
+                        }
+                        else
+                            break;
+                    }
+
+                    tPolynomial[i] = new Polynomial { Power = tempPolynomial.Power / tempPolynomial.Probablity, Probablity = tempPolynomial.Probablity };
+                }
             }
-            return factorLnArray[n];
+
+            // return only non-zero terms
+            return tPolynomial.Where(poly => !double.IsNaN(poly.Power)).ToList();
         }
-
-        private static IsotopicDistribution CalculateFineGrain(List<List<Composition>> elementalComposition, double _mwResolution, double _mergeFineResolution, double _fineResolution, double _fineMinProb)
-        {
-            List<Polynomial> fPolynomial = MultiplyFinePolynomial(elementalComposition, _fineResolution, _mwResolution, _fineMinProb);
-            fPolynomial = MergeFinePolynomial(fPolynomial, _mwResolution, _mergeFineResolution);
-
-            // Convert polynomial to spectrum
-            int count = fPolynomial.Count;
-            IsotopicDistribution dist = new IsotopicDistribution(count);
-            double totalProbability = 0;
-            double basePeak = 0;
-            int i = 0;
-            foreach (Polynomial polynomial in fPolynomial)
-            {
-                totalProbability += polynomial.Probablity;
-                if (polynomial.Probablity > basePeak)
-                    basePeak = polynomial.Probablity;
-                dist.masses[i] = polynomial.Power * _mwResolution;
-                dist.intensities[i] = polynomial.Probablity;
-                i++;
-            }
-            return dist;
-        }
-
-        #endregion Private Methods
-
-        #region Private Structs
 
         private struct Polynomial
         {
-            #region Public Fields
-
             public double Power;
             public double Probablity;
-
-            #endregion Public Fields
         }
-
-        #endregion Private Structs
-
-        #region Private Classes
 
         private class Composition
         {
-            #region Public Fields
-
             public double Power;
             public double Probability;
             public double LogProbability;
             public double MolecularWeight;
             public int Atoms;
-
-            #endregion Public Fields
         }
-
-        #endregion Private Classes
     }
 }

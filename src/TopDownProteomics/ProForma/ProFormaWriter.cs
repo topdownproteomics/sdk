@@ -24,8 +24,14 @@ namespace TopDownProteomics.ProForma
                 foreach (var tag in term.UnlocalizedTags)
                 {
                     if (tag.Descriptors != null && tag.Descriptors.Count > 0)
-                        sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]?");
+                        sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]");
+
+                    if (tag.Count != 1)
+                        sb.Append($"^{tag.Count}");
                 }
+
+                // Only write out a single question mark
+                sb.Append('?');
             }
 
             // Check N-terminal modifications
@@ -38,11 +44,11 @@ namespace TopDownProteomics.ProForma
             if (term.Tags != null)
             {
                 int startIndex = 0;
-                foreach (var tag in term.Tags.OrderBy(x => x.ZeroBasedIndex))
+                foreach (var tag in term.Tags.OrderBy(x => x.ZeroBasedStartIndex))
                 {
                     // Write sequence up to tag
-                    sb.Append(term.Sequence.Substring(startIndex, tag.ZeroBasedIndex - startIndex + 1));
-                    startIndex = tag.ZeroBasedIndex + 1;
+                    sb.Append(term.Sequence.Substring(startIndex, tag.ZeroBasedStartIndex - startIndex + 1));
+                    startIndex = tag.ZeroBasedStartIndex + 1;
 
                     // Write the tag
                     sb.Append($"[{this.CreateDescriptorText(tag.Descriptors)}]");
@@ -67,7 +73,7 @@ namespace TopDownProteomics.ProForma
 
         private string CreateDescriptorText(IList<ProFormaDescriptor> descriptors)
         {
-            return string.Join("|", descriptors.Select(x => $"{x.ToString()}"));
+            return string.Join("|", descriptors.Select(x => $"{x}"));
         }
     }
 }

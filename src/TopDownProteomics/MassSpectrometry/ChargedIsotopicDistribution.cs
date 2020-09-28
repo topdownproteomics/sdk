@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace TopDownProteomics.MassSpectrometry
 {
@@ -61,7 +62,6 @@ namespace TopDownProteomics.MassSpectrometry
         /// <returns></returns>
         public IChargedIsotopicDistribution CloneWithMostIntensePoints(int numberOfPoints)
         {
-            //for (int i = 0; i < this.Mz.Count - numberOfPoints; i++)
             for (int i = 0; i < _mz.Length - numberOfPoints; i++)
             {
                 if (_intensity[i] > _intensity[i + numberOfPoints])
@@ -72,7 +72,7 @@ namespace TopDownProteomics.MassSpectrometry
                 }
             }
 
-            return null;
+            throw new Exception($"Cannot find most {numberOfPoints} intense points.");
         }
 
         /// <summary>

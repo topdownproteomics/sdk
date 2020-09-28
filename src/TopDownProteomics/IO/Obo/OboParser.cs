@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace TopDownProteomics.IO.Obo
@@ -46,15 +47,19 @@ namespace TopDownProteomics.IO.Obo
 
         private IEnumerable<OboTerm> ParseAux(TextReader reader)
         {
-            OboTerm currentTerm = null;
             bool inTerm = false;
             string line;
+            string? id = null;
+            string? name = null;
+            List<OboTagValuePair>? pairs = null;
 
             while ((line = reader.ReadLine()) != null)
             {
                 if (line == "[Term]")
                 {
-                    currentTerm = new OboTerm();
+                    id = null;
+                    name = null;
+                    pairs = null;
                     inTerm = true;
                 }
                 else if (inTerm)
@@ -63,28 +68,40 @@ namespace TopDownProteomics.IO.Obo
                     if (string.IsNullOrEmpty(line))
                     {
                         inTerm = false;
-                        yield return currentTerm;
+
+                        if (id == null || name == null)
+                            throw new Exception("OBO Term must have both 'id' and 'name'.");
+
+                        yield return new OboTerm(id, name, pairs);
                     }
                     else
                     {
                         if (line.StartsWith("id: "))
-                        {
-                            currentTerm.Id = line.Substring(4);
-                        }
+                            id = line.Substring(4);
                         else if (line.StartsWith("name: "))
-                        {
-                            currentTerm.Name = line.Substring(6);
-                        }
+                            name = line.Substring(6);
                         else
                         {
                             int index = line.IndexOf(':');
 
-                            currentTerm.ValuePairs.Add(new OboTagValuePair(
+                            if (pairs == null)
+                                pairs = new List<OboTagValuePair>();
+
+                            pairs.Add(new OboTagValuePair(
                                 line.Substring(0, index), // Tag
                                 line.Substring(index + 2))); // Value (+2 handles preceding space)
                         }
                     }
                 }
+            }
+
+            // Check for last term
+            if (inTerm)
+            {
+                if (id == null || name == null)
+                    throw new Exception("OBO Term must have both 'id' and 'name'.");
+
+                yield return new OboTerm(id, name, pairs);
             }
         }
     }
