@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace TopDownProteomics.IO.MzIdentML.Models
+{
+	/// <summary>
+	/// Corresponds to SpectraData element
+	/// </summary>
+	public class SpectraData
+	{
+		/// <summary>
+		/// Gets and sets the id
+		/// </summary>
+		public string Id { get; set; }
+
+		/// <summary>
+		/// Gets and sets the location
+		/// </summary>
+		public string Location { get; set; }
+
+		/// <summary>
+		/// Gets and sets the file format
+		/// </summary>
+		public CvParam FileFormat { get; set; }
+
+		/// <summary>
+		/// Gets and sets the spectrum id format
+		/// </summary>
+		public CvParam SpectrumIdFormat { get; set; }
+	}
+}
