@@ -3,7 +3,7 @@
 namespace TopDownProteomics.ProForma
 {
     /// <summary>A tag that is spread across multiple distinct sites.</summary>
-    public class ProFormaTagGroup
+    public class ProFormaTagGroup : IProFormaDescriptor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ProFormaTagGroup"/> class.

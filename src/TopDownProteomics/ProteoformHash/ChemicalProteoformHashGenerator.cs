@@ -64,8 +64,8 @@ namespace TopDownProteomics.ProteoformHash
 
             if (sequence != null)
             {
-                ProFormaTerm proFormaTerm = new ProFormaTerm(sequence, tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
-                    nTermDescriptors, cTermDescriptors);
+                ProFormaTerm proFormaTerm = new ProFormaTerm(sequence, tags: tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
+                    nTerminalDescriptors: nTermDescriptors, cTerminalDescriptors: cTermDescriptors);
                 string hash = new ProFormaWriter().WriteString(proFormaTerm);
                 return new ChemicalProteoformHash(hash);
             }

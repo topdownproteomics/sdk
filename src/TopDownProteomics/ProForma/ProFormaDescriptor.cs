@@ -3,7 +3,7 @@
     /// <summary>
     /// Member of the tag. Could be a key-value pair, or a keyless entry.
     /// </summary>
-    public class ProFormaDescriptor
+    public class ProFormaDescriptor : IProFormaDescriptor
     {
         /// <summary>
         /// Initializes a descriptor without value only
@@ -44,6 +44,6 @@
 
         /// <summary>String representation of <see cref="ProFormaDescriptor"/></summary>
         /// <returns></returns>
-        public override string ToString() => $"{Key.ToString().ToLower()}:{Value}";
+        public override string ToString() => $"{Key}:{EvidenceType}:{Value}";
     }
 }
