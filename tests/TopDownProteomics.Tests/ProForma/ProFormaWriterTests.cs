@@ -72,6 +72,19 @@ namespace TopDownProteomics.Tests.ProForma
             var result = _writer.WriteString(term);
 
             Assert.AreEqual("SEQ[+14.05#test]UEN[#test]CE", result);
+
+            // With weights
+            term = new ProFormaTerm("SEQUENCE", tagGroups: new[]
+            {
+                new ProFormaTagGroup("test", ProFormaKey.Mass, "+14.05", new[]
+                {
+                    new ProFormaMembershipDescriptor(2, 0.9),
+                    new ProFormaMembershipDescriptor(5, 0.1),
+                }),
+            });
+            result = _writer.WriteString(term);
+
+            Assert.AreEqual("SEQ[+14.05#test(0.9)]UEN[#test(0.1)]CE", result);
         }
 
         [Test]
@@ -237,6 +250,85 @@ namespace TopDownProteomics.Tests.ProForma
             result = _writer.WriteString(term);
 
             Assert.AreEqual("SEQ[UNIMOD:15]UE[U:Test]NCE", result);
+        }
+
+        [Test]
+        public void WriteGlobalModifications()
+        {
+            // Representation of isotopes
+            var term = new ProFormaTerm("SEQUENCE", globalModifications: new[]
+            {
+                new ProFormaGlobalModification(new[] { new ProFormaDescriptor("13C") }, null)
+            });
+            var result = _writer.WriteString(term);
+
+            Assert.AreEqual("<13C>SEQUENCE", result);
+
+            // Two isotopes
+            term = new ProFormaTerm("SEQUENCE", globalModifications: new[]
+            {
+                new ProFormaGlobalModification(new[] { new ProFormaDescriptor("13C") }, null),
+                new ProFormaGlobalModification(new[] { new ProFormaDescriptor("15N") }, null),
+            });
+            result = _writer.WriteString(term);
+
+            Assert.AreEqual("<13C><15N>SEQUENCE", result);
+
+            // Fixed protein modifications (single target)
+            term = new ProFormaTerm("SEQUENCE", globalModifications: new[]
+            {
+                new ProFormaGlobalModification(new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, "MOD:01090") },
+                new[] { 'C' })
+            });
+            result = _writer.WriteString(term);
+
+            Assert.AreEqual("<[MOD:01090]@C>SEQUENCE", result);
+
+            // Fixed protein modifications (multiple targets)
+            term = new ProFormaTerm("SEQUENCE", globalModifications: new[]
+            {
+                new ProFormaGlobalModification(new[] { new ProFormaDescriptor(ProFormaKey.Name, "Oxidation") },
+                new[] { 'C', 'M' })
+            });
+            result = _writer.WriteString(term);
+
+            Assert.AreEqual("<[Oxidation]@C,M>SEQUENCE", result);
+        }
+
+        [Test]
+        public void WriteLabileModifications()
+        {
+            var term = new ProFormaTerm("SEQUENCE", labileDescriptors: new[]
+            {
+                new ProFormaDescriptor( ProFormaKey.Glycan, "Hex")
+            }, 
+            tags: new[] 
+            { 
+                new ProFormaTag(2, new[]
+                {
+                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation") 
+                }) 
+            });
+            var result = _writer.WriteString(term);
+
+            Assert.AreEqual("{Glycan:Hex}SEQ[U:Hydroxylation]UENCE", result);
+
+            // Labile and terminal mods
+            term = new ProFormaTerm("SEQUENCE", labileDescriptors: new[]
+            {
+                new ProFormaDescriptor( ProFormaKey.Glycan, "Hex")
+            },
+            nTerminalDescriptors: new[] { new ProFormaDescriptor("iTRAQ4plex") },
+            tags: new[]
+            {
+                new ProFormaTag(2, new[]
+                {
+                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation")
+                })
+            });
+            result = _writer.WriteString(term);
+
+            Assert.AreEqual("{Glycan:Hex}[iTRAQ4plex]-SEQ[U:Hydroxylation]UENCE", result);
         }
     }
 }

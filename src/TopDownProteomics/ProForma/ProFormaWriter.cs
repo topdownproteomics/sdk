@@ -19,6 +19,24 @@ namespace TopDownProteomics.ProForma
         {
             var sb = new StringBuilder();
 
+            // Check global modifications
+            if (term.GlobalModifications != null)
+            {
+                foreach (var globalMod in term.GlobalModifications)
+                {
+                    if (globalMod.TargetAminoAcids != null)
+                        sb.Append($"<[{this.CreateDescriptorsText(globalMod.Descriptors)}]@{string.Join(',', globalMod.TargetAminoAcids)}>");
+                    else
+                        sb.Append($"<{this.CreateDescriptorsText(globalMod.Descriptors)}>");
+                }
+            }
+
+            // Check labile modifications
+            if (term.LabileDescriptors != null)
+            {
+                sb.Append($"{{{this.CreateDescriptorsText(term.LabileDescriptors)}}}");
+            }
+
             // Check unlocalized modifications
             if (term.UnlocalizedTags != null && term.UnlocalizedTags.Count > 0)
             {
@@ -41,15 +59,15 @@ namespace TopDownProteomics.ProForma
                 sb.Append($"[{this.CreateDescriptorsText(term.NTerminalDescriptors)}]-");
             }
 
-            var tagsAndGroups = new List<(object, int, int, bool)>();
+            var tagsAndGroups = new List<(object, int, int, bool, double)>();
 
             if (term.Tags != null)
-                tagsAndGroups.AddRange(term.Tags.Select(x => ValueTuple.Create((object)x, x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, true)));
+                tagsAndGroups.AddRange(term.Tags.Select(x => ValueTuple.Create((object)x, x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, true, 0.0)));
 
             if (term.TagGroups != null)
                 tagsAndGroups.AddRange(term.TagGroups
                     .SelectMany(x => x.Members
-                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members.FirstOrDefault()))));
+                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members.FirstOrDefault(), member.Weight))));
 
             // Check indexed modifications
             if (tagsAndGroups.Count > 0)
@@ -58,7 +76,7 @@ namespace TopDownProteomics.ProForma
                 tagsAndGroups.Sort((x, y) => x.Item2.CompareTo(y.Item2));
 
                 int currentIndex = 0;
-                foreach (var (obj, startIndex, endIndex, displayValue) in tagsAndGroups)
+                foreach (var (obj, startIndex, endIndex, displayValue, weight) in tagsAndGroups)
                 {
                     if (startIndex == endIndex)
                     {
@@ -83,9 +101,14 @@ namespace TopDownProteomics.ProForma
                     else if (obj is ProFormaTagGroup group)
                     {
                         if (displayValue)
-                            sb.Append($"[{this.CreateDescriptorText(group)}#{group.Name}]");
+                            sb.Append($"[{this.CreateDescriptorText(group)}#{group.Name}");
                         else
-                            sb.Append($"[#{group.Name}]");
+                            sb.Append($"[#{group.Name}");
+
+                        if (weight > 0.0)
+                            sb.Append($"({weight})]");
+                        else
+                            sb.Append(']');
                     }
                 }
 
