@@ -10,14 +10,14 @@ namespace TopDownProteomics.ProForma
         /// </summary>
         /// <param name="descriptors">The descriptors.</param>
         /// <param name="targetAminoAcids">The target amino acids.</param>
-        public ProFormaGlobalModification(IList<ProFormaDescriptor>? descriptors, ICollection<char>? targetAminoAcids)
+        public ProFormaGlobalModification(IList<ProFormaDescriptor> descriptors, ICollection<char>? targetAminoAcids)
         {
             Descriptors = descriptors;
             TargetAminoAcids = targetAminoAcids;
         }
 
         /// <summary>The descriptors for this global modification.</summary>
-        public IList<ProFormaDescriptor>? Descriptors { get; }
+        public IList<ProFormaDescriptor> Descriptors { get; }
 
         /// <summary>The amino acids targeted by this global modification (null if representing isotopes).</summary>
         public ICollection<char>? TargetAminoAcids { get; }
