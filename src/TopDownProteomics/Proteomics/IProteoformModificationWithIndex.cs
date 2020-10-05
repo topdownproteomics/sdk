@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.Proteomics
+﻿namespace TopDownProteomics.Proteomics
 {
     /// <summary>
     /// Modification on a chemical proteoform that has a zero-based index.
     /// </summary>
-    /// <seealso cref="TopDownProteomics.Proteomics.IProteoformModification" />
+    /// <seealso cref="IProteoformModification" />
     public interface IProteoformModificationWithIndex : IProteoformModification
     {
         /// <summary>

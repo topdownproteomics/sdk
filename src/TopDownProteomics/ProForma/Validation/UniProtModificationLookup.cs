@@ -20,7 +20,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected override string Key => ProFormaKey.UniProt;
+        protected override ProFormaEvidenceType EvidenceType => ProFormaEvidenceType.UniProt;
 
         /// <summary>
         /// Initializes the <see cref="ResidModificationLookup" /> class.
@@ -43,9 +43,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula GetChemicalFormula(UniprotModification modification)
+        protected override IChemicalFormula? GetChemicalFormula(UniprotModification modification)
         {
-            string formula = modification.CorrectionFormula;
+            string? formula = modification.CorrectionFormula;
 
             if (string.IsNullOrEmpty(formula))
                 return null;

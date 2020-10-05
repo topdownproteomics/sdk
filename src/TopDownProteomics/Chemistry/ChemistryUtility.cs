@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace TopDownProteomics.Chemistry
 {
@@ -13,7 +11,7 @@ namespace TopDownProteomics.Chemistry
         /// <returns></returns>
         public static string GetChemicalFormulaString(IChemicalFormula chemicalFormula)
         {
-            // Local function for converting a single elemnt to a string.
+            // Local function for converting a single element to a string.
             string GetElementString(IEntityCardinality<IElement> element)
             {
                 if (element.Count == 0) // Don't write zero.
@@ -26,7 +24,7 @@ namespace TopDownProteomics.Chemistry
                 }
 
                 // In all other cases need to write out count too.
-                return $"{element.Entity.Symbol}({element.Count})";
+                return $"{element.Entity.Symbol}{element.Count}";
             }
 
             // Main function.
@@ -56,7 +54,7 @@ namespace TopDownProteomics.Chemistry
                 }
             }
 
-            return string.Join(" ", elementStrings);
+            return string.Join("", elementStrings);
         }
     }
 }

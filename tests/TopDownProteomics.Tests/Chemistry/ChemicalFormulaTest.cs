@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TopDownProteomics.Chemistry;
@@ -17,34 +18,158 @@ namespace TopDownProteomics.Tests.Chemistry
         }
 
         [Test]
-        public void ParseTest()
+        public void WaterParseTest()
         {
-            string formulaString = "H(2) O";
+            string formulaString = "H2O";
 
-            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula);
-
-            Assert.IsTrue(success);
-            Assert.IsNotNull(chemicalFormula);
-
-            IReadOnlyCollection<IEntityCardinality<IElement>> elements = chemicalFormula.GetElements();
-            Assert.AreEqual(2, elements.Count);
-
-            IEntityCardinality<IElement> h = elements.SingleOrDefault(e => e.Entity.Symbol == "H");
-            Assert.IsNotNull(h);
-            Assert.AreEqual(2, h.Count);
-
-            IEntityCardinality<IElement> o = elements.SingleOrDefault(e => e.Entity.Symbol == "O");
-            Assert.IsNotNull(o);
-            Assert.AreEqual(1, o.Count);
+            var chemicalFormula = this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("H", 2),
+                Tuple.Create("O", 1)
+            });
 
             Assert.AreEqual(ChemicalFormula.Water(_elementProvider), chemicalFormula);
         }
 
         [Test]
+        public void MulticharacterElementParseTest()
+        {
+            string formulaString = "He2O";
+
+            var chemicalFormula = this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("He", 2),
+                Tuple.Create("O", 1)
+            });
+
+            Assert.AreNotEqual(ChemicalFormula.Water(_elementProvider), chemicalFormula);
+        }
+
+        [Test]
+        public void ComplexParseTest()
+        {
+            string formulaString = "C12H20O2";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 12),
+                Tuple.Create("H", 20),
+                Tuple.Create("O", 2)
+            });
+        }
+
+        [Test]
+        public void NegativeParseTest()
+        {
+            string formulaString = "HN-1O2";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("H", 1),
+                Tuple.Create("N", -1),
+                Tuple.Create("O", 2)
+            });
+        }
+
+        [Test]
+        public void IncorrectNegativeParseTest()
+        {
+            // No longer accepting Unimod format
+            string formulaString = "C6H12N-O";
+            Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out _));
+        }
+
+        [Test]
+        public void IsotopeParseTest()
+        {
+            string formulaString = "[13C2][12C-2]H2N";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("13C", 2),
+                Tuple.Create("12C", -2),
+                Tuple.Create("H", 2),
+                Tuple.Create("N", 1)
+            });
+        }
+
+        [Test]
+        public void IsotopeParseTest2()
+        {
+            string formulaString = "[13C2]";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("13C", 2)
+            });
+        }
+
+        [Test]
+        public void IsotopeParseTest3()
+        {
+            string formulaString = "C2[12C-2]H2N";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 2),
+                Tuple.Create("12C", -2),
+                Tuple.Create("H", 2),
+                Tuple.Create("N", 1)
+            });
+        }
+
+        [Test]
+        [Ignore("Not sure if this is in the spec or not.")]
+        public void MergeDuplicatesTest()
+        {
+            string formulaString = "CCHHHCC";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 4),
+                Tuple.Create("H", 3)
+            });
+        }
+
+        // RTF 2020: This was pulled because it wasn't really needed for ProForma v2
+        //[Test]
+        //public void CondensedTest()
+        //{
+        //    string formulaString = "CH3(CH2)4CH3";
+
+        //    this.SimpleParseTest(formulaString, new[]
+        //    {
+        //        Tuple.Create("C", 6),
+        //        Tuple.Create("H", 14)
+        //    });
+        //}
+
+        private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
+        {
+            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
+
+            Assert.IsTrue(success);
+            Assert.IsNotNull(chemicalFormula);
+
+            IReadOnlyCollection<IEntityCardinality<IElement>> elementCollection = chemicalFormula.GetElements();
+            Assert.AreEqual(elements.Length, elementCollection.Count, "Element Count");
+
+            foreach (var (symbol, count) in elements)
+            {
+                IEntityCardinality<IElement> h = elementCollection.SingleOrDefault(e => e.Entity.Symbol == symbol);
+                Assert.IsNotNull(h, $"For element '{symbol}{count}'");
+                Assert.AreEqual(count, h.Count, $"For element '{symbol}{count}'");
+            }
+
+            return chemicalFormula;
+        }
+
+        [Test]
         public void IncorrectFormatTest()
         {
-            string formulaString = "H2O";
-            Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula));
+            // No longer accepting Unimod format
+            string formulaString = "H(2) O";
+            Assert.IsFalse(ChemicalFormula.TryParseString(formulaString, _elementProvider, out _));
         }
 
         [Test]

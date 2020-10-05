@@ -16,7 +16,6 @@ namespace TopDownProteomics.IO.PsiMod
         /// </summary>
         /// <param name="path">The path.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public IEnumerable<PsiModTerm> Parse(string path)
         {
             var oboParser = new OboParser();
@@ -28,7 +27,6 @@ namespace TopDownProteomics.IO.PsiMod
         /// </summary>
         /// <param name="text">The text.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public IEnumerable<PsiModTerm> ParseText(string text)
         {
             var oboParser = new OboParser();
@@ -37,130 +35,141 @@ namespace TopDownProteomics.IO.PsiMod
 
         private PsiModTerm ConvertToModification(OboTerm oboTerm)
         {
-            PsiModTerm term = new PsiModTerm();
+            string? definition = null;
+            ICollection<PsiModSynonym>? synonyms = null;
+            ICollection<PsiModExternalReference>? externalReferences = null;
+            ICollection<string>? isA = null;
+            string? comment = null;
+            bool isObsolete = false;
 
-            string idString = oboTerm.Id;
-            term.Id = Convert.ToInt32(idString.Substring(4));
-            term.Name = oboTerm.Name;
+            double? diffAvg = null;
+            string? diffFormula = null;
+            double? diffMono = null;
+            double? massAvg = null;
+            string? massFormula = null;
+            double? massMono = null;
 
-            foreach (OboTagValuePair pair in oboTerm.ValuePairs)
+            int formalCharge = 0;
+            char? origin = null;
+
+            PsiModModificationSource? source = null;
+            Terminus? terminus = null;
+
+            if (oboTerm.ValuePairs != null)
             {
-                switch (pair.Tag)
+                foreach (OboTagValuePair pair in oboTerm.ValuePairs)
                 {
-                    case "synonym":
-                        // "Text" Score Type []
-                        PsiModSynonym synonym = new PsiModSynonym();
+                    switch (pair.Tag)
+                    {
+                        case "synonym":
+                            // "Text" Score Type []
+                            string[] splitQuote = pair.Value.Trim('"').Split('"');
+                            string text = splitQuote[0];
+                            string[] split = splitQuote[1].Trim(' ').Split(' ');
+                            string scope = split[0];
+                            string type = split[1];
 
-                        string[] splitQuote = pair.Value.Trim('"').Split('"');
-                        synonym.Text = splitQuote[0];
-                        string[] split = splitQuote[1].Trim(' ').Split(' ');
-                        synonym.Scope = split[0];
-                        synonym.Type = split[1];
+                            Utility.LazyCreateAndAdd(ref synonyms, new PsiModSynonym(type, text, scope));
 
-                        term.Synonyms.Add(synonym);
-                        break;
-                    case "def":
-                        // "defString" [dbName1:acc1, dbName2:acc2]
-                        string[] splitQuot = pair.Value.Substring(1).Split('"');
-                        term.Definition = splitQuot[0];
+                            break;
+                        case "def":
+                            // "defString" [dbName1:acc1, dbName2:acc2]
+                            string[] splitQuot = pair.Value.Substring(1).Split('"');
+                            definition = splitQuot[0];
 
-                        string refs = splitQuot[1];
-                        refs = refs.Trim(' ', '[', ']');
-                        if (refs != "")
-                        {
-                            string[] splitComma = refs.Split(',');
-                            foreach (string reference in splitComma.Select(s => s.Trim(' ')))
+                            string refs = splitQuot[1];
+                            refs = refs.Trim(' ', '[', ']');
+                            if (refs != "")
                             {
-                                PsiModExternalReference psiModExternalReference = new PsiModExternalReference();
-                                string[] splitColon = reference.Split(':');
-                                psiModExternalReference.Name = splitColon[0];
-                                psiModExternalReference.Id = splitColon[1];
-                                term.ExternalReferences.Add(psiModExternalReference);
+                                string[] splitComma = refs.Split(',');
+                                foreach (string reference in splitComma.Select(s => s.Trim(' ')))
+                                {
+                                    string[] splitColon2 = reference.Split(':');
+                                    Utility.LazyCreateAndAdd(ref externalReferences, new PsiModExternalReference(splitColon2[0], splitColon2[1]));
+                                }
                             }
-                        }
-                        break;
-                    case "comment":
-                        term.Comment = pair.Value;
-                        break;
-                    case "xref":
-                        this.HandleXref(pair.Value, term);
-                        break;
-                    case "is_obsolete":
-                        term.IsObsolete = true;
-                        break;
-                    case "is_a":
-                        // MOD:00000 ! description
-                        string modNum = pair.Value.Split('!')[0].Trim(' ').Split(':')[1];
-                        term.IsA.Add(Convert.ToInt32(modNum));
-                        break;
+                            break;
+                        case "comment":
+                            comment = pair.Value;
+                            break;
+                        case "xref":
+                            string[] splitColon = pair.Value.Split(':');
+                            string value = splitColon[1].Trim(' ', '"');
+
+                            if (value != "none")
+                            {
+                                switch (splitColon[0])
+                                {
+                                    case "DiffAvg":
+                                        diffAvg = Convert.ToDouble(value);
+                                        break;
+                                    case "DiffFormula":
+                                        diffFormula = value;
+                                        break;
+                                    case "DiffMono":
+                                        diffMono = Convert.ToDouble(value);
+                                        break;
+                                    case "MassAvg":
+                                        massAvg = Convert.ToDouble(value);
+                                        break;
+                                    case "Formula":
+                                        massFormula = value;
+                                        break;
+                                    case "MassMono":
+                                        massMono = Convert.ToDouble(value);
+                                        break;
+                                    case "FormalCharge":
+                                        char sign = value.Last();
+                                        int coefficient = 0;
+                                        if (sign == '+')
+                                        {
+                                            coefficient = 1;
+                                        }
+                                        else if (sign == '-')
+                                        {
+                                            coefficient = -1;
+                                        }
+                                        int num = Convert.ToInt32(value.Substring(0, value.Length - 1));
+                                        formalCharge = coefficient * num;
+                                        break;
+                                    case "Origin":
+                                        if (value.Length == 1 && value != "X")
+                                            origin = value[0];
+                                        break;
+                                    case "Source":
+                                        if (value == "natural")
+                                            source = PsiModModificationSource.Natural;
+                                        else if (value == "artifact")
+                                            source = PsiModModificationSource.Artifact;
+                                        else if (value == "hypothetical")
+                                            source = PsiModModificationSource.Hypothetical;
+                                        break;
+                                    case "TermSpec":
+                                        if (value == "N-term")
+                                            terminus = Terminus.N;
+                                        else if (value == "C-term")
+                                            terminus = Terminus.C;
+                                        break;
+                                }
+                            }
+                            break;
+                        case "is_obsolete":
+                            isObsolete = true;
+                            break;
+                        case "is_a":
+                            // MOD:00000 ! description
+                            string modNum = pair.Value.Split('!')[0].Trim(' ');
+                            Utility.LazyCreateAndAdd(ref isA, modNum);
+                            break;
+                    }
                 }
             }
 
-            return term;
-        }
+            if (definition != null)
+                return new PsiModTerm(oboTerm.Id, oboTerm.Name, definition, externalReferences, synonyms, comment, diffAvg, diffFormula,
+                    diffMono, massFormula, massAvg, massMono, origin, source, terminus, isObsolete, formalCharge, isA);
 
-        private void HandleXref(string xref, PsiModTerm term)
-        {
-            string[] splitColon = xref.Split(':');
-            string value = splitColon[1].Trim(' ', '"');
-
-            if (value != "none")
-            {
-                switch (splitColon[0])
-                {
-                    case "DiffAvg":
-                        term.DiffAvg = Convert.ToDouble(value);
-                        break;
-                    case "DiffFormula":
-                        term.DiffFormula = value;
-                        break;
-                    case "DiffMono":
-                        term.DiffMono = Convert.ToDouble(value);
-                        break;
-                    case "MassAvg":
-                        term.MassAvg = Convert.ToDouble(value);
-                        break;
-                    case "Formula":
-                        term.Formula = value;
-                        break;
-                    case "MassMono":
-                        term.MassMono = Convert.ToDouble(value);
-                        break;
-                    case "FormalCharge":
-                        char sign = value.Last();
-                        int coefficient = 0;
-                        if (sign == '+')
-                        {
-                            coefficient = 1;
-                        }
-                        else if (sign == '-')
-                        {
-                            coefficient = -1;
-                        }
-                        int num = Convert.ToInt32(value.Substring(0, value.Length - 1));
-                        term.FormalCharge = coefficient * num;
-                        break;
-                    case "Origin":
-                        if (value.Length == 1 && value != "X")
-                            term.Origin = value[0];
-                        break;
-                    case "Source":
-                        if (value == "natural")
-                            term.Source = PsiModModificationSource.Natural;
-                        else if (value == "artifact")
-                            term.Source = PsiModModificationSource.Artifact;
-                        else if (value == "hypothetical")
-                            term.Source = PsiModModificationSource.Hypothetical;
-                        break;
-                    case "TermSpec":
-                        if (value == "N-term")
-                            term.Terminus = Terminus.N;
-                        else if (value == "C-term")
-                            term.Terminus = Terminus.C;
-                        break;
-                }
-            }
-
+            throw new Exception("Could not find required 'definition' field.");
         }
     }
 }

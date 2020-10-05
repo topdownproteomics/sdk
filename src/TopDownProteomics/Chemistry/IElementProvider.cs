@@ -1,4 +1,6 @@
-﻿namespace TopDownProteomics.Chemistry
+﻿using System;
+
+namespace TopDownProteomics.Chemistry
 {
     /// <summary>
     /// Provides elements.
@@ -19,6 +21,6 @@
         /// <param name="symbol">The symbol.</param>
         /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
         /// <returns></returns>
-        IElement GetElement(string symbol, int? fixedIsotopeNumber = null);
+        IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null);
     }
 }

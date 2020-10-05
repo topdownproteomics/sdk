@@ -12,7 +12,7 @@ namespace TopDownProteomics.ProForma.Validation
     /// <seealso cref="IProteoformModificationLookup" />
     public abstract class ModificationLookupBase<T> : IProteoformModificationLookup where T : IIdentifiable
     {
-        private IProteoformModification[] _modifications;
+        private IProteoformModification[]? _modifications;
 
         /// <summary>
         /// Gets the modification array.
@@ -28,13 +28,15 @@ namespace TopDownProteomics.ProForma.Validation
             int maxId = -1;
             foreach (T modification in modifications)
             {
-                IChemicalFormula chemicalFormula = this.GetChemicalFormula(modification);
+                IChemicalFormula? chemicalFormula = this.GetChemicalFormula(modification);
+
+                int id = Convert.ToInt32(this.RemovePrefix(modification.Id));
 
                 if (chemicalFormula != null)
-                    modArray[modification.Id] = new ModificationWrapper(modification, chemicalFormula);
+                    modArray[id] = new ModificationWrapper(modification, chemicalFormula);
 
                 // Keep all the way up to the max passed in, even if it turns out to be NULL
-                maxId = Math.Max(maxId, modification.Id);
+                maxId = Math.Max(maxId, id);
             }
 
             Array.Resize(ref modArray, maxId + 1);
@@ -47,7 +49,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected abstract IChemicalFormula GetChemicalFormula(T modification);
+        protected abstract IChemicalFormula? GetChemicalFormula(T modification);
 
         /// <summary>
         /// Determines whether this instance [can handle descriptor] the specified descriptor.
@@ -58,21 +60,21 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public virtual bool CanHandleDescriptor(ProFormaDescriptor descriptor)
         {
-            var nonDefault = descriptor.Key == this.Key ||
-                (descriptor.Key == ProFormaKey.Mod && descriptor.Value.EndsWith(this.GetModNameDatabaseTag()));
+            var nonDefault = descriptor.EvidenceType == this.EvidenceType && 
+                (descriptor.Key == ProFormaKey.Name || descriptor.Key == ProFormaKey.Identifier);
 
             if (!this.IsDefaultModificationType)
                 return nonDefault;
 
             // If this is the default modification type, allow one more condition.
             return nonDefault ||
-                (descriptor.Key == ProFormaKey.Mod && !descriptor.Value.TrimEnd().EndsWith(")"));
+                (descriptor.Key == ProFormaKey.Name && descriptor.EvidenceType == ProFormaEvidenceType.None);
         }
 
         /// <summary>
         /// The ProForma key.
         /// </summary>
-        protected abstract string Key { get; }
+        protected abstract ProFormaEvidenceType EvidenceType { get; }
 
         /// <summary>
         /// Removes the prefix.
@@ -89,7 +91,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </value>
         protected virtual bool IsDefaultModificationType => false;
 
-        private string GetModNameDatabaseTag() => $"({this.Key})";
+        //private string GetModNameDatabaseTag() => $"({this.Key})";
 
         /// <summary>
         /// Gets the modification.
@@ -98,45 +100,40 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         public virtual IProteoformModification GetModification(ProFormaDescriptor descriptor)
         {
-            if (descriptor.Value == null)
-                throw new ProteoformModificationLookupException($"Value is NULL in descriptor {descriptor.ToString()}.");
+            if (_modifications == null)
+                throw new Exception("Modification array in not initialized.");
 
-            if (descriptor.Key == this.Key)
+            if (descriptor.Value == null)
+                throw new ProteoformModificationLookupException($"Value is NULL in descriptor {descriptor}.");
+
+            if (descriptor.Key == ProFormaKey.Name)
+            {
+                string value = descriptor.Value;
+
+                IProteoformModification modification = _modifications
+                    .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
+
+                if (modification == null)
+                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor}.");
+
+                return modification;
+            }
+            else if (descriptor.Key == ProFormaKey.Identifier)
             {
                 string value = this.RemovePrefix(descriptor.Value);
 
                 if (int.TryParse(value, out int id))
                 {
                     if (id < 0 || id > _modifications.Length - 1 || _modifications[id] == null)
-                        throw new ProteoformModificationLookupException($"Could not find modification using ID in descriptor {descriptor.ToString()}.");
+                        throw new ProteoformModificationLookupException($"Could not find modification using ID in descriptor {descriptor}.");
 
                     return _modifications[id];
                 }
 
-                throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor.ToString()}.");
-            }
-            else if (descriptor.Key == ProFormaKey.Mod)
-            {
-                int index = descriptor.Value.IndexOf(this.GetModNameDatabaseTag());
-
-                if (index < 0 && !this.IsDefaultModificationType)
-                    throw new ProteoformModificationLookupException($"Couldn't find database name in descriptor {descriptor.ToString()}.");
-
-                string value = descriptor.Value;
-
-                if (index >= 0)
-                    value = value.Substring(0, index).Trim();
-
-                IProteoformModification modification = _modifications
-                    .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
-
-                if (modification == null)
-                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor.ToString()}.");
-
-                return modification;
+                throw new ProteoformModificationLookupException($"Invalid integer in descriptor {descriptor}.");
             }
 
-            throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.ToString()}.");
+            throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor}.");
         }
 
         private class ModificationWrapper : IProFormaProteoformModification

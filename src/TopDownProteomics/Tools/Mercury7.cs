@@ -95,11 +95,11 @@ namespace TopDownProteomics.Tools
             // Build up the molecular super atom (MSA) until it is the entire molecule
             // A "molecular super atom" refers to a fictitious chemical compound whose 
             //  formula is a partial composition of the target compound.
-            double[] msaMz = null;
-            double[] msaAbundance = null;
+            double[]? msaMz = null;
+            double[]? msaAbundance = null;
 
-            double[] tmpMz = null;
-            double[] tmpAbundance = null;
+            double[]? tmpMz = null;
+            double[]? tmpAbundance = null;
             bool msaInitialized = false;
 
             foreach (IEntityCardinality<IElement> kvp in cf.GetElements())
@@ -162,12 +162,18 @@ namespace TopDownProteomics.Tools
                 }
             }
 
-            return new IsotopicDistribution(msaMz, msaAbundance);
+            if (msaMz != null && msaAbundance != null)
+                return new IsotopicDistribution(msaMz, msaAbundance);
+
+            throw new Exception("Couldn't create masses or abundances.");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private double[] CopyArray(double[] source)
+        private double[] CopyArray(double[]? source)
         {
+            if (source == null)
+                throw new Exception("Cannot copy NULL array.");
+
             double[] target = new double[source.Length];
             Array.Copy(source, target, source.Length);
 
@@ -199,9 +205,12 @@ namespace TopDownProteomics.Tools
                 ab = tmpAb;
             }
         }
-        private void Convolve(ref double[] resultMz, ref double[] resultAb, double[] mz1, double[] ab1,
+        private void Convolve(ref double[]? resultMz, ref double[]? resultAb, double[]? mz1, double[]? ab1,
             double[] mz2, double[] ab2)
         {
+            if (mz1 == null || ab1 == null)
+                throw new Exception("Cannot convolve NULL arrays.");
+
             int n1 = mz1.Length;
             int n2 = mz2.Length;
 

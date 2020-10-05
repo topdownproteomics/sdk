@@ -3,109 +3,116 @@ using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.IO.PsiMod
 {
-    /// <summary>
-    /// A term from the PSI-MOD modification ontology.
-    /// </summary>
+    /// <summary>A term from the PSI-MOD modification ontology.</summary>
     public class PsiModTerm : IIdentifiable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PsiModTerm"/> class.
         /// </summary>
-        public PsiModTerm()
+        public PsiModTerm(string id, string name, string definition)
         {
-            this.IsA = new List<int>();
-            this.ExternalReferences = new List<PsiModExternalReference>();
-            this.Synonyms = new List<PsiModSynonym>();
+            this.Id = id;
+            this.Name = name;
+            this.Definition = definition;
         }
 
         /// <summary>
-        /// Gets or sets the identifier.
+        /// Initializes a new instance of the <see cref="PsiModTerm" /> class.
         /// </summary>
-        public int Id { get; set; }
+        /// <param name="id">The identifier.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="definition">The definition.</param>
+        /// <param name="externalReferences">The external references.</param>
+        /// <param name="synonyms">The synonyms.</param>
+        /// <param name="comment">The comment.</param>
+        /// <param name="diffAvg">The difference average.</param>
+        /// <param name="diffFormula">The difference formula.</param>
+        /// <param name="diffMono">The difference mono.</param>
+        /// <param name="formula">The formula.</param>
+        /// <param name="massAvg">The mass average.</param>
+        /// <param name="massMono">The mass mono.</param>
+        /// <param name="origin">The origin.</param>
+        /// <param name="source">The source.</param>
+        /// <param name="terminus">The terminus.</param>
+        /// <param name="isObsolete">if set to <c>true</c> [is obsolete].</param>
+        /// <param name="formalCharge">The formal charge.</param>
+        /// <param name="isA">The is a.</param>
+        public PsiModTerm(string id, string name, string definition, ICollection<PsiModExternalReference>? externalReferences, 
+            ICollection<PsiModSynonym>? synonyms, string? comment, double? diffAvg, string? diffFormula, double? diffMono, string? formula, double? massAvg, 
+            double? massMono, char? origin, PsiModModificationSource? source, Terminus? terminus, bool isObsolete, int formalCharge, ICollection<string>? isA)
+        {
+            Id = id;
+            ExternalReferences = externalReferences;
+            Synonyms = synonyms;
+            Name = name;
+            Definition = definition;
+            Comment = comment;
+            DiffAvg = diffAvg;
+            DiffFormula = diffFormula;
+            DiffMono = diffMono;
+            Formula = formula;
+            MassAvg = massAvg;
+            MassMono = massMono;
+            Origin = origin;
+            Source = source;
+            Terminus = terminus;
+            IsObsolete = isObsolete;
+            FormalCharge = formalCharge;
+            IsA = isA;
+        }
 
-        /// <summary>
-        /// Gets or sets the external references.
-        /// </summary>
-        public ICollection<PsiModExternalReference> ExternalReferences { get; set; }
+        /// <summary>The PSI-MOD identifier.</summary>
+        public string Id { get; }
 
-        /// <summary>
-        /// Gets or sets the synonyms.
-        /// </summary>
-        public ICollection<PsiModSynonym> Synonyms { get; set; }
+        /// <summary>The external references.</summary>
+        public ICollection<PsiModExternalReference>? ExternalReferences { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name.
-        /// </summary>
-        public string Name { get; set; }
+        /// <summary>The synonyms.</summary>
+        public ICollection<PsiModSynonym>? Synonyms { get; set; }
 
-        /// <summary>
-        /// Gets or sets the definition.
-        /// </summary>
-        public string Definition { get; set; }
+        /// <summary>The name of the term.</summary>
+        public string Name { get; }
 
-        /// <summary>
-        /// Gets or sets the comment.
-        /// </summary>
-        public string Comment { get; set; }
+        /// <summary>The term definition.</summary>
+        public string Definition { get; }
 
-        /// <summary>
-        /// Gets or sets the difference average.
-        /// </summary>
-        public double? DiffAvg { get; set; }
+        /// <summary>The term comment.</summary>
+        public string? Comment { get; }
 
-        /// <summary>
-        /// Gets or sets the difference formula.
-        /// </summary>
-        public string DiffFormula { get; set; }
+        /// <summary>The difference mass in average mass.</summary>
+        public double? DiffAvg { get; }
 
-        /// <summary>
-        /// Gets or sets the difference monoisotopic.
-        /// </summary>
-        public double? DiffMono { get; set; }
+        /// <summary>The difference formula.</summary>
+        public string? DiffFormula { get; }
 
-        /// <summary>
-        /// Gets or sets the formula.
-        /// </summary>
-        public string Formula { get; set; }
+        /// <summary>The difference mass in monoisotopic mass.</summary>
+        public double? DiffMono { get; }
 
-        /// <summary>
-        /// Gets or sets the mass average.
-        /// </summary>
-        public double? MassAvg { get; set; }
+        /// <summary>The whole modification and residue formula.</summary>
+        public string? Formula { get; }
 
-        /// <summary>
-        /// Gets or sets the mass monoisotopic.
-        /// </summary>
-        public double? MassMono { get; set; }
+        /// <summary>The total average mass.</summary>
+        public double? MassAvg { get; }
 
-        /// <summary>
-        /// Gets or sets the origin.
-        /// </summary>
-        public char? Origin { get; set; }
+        /// <summary>The total monoisotopic mass.</summary>
+        public double? MassMono { get; }
 
-        /// <summary>
-        /// Gets or sets the source.
-        /// </summary>
-        public PsiModModificationSource? Source { get; set; }
+        /// <summary>The origin amino acid.</summary>
+        public char? Origin { get; }
 
-        /// <summary>
-        /// Gets or sets the terminus.
-        /// </summary>
-        public Terminus? Terminus { get; set; }
+        /// <summary>The source of the term.</summary>
+        public PsiModModificationSource? Source { get; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is obsolete.
-        /// </summary>
-        public bool IsObsolete { get; set; }
+        /// <summary>The terminus where this term can be applied.</summary>
+        public Terminus? Terminus { get; }
 
-        /// <summary>
-        /// Gets or sets the formal charge.
-        /// </summary>
-        public int FormalCharge { get; set; }
+        /// <summary>A value indicating whether this instance is obsolete.</summary>
+        public bool IsObsolete { get; }
 
-        /// <summary>
-        /// Gets or sets the is-a collection.
-        /// </summary>
-        public ICollection<int> IsA { get; set; }
+        /// <summary>The formal charge.</summary>
+        public int FormalCharge { get; }
+
+        /// <summary>The is-a collection.</summary>
+        public ICollection<string>? IsA { get; set; }
     }
 }

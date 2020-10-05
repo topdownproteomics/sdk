@@ -28,9 +28,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// <summary>Gets the modification.</summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public IProteoformModification GetModification(ProFormaDescriptor descriptor)
+        public IProteoformModification? GetModification(ProFormaDescriptor descriptor)
         {
-            if (ChemicalFormula.TryParseString(descriptor.Value, this._elementProvider, out ChemicalFormula chemicalFormula))
+            if (ChemicalFormula.TryParseString(descriptor.Value, this._elementProvider, out IChemicalFormula chemicalFormula))
             {
                 return new FormulaModification(chemicalFormula);
             }

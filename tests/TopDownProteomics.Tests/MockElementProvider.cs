@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using TopDownProteomics.Chemistry;
 
@@ -7,6 +8,7 @@ namespace TopDownProteomics.Tests
     public class MockElementProvider : IElementProvider
     {
         private IElement[] _elements;
+        private IElement _carbon12;
         private IElement _carbon13;
 
         public MockElementProvider()
@@ -16,6 +18,11 @@ namespace TopDownProteomics.Tests
             {
                 new Isotope(1.007825032, 0, 0.999885),
                 new Isotope(2.014101778, 1, 0.000115)
+            });
+            _elements[2] = new Element(1, "He", new[]
+{
+                new Isotope(3.0160293191, 0, 1.34e-06),
+                new Isotope(4.00260325415, 1, 0.99999866)
             });
             _elements[6] = new Element(6, "C", new[]
             {
@@ -54,6 +61,11 @@ namespace TopDownProteomics.Tests
                 new Isotope(81.9166994, 48, 0.0873)
             });
 
+            _carbon12 = new Element(6, "12C", new[]
+            {
+                new Isotope(12.0, 6, 1.0),
+            });
+
             _carbon13 = new Element(6, "13C", new[]
             {
                 new Isotope(13.0033548378, 7, 1.0)
@@ -67,19 +79,20 @@ namespace TopDownProteomics.Tests
 
         public IElement GetElement(int atomicNumber, int? fixedIsotopeNumber = null)
         {
-            if (atomicNumber == 6 && fixedIsotopeNumber == 13)
-                return _carbon13;
+            if (atomicNumber == 6 && fixedIsotopeNumber == 12) return _carbon12;
+            if (atomicNumber == 6 && fixedIsotopeNumber == 13) return _carbon13;
 
             IElement element = _elements[atomicNumber];
             return this.GetFixedIsotopeElement(element, fixedIsotopeNumber);
         }
 
-        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        public IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null)
         {
-            if (symbol == "C" && fixedIsotopeNumber == 13)
-                return _carbon13;
+            if (symbol[0] == 'C' && fixedIsotopeNumber == 12) return _carbon12;
+            if (symbol[0] == 'C' && fixedIsotopeNumber == 13) return _carbon13;
 
-            IElement element = _elements.Single(x => x?.Symbol == symbol);
+            var symbolString = symbol.ToString();
+            IElement element = _elements.Single(x => x?.Symbol == symbolString);
             return this.GetFixedIsotopeElement(element, fixedIsotopeNumber);
         }
 

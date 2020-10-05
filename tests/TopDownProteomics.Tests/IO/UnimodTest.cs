@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
 using TopDownProteomics.IO.Unimod;
@@ -16,9 +17,9 @@ namespace TopDownProteomics.Tests.IO
             var parser = new UnimodOboParser();
 
             var mods = parser.Parse(GetUnimodFilePath()).ToList();
-            Assert.AreEqual(2017, mods.Max(x => x.Id));
+            Assert.AreEqual(2017, mods.Max(x => Convert.ToInt32(x.Id.Substring(7))));
 
-            UnimodModification unimod1 = mods.Single(x => x.Id == 1);
+            UnimodModification unimod1 = mods.Single(x => x.Id == "UNIMOD:1");
 
             Assert.IsNotNull(unimod1);
             Assert.AreEqual("Acetyl", unimod1.Name);
