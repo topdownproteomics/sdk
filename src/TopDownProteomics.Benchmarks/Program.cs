@@ -8,7 +8,7 @@ using UWMadison.Chemistry;
 
 namespace TopDownProteomics.Benchmarks
 {
-	internal class Program
+    internal class Program
     {
         private const int MaxRunValue = 1000;
 
