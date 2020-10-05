@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to AnalysisSoftware element
-    /// </summary>
-    public class AnalysisSoftware
+	/// <summary>
+	/// Corresponds to AnalysisSoftware element
+	/// </summary>
+	public class MzIdentMlAnalysisSoftware
     {
         /// <summary>
         /// Gets and sets the Id

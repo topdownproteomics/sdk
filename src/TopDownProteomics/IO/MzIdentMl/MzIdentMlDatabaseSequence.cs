@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to the DBSequence element
-    /// </summary>
-    public class DatabaseSequence
+	/// <summary>
+	/// Corresponds to the DBSequence element
+	/// </summary>
+	public class MzIdentMlDatabaseSequence
     {
         /// <summary>
         /// Gets and sets the Id
@@ -48,6 +44,5 @@ namespace TopDownProteomics.IO.MzIdentML.Models
         /// Gets and sets the taxonomy id
         /// </summary>
         public int TaxonomyId { get; set; }
-
     }
 }

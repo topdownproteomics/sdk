@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the ProteinDetectionList element
 	/// </summary>
-	public class ProteinDetectionList
+	public class MzIdentMlProteinDetectionList
 	{
 		/// <summary>
 		/// Gets and sets the id
@@ -17,6 +15,6 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the protein ambiguity groups
 		/// </summary>
-		public List<ProteinAmbiguityGroup> ProteinAmbiguityGroups { get; set; }
+		public List<MzIdentMlProteinAmbiguityGroup> ProteinAmbiguityGroups { get; set; }
 	}
 }

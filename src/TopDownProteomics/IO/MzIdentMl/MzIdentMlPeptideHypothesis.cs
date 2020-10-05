@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the PeptideHypothesis element
 	/// </summary>
-	public class PeptideHypothesis
+	public class MzIdentMlPeptideHypothesis
 	{
 		/// <summary>
 		/// Gets and sets the PeptideEvidence ids
@@ -20,8 +18,8 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		public string SpectrumIdentificationItemId { get; set; }
 
 		/// <summary>
-		/// Gets and sets the cvParams
+		/// Gets and sets the parameters
 		/// </summary>
-		public List<CvParam> CvParams { get; set; } = new List<CvParam>();
+		public List<MzIdentMlParam> Parameters { get; set; } = new List<MzIdentMlParam>();
 	}
 }

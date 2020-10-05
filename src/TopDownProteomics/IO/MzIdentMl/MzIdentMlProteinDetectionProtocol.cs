@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the ProteinDetectionProtocol element
 	/// </summary>
-	public class ProteinDetectionProtocol
+	public class MzIdentMlProteinDetectionProtocol
 	{
 		/// <summary>
 		/// Gets and sets the id
@@ -22,11 +20,11 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the analysis parameters
 		/// </summary>
-		public List<CvParam> AnalysisParams { get; set; }
+		public List<MzIdentMlParam> AnalysisParams { get; set; }
 
 		/// <summary>
 		/// Gets and sets the thresholds
 		/// </summary>
-		public List<CvParam> Thresholds { get; set; }
+		public List<MzIdentMlParam> Thresholds { get; set; }
 	}
 }

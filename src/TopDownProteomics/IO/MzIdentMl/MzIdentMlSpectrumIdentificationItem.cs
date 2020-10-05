@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the SpectrumIdentificationItem elements
 	/// </summary>
-	public class SpectrumIdentificationItem
+	public class MzIdentMlSpectrumIdentificationItem
 	{
 		/// <summary>
 		/// Gets and sets the Id
@@ -47,21 +45,21 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the peptide evidences
 		/// </summary>
-		public List<PeptideEvidence> PeptideEvidences { get; set; } = new List<PeptideEvidence>();
+		public List<MzIdentMlPeptideEvidence> PeptideEvidences { get; set; } = new List<MzIdentMlPeptideEvidence>();
 
 		/// <summary>
 		/// Gets and sets the proteoforms
 		/// </summary>
-		public List<Peptide> Peptides { get; set; } = new List<Peptide>();
+		public List<MzIdentMlPeptide> Peptides { get; set; } = new List<MzIdentMlPeptide>();
 
 		/// <summary>
 		/// Gets and sets the ion types
 		/// </summary>
-		public List<IonType> IonTypes { get; set; } = new List<IonType>();
+		public List<MzIdentMlIonType> IonTypes { get; set; } = new List<MzIdentMlIonType>();
 
 		/// <summary>
-		/// Gets and sets cvParams
+		/// Gets and sets parameters
 		/// </summary>
-		public List<CvParam> CvParams { get; set; } = new List<CvParam>();
+		public List<MzIdentMlParam> Parameters { get; set; } = new List<MzIdentMlParam>();
 	}
 }

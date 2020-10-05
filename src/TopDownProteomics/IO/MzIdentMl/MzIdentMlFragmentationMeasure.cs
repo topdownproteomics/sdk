@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to Measure elements
 	/// </summary>
-	public class FragmentationMeasure
+	public class MzIdentMlFragmentationMeasure
 	{
 		/// <summary>
 		/// Gets and sets the Id
@@ -17,6 +13,6 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the measure
 		/// </summary>
-		public CvParam Measure { get; set; }
+		public MzIdentMlParam Measure { get; set; }
 	}
 }

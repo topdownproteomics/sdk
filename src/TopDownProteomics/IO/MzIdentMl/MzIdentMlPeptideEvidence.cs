@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to the PeptideEvidence element
-    /// </summary>
-    public class PeptideEvidence
+	/// <summary>
+	/// Corresponds to the PeptideEvidence element
+	/// </summary>
+	public class MzIdentMlPeptideEvidence
     {
         /// <summary>
         /// Gets and sets the id
@@ -43,11 +39,6 @@ namespace TopDownProteomics.IO.MzIdentML.Models
         /// Gets and sets the database sequence id
         /// </summary>
         public string DatabaseSequenceId { get; set; }
-
-        /// <summary>
-        /// gets and sets the database sequence
-        /// </summary>
-        public DatabaseSequence DatabaseSequence { get; set; }
 
         /// <summary>
         /// Gets and sets the peptide id

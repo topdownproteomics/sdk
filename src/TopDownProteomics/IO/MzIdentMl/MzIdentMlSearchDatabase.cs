@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the SearchDatabase element
 	/// </summary>
-	public class SearchDatabase
+	public class MzIdentMlSearchDatabase
 	{
 		/// <summary>
 		/// Gets and sets the Id
@@ -42,16 +40,16 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the file format
 		/// </summary>
-		public CvParam FileFormat { get; set; }
+		public MzIdentMlParam FileFormat { get; set; }
 
 		/// <summary>
 		/// Gets and sets the database name
 		/// </summary>
-		public UserParam DatabaseName { get; set; }
+		public MzIdentMlParam DatabaseName { get; set; }
 
 		/// <summary>
 		/// Gets and sets database params
 		/// </summary>
-		public List<CvParam> DatabaseParams { get; set; } = new List<CvParam>();
+		public List<MzIdentMlParam> DatabaseParams { get; set; } = new List<MzIdentMlParam>();
 	}
 }

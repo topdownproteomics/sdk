@@ -1,27 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to Inputs element
 	/// </summary>
-	public class Inputs
+	public class MzIdentMlInputs
 	{
 		/// <summary>
 		/// Gets and sets the sourcefile
 		/// </summary>
-		public SourceFile SourceFile { get; set; }
+		public MzIdentMlSourceFile SourceFile { get; set; }
 
 		/// <summary>
 		/// Gets and sets the search database
 		/// </summary>
-		public SearchDatabase SearchDatabase { get; set; }
+		public MzIdentMlSearchDatabase SearchDatabase { get; set; }
 
 		/// <summary>
 		/// Gets and sets the spectradata
 		/// </summary>
-		public SpectraData SpectraData { get; set; }
+		public MzIdentMlSpectraData SpectraData { get; set; }
 	}
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to SourceFile elements
 	/// </summary>
-	public class SourceFile
+	public class MzIdentMlSourceFile
 	{
 		/// <summary>
 		/// Gets and sets the id
@@ -22,6 +18,6 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the file format
 		/// </summary>
-		public CvParam FileFormat { get; set; }
+		public MzIdentMlParam FileFormat { get; set; }
 	}
 }

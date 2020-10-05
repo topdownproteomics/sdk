@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the ProteinDetectionHypothesis element
 	/// </summary>
-	public class ProteinDetectionHypothesis
+	public class MzIdentMlProteinDetectionHypothesis
 	{
 		/// <summary>
 		/// Gets and sets the id
@@ -27,6 +23,6 @@ namespace TopDownProteomics.IO.MzIdentML.Models
 		/// <summary>
 		/// Gets and sets the peptide hypothesis
 		/// </summary>
-		public PeptideHypothesis PeptideHypothesis { get; set; }
+		public MzIdentMlPeptideHypothesis PeptideHypothesis { get; set; }
 	}
 }

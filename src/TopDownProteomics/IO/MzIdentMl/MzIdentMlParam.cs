@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TopDownProteomics.IO.MzIdentML.Models
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to cvParam elements that contain units
-    /// </summary>
-    public class CvUnitParam: ICvParam
+	/// <summary>
+	/// Corresponds to cvParam element
+	/// </summary>
+	public class MzIdentMlParam
     {
         /// <summary>
         /// Gets and sets the accession

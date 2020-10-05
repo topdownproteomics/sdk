@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using TopDownProteomics.IO.MzIdentML.Models;
 
-namespace TopDownProteomics.IO.MzIdentML
+namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public class MzIdentMLReader: IDisposable
+	/// <summary>
+	/// Parser for MzIdentML files
+	/// </summary>
+	public class MzIdentMlParser: IDisposable
     {
         private readonly Stream _stream;
 
         /// <summary>
-        /// Instantiates MzIdentMLReader with a Stream
+        /// Instantiates MzIdentMLReader with a stream
         /// </summary>
         /// <param name="stream"></param>
-        public MzIdentMLReader(Stream stream)
+        public MzIdentMlParser(Stream stream)
         {
             this._stream = stream;
         }
@@ -27,16 +26,16 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Instantiates MzIdentMLReader with a path
         /// </summary>
         /// <param name="path"></param>
-        public MzIdentMLReader(string path)
+        public MzIdentMlParser(string path)
         {
-            this._stream = File.OpenRead(Path.GetFullPath(@"D:\mzid_samples\golden.mzid"));
+            this._stream = File.OpenRead(Path.GetFullPath(path));
         }
 
         /// <summary>
         /// Gets analysis softwares
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<AnalysisSoftware> GetAnalysisSoftware()
+        public IEnumerable<MzIdentMlAnalysisSoftware> GetAnalysisSoftware()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
@@ -58,10 +57,10 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Gets database sequences
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<DatabaseSequence> GetDatabaseSequenceCollection()
+        public IEnumerable<MzIdentMlDatabaseSequence> GetDatabaseSequences()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
-            var databaseSequences = new List<DatabaseSequence>();
+            var databaseSequences = new List<MzIdentMlDatabaseSequence>();
             using (XmlReader reader = XmlReader.Create(this._stream))
             {
                 while (reader.Read())
@@ -80,10 +79,36 @@ namespace TopDownProteomics.IO.MzIdentML
         }
 
         /// <summary>
-        /// Gets proteoforms
+        /// Gets peptides
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Peptide> GetProteoforms()
+        public IEnumerable<MzIdentMlPeptide> GetPeptides()
+        {
+            this._stream.Seek(0, SeekOrigin.Begin);
+
+            // create hashes for looking up related peptides & databaseSequences for each spectrum ID
+            var databaseSequences = this.GetDatabaseSequences().Select(x => new { x.Id, x }).ToDictionary(x => x.Id, x => x.x);
+            var peptideEvidences = this.GetPeptideEvidences().Select(x => new { x.PeptideId, x }).ToDictionary(x => x.PeptideId, x => x.x);
+
+            foreach (var peptide in this.GetPeptidesWithoutDbSequence())
+            {
+                var hasPeptideEvidence = peptideEvidences.TryGetValue(peptide.Id, out MzIdentMlPeptideEvidence evidence);
+                var hasDatabaseSequence = databaseSequences.TryGetValue(evidence.DatabaseSequenceId, out MzIdentMlDatabaseSequence databaseSequence);
+
+                if (hasPeptideEvidence && hasDatabaseSequence)
+                {
+                    peptide.DatabaseSequence = databaseSequence;
+                    peptide.PeptideEvidence = evidence;
+                }
+
+                else
+                    Console.WriteLine($"PeptideEvidence {evidence.Id} is improperly formatted");
+
+                yield return peptide;
+            }
+        }
+
+        private IEnumerable<MzIdentMlPeptide> GetPeptidesWithoutDbSequence()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
@@ -95,19 +120,19 @@ namespace TopDownProteomics.IO.MzIdentML
 
                     if (reader.NodeType == XmlNodeType.Element && reader.Name == "Peptide")
                     {
-                        yield return this.ParseProteoform(reader);
+                        yield return this.ParsePeptide(reader);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Gets ProteoformEvidences
+        /// Gets peptide evidences
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<PeptideEvidence> GetProteoformEvidences()
+        public IEnumerable<MzIdentMlPeptideEvidence> GetPeptideEvidences()
         {
-            this._stream.Seek(0, SeekOrigin.Begin);
+			this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
             {
                 while (reader.Read())
@@ -117,7 +142,7 @@ namespace TopDownProteomics.IO.MzIdentML
 
                     if (reader.NodeType == XmlNodeType.Element && reader.Name == "PeptideEvidence")
                     {
-                        yield return this.ParseProteoformEvidence(reader);
+                        yield return this.ParsePeptideEvidences(reader);
                     }
                 }
             }
@@ -127,7 +152,7 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Gets SpectrumIdentificationProtocols
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<SpectrumIdentificationProtocol> GetSpectrumIdentificationProtocols()
+        public IEnumerable<MzIdentMlSpectrumIdentificationProtocol> GetSpectrumIdentificationProtocols()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
@@ -149,7 +174,7 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Gets ProteinDetectionProtocols
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ProteinDetectionProtocol> GetProteinDetectionProtocols()
+        public IEnumerable<MzIdentMlProteinDetectionProtocol> GetProteinDetectionProtocols()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
@@ -171,9 +196,9 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Gets Inputs
         /// </summary>
         /// <returns></returns>
-        public Inputs GetInputs()
+        public MzIdentMlInputs GetInputs()
         {
-            var inputs = new Inputs();
+            var inputs = new MzIdentMlInputs();
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
             {
@@ -206,10 +231,10 @@ namespace TopDownProteomics.IO.MzIdentML
         }
 
         /// <summary>
-        /// Gets FragmentationTabless
+        /// Gets FragmentationTables
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<FragmentationMeasure> GetFragmentationTable()
+        public IEnumerable<MzIdentMlFragmentationMeasure> GetFragmentationMeasures()
         {
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
@@ -221,33 +246,11 @@ namespace TopDownProteomics.IO.MzIdentML
 
                     if (reader.NodeType == XmlNodeType.Element && reader.Name == "Measure")
                     {
-                        yield return new FragmentationMeasure
+                        yield return new MzIdentMlFragmentationMeasure
                         {
                             Id = reader.GetAttribute("id"),
-                            Measure = this.GetChildNodeCvParams(reader, "FragmentationTable").First()
+                            Measure = this.GetChildNodeParams(reader, "FragmentationTable").FirstOrDefault()
                         };
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets SpectrumIdentificationResults
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<SpectrumIdentificationResult> GetSpectrumIdentificationResults()
-        {
-            this._stream.Seek(0, SeekOrigin.Begin);
-            using (XmlReader reader = XmlReader.Create(this._stream))
-            {
-                while (reader.Read())
-                {
-                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "SpectrumIdentificationList")
-                        break;
-
-                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "SpectrumIdentificationResult")
-                    {
-                        yield return this.ParseSpectrumIdentificationResult(reader);
                     }
                 }
             }
@@ -257,9 +260,9 @@ namespace TopDownProteomics.IO.MzIdentML
         /// Gets ProteinDetectionList
         /// </summary>
         /// <returns></returns>
-        public ProteinDetectionList GetProteinDetectionList()
+        public MzIdentMlProteinDetectionList GetProteinDetectionList()
         {
-            var proteinDetectionList = new ProteinDetectionList();
+            var proteinDetectionList = new MzIdentMlProteinDetectionList();
             this._stream.Seek(0, SeekOrigin.Begin);
             using (XmlReader reader = XmlReader.Create(this._stream))
             {
@@ -280,34 +283,55 @@ namespace TopDownProteomics.IO.MzIdentML
         }
 
         /// <summary>
-        /// Gets SpectrumIdentificationResults with related ProteoformEvidences, DatabaseSequences, and Proteoforms
+        /// Gets peptide-spectral matches with related peptides
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<SpectrumIdentificationItem> GetFullSpectrumIdentificationResults()
+        public IEnumerable<MzIdentMlSpectrumIdentificationItem> GetSpectrumIdentificationItems()
         {
-            var proteoformEvidences = this.GetProteoformEvidences().Select(x => new { x.Id, x }).ToDictionary(x => x.Id, x => x.x);
-            var databaseSequences = this.GetDatabaseSequenceCollection().Select(x => new { x.Id, x }).ToDictionary(x => x.Id, x => x.x);
-            var proteoforms = this.GetProteoforms().ToList().Select(x => new { x.Id, x }).ToDictionary(x => x.Id, x => x.x);
+            // create hashes for looking up related peptides & databaseSequences for each spectrum ID
+            var peptides = this.GetPeptides().Select(x => new { x.PeptideEvidence.Id, x }).ToDictionary(x => x.Id, x => x.x);
 
-            foreach (var result in this.GetSpectrumIdentificationResults())
+            foreach (var result in this.GetSpectrumIdentificationResultsWithoutSequences())
             {
                 foreach (var id in result.SpectrumIdentificationItems)
                 {
-                    foreach (var evidence in id.PeptideEvidenceIds)
+                    foreach (var evidenceId in id.PeptideEvidenceIds)
                     {
-                        proteoformEvidences.TryGetValue(evidence, out PeptideEvidence proteoformEvidence);
-                        proteoforms.TryGetValue(proteoformEvidence.PeptideId, out Peptide proteoform);
-                        databaseSequences.TryGetValue(proteoformEvidence.DatabaseSequenceId, out DatabaseSequence databaseSequence);
-                        proteoformEvidence.DatabaseSequence = databaseSequence;
-                        id.Peptides.Add(proteoform);
-                        id.PeptideEvidences.Add(proteoformEvidence);
+                        var hasPeptide = peptides.TryGetValue(evidenceId, out MzIdentMlPeptide peptide);
+
+                        if (hasPeptide)
+                        {
+                            id.Peptides.Add(peptide);
+                            id.PeptideEvidences.Add(peptide.PeptideEvidence);
+                        }
+
+                        else
+                            Console.WriteLine($"PeptideEvidence {evidenceId} is improperly formatted");
                     }
                     yield return id;
                 }
             }
         }
 
-        private IEnumerable<ProteinAmbiguityGroup> ParseProteinDetectList(XmlReader reader)
+        private IEnumerable<MzIdentMlSpectrumIdentificationResult> GetSpectrumIdentificationResultsWithoutSequences()
+        {
+            this._stream.Seek(0, SeekOrigin.Begin);
+            using (XmlReader reader = XmlReader.Create(this._stream))
+            {
+                while (reader.Read())
+                {
+                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "SpectrumIdentificationList")
+                        break;
+
+                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "SpectrumIdentificationResult")
+                    {
+                        yield return this.ParseSpectrumIdentificationResult(reader);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<MzIdentMlProteinAmbiguityGroup> ParseProteinDetectList(XmlReader reader)
         {
             while (reader.Read())
             {
@@ -316,7 +340,7 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "ProteinAmbiguityGroup")
                 {
-                    yield return new ProteinAmbiguityGroup
+                    yield return new MzIdentMlProteinAmbiguityGroup
                     {
                         Id = reader.GetAttribute("id"),
                         ProteinDetectionHypotheses = this.ParseProteinDetectionHypotheses(reader).ToList()
@@ -325,7 +349,7 @@ namespace TopDownProteomics.IO.MzIdentML
             }
         }
 
-        private IEnumerable<ProteinDetectionHypothesis> ParseProteinDetectionHypotheses(XmlReader reader)
+        private IEnumerable<MzIdentMlProteinDetectionHypothesis> ParseProteinDetectionHypotheses(XmlReader reader)
         {
             while (reader.Read())
             {
@@ -334,7 +358,7 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "ProteinDetectionHypothesis")
                 {
-                    yield return new ProteinDetectionHypothesis
+                    yield return new MzIdentMlProteinDetectionHypothesis
                     {
                         Id = reader.GetAttribute("id"),
                         DatabaseSequenceId = reader.GetAttribute("dBSequence_ref"),
@@ -345,9 +369,9 @@ namespace TopDownProteomics.IO.MzIdentML
             }
         }
 
-        private PeptideHypothesis ParsePeptideHypothesis(XmlReader reader)
+        private MzIdentMlPeptideHypothesis ParsePeptideHypothesis(XmlReader reader)
         {
-            var peptideHypothesis = new PeptideHypothesis();
+            var peptideHypothesis = new MzIdentMlPeptideHypothesis();
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "ProteinDetectionHypothesis")
@@ -355,21 +379,13 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element)
                 {
-                    switch (reader.Name)
+                    if (reader.Name == "PeptideHypothesis")
+                        peptideHypothesis.PeptideEvidenceId = reader.GetAttribute("peptideEvidence_ref");
+                    else if (reader.Name == "SpectrumIdentificationItemRef")
+                        peptideHypothesis.PeptideEvidenceId = reader.GetAttribute("peptideEvidence_ref");
+                    else if (reader.Name == "cvParam" || reader.Name == "userParam")
                     {
-                        case "PeptideHypothesis":
-                            peptideHypothesis.PeptideEvidenceId = reader.GetAttribute("peptideEvidence_ref");
-                            break;
-                        case "SpectrumIdentificationItemRef":
-                            peptideHypothesis.SpectrumIdentificationItemId = reader.GetAttribute("spectrumIdentificationItem_ref");
-                            break;
-                        case "cvParam":
-                            var cvParam = new CvParam();
-                            this.AddCvParam(cvParam, reader);
-                            peptideHypothesis.CvParams.Add(cvParam);
-                            break;
-                        default:
-                            break;
+                        peptideHypothesis.Parameters.Add(this.GetParam(reader));
                     }
                 }
             }
@@ -377,9 +393,9 @@ namespace TopDownProteomics.IO.MzIdentML
             return peptideHypothesis;
         }
 
-        private SpectrumIdentificationResult ParseSpectrumIdentificationResult(XmlReader reader)
+        private MzIdentMlSpectrumIdentificationResult ParseSpectrumIdentificationResult(XmlReader reader)
         {
-            var spectrumIdResult = new SpectrumIdentificationResult
+            var spectrumIdResult = new MzIdentMlSpectrumIdentificationResult
             {
                 Id = reader.GetAttribute("id"),
                 SpectrumId = reader.GetAttribute("spectrumID"),
@@ -395,20 +411,18 @@ namespace TopDownProteomics.IO.MzIdentML
                     spectrumIdResult.SpectrumIdentificationItems.Add(this.ParseSpectrumIdentificationItem(reader));
                 }
 
-                if (reader.NodeType == XmlNodeType.Element && reader.Name == "cvParam")
+                if (reader.NodeType == XmlNodeType.Element && (reader.Name == "cvParam" || reader.Name == "userParam"))
                 {
-                    var cvParam = new CvParam();
-                    this.AddCvParam(cvParam, reader);
-                    spectrumIdResult.CvParams.Add(cvParam);
+                    spectrumIdResult.Parameters.Add(this.GetParam(reader));
                 }
             }
 
             return spectrumIdResult;
         }
 
-        private SpectrumIdentificationItem ParseSpectrumIdentificationItem(XmlReader reader)
+        private MzIdentMlSpectrumIdentificationItem ParseSpectrumIdentificationItem(XmlReader reader)
         {
-            var spectrumIdItem = new SpectrumIdentificationItem
+            var spectrumIdItem = new MzIdentMlSpectrumIdentificationItem
             {
                 Id = reader.GetAttribute("id"),
                 CalculatedMz = Convert.ToDouble(reader.GetAttribute("calculatedMassToCharge")),
@@ -424,31 +438,24 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element)
                 {
-                    switch (reader.Name)
+                    if (reader.Name == "PeptideEvidenceRef")
+                        spectrumIdItem.PeptideEvidenceIds.Add(reader.GetAttribute("peptideEvidence_ref"));
+                    else if (reader.Name == "IonType")
+                        spectrumIdItem.IonTypes.Add(this.ParseIonType(reader));
+                    else if (reader.Name == "cvParam" || reader.Name == "userParam")
                     {
-                        case "PeptideEvidenceRef":
-                            spectrumIdItem.PeptideEvidenceIds.Add(reader.GetAttribute("peptideEvidence_ref"));
-                            break;
-                        case "IonType":
-                            spectrumIdItem.IonTypes.Add(this.ParseIonType(reader));
-                            break;
-                        case "cvParam":
-                            var cvParam = new CvParam();
-                            this.AddCvParam(cvParam, reader);
-                            spectrumIdItem.CvParams.Add(cvParam);
-                            break;
-                        default:
-                            break;
+                        spectrumIdItem.Parameters.Add(this.GetParam(reader));
                     }
                 }
             }
+
             return spectrumIdItem;
         }
 
-        private IonType ParseIonType(XmlReader reader)
+        private MzIdentMlIonType ParseIonType(XmlReader reader)
         {
             int[] indices = reader.GetAttribute("index").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(x => Convert.ToInt32(x)).ToArray();
-            var ionType = new IonType()
+            var ionType = new MzIdentMlIonType()
             {
                 Indices = new int[indices.Length],
                 Charge = Convert.ToInt32(reader.GetAttribute("charge"))
@@ -483,9 +490,7 @@ namespace TopDownProteomics.IO.MzIdentML
 
                     else if (reader.Name == "cvParam")
                     {
-                        var cvParam = new CvParam();
-                        this.AddCvParam(cvParam, reader);
-                        ionType.CvParams.Add(cvParam);
+                        ionType.Parameters.Add(this.GetParam(reader));
                     }
                 }
             }
@@ -499,9 +504,9 @@ namespace TopDownProteomics.IO.MzIdentML
             return stringArray.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries).Select(x => Convert.ToDouble(x)).ToArray();
         }
 
-        private SpectraData ParseInputSpectraData(XmlReader reader)
+        private MzIdentMlSpectraData ParseInputSpectraData(XmlReader reader)
 		{
-            var spectraData = new SpectraData
+            var spectraData = new MzIdentMlSpectraData
             {
                 Id = reader.GetAttribute("id"),
                 Location = reader.GetAttribute("location")
@@ -513,19 +518,20 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "FileFormat")
                 {
-                    spectraData.FileFormat = this.GetChildNodeCvParams(reader, "FileFormat").First();
+                    spectraData.FileFormat = this.GetChildNodeParams(reader, "FileFormat").First();
                 }
                 else if (reader.NodeType == XmlNodeType.Element && reader.Name == "SpectrumIDFormat")
                 {
-                    spectraData.SpectrumIdFormat = this.GetChildNodeCvParams(reader, "SpectrumIDFormat").First();
+                    spectraData.SpectrumIdFormat = this.GetChildNodeParams(reader, "SpectrumIDFormat").First();
                 }
             }
+
             return spectraData;
         }
 
-		private SearchDatabase ParseSearchDatabase(XmlReader reader)
+		private MzIdentMlSearchDatabase ParseSearchDatabase(XmlReader reader)
 		{
-            var inputDatabase = new SearchDatabase
+            var inputDatabase = new MzIdentMlSearchDatabase
             {
                 Id = reader.GetAttribute("id"),
                 Location = reader.GetAttribute("location"),
@@ -540,29 +546,22 @@ namespace TopDownProteomics.IO.MzIdentML
                 {
                     if (reader.Name == "FileFormat")
                     {
-                        inputDatabase.FileFormat = this.GetChildNodeCvParams(reader, "FileFormat").First();
+                        inputDatabase.FileFormat = this.GetChildNodeParams(reader, "FileFormat").First();
                     }
 
-                    else if (reader.Name == "DatabaseName")
+                    else if (reader.Name == "cvParam" || reader.Name == "userParam")
                     {
-                        inputDatabase.DatabaseName = this.GetChildNodeUserParams(reader, "DatabaseName").First();
+                        inputDatabase.DatabaseParams.Add(this.GetParam(reader));
                     }
-
-                    else if (reader.Name == "cvParam")
-                    {
-                        var cvParam = new CvParam();
-                        this.AddCvParam(cvParam, reader);
-                        inputDatabase.DatabaseParams.Add(cvParam);
-                    }
-                }
-                
+                }   
             }
+
             return inputDatabase;
         }
 
-		private SourceFile ParseSourceFile(XmlReader reader)
+		private MzIdentMlSourceFile ParseSourceFile(XmlReader reader)
 		{
-            var sourceFile = new SourceFile
+            var sourceFile = new MzIdentMlSourceFile
             {
                 Id = reader.GetAttribute("id"),
                 Location = reader.GetAttribute("location")
@@ -574,15 +573,16 @@ namespace TopDownProteomics.IO.MzIdentML
 
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "FileFormat")
                 {
-                    sourceFile.FileFormat = this.GetChildNodeCvParams(reader, "FileFormat").First();
+                    sourceFile.FileFormat = this.GetChildNodeParams(reader, "FileFormat").First();
                 }
             }
+
             return sourceFile;
         }
 
-        private ProteinDetectionProtocol ParseProteinDetectionProtocol(XmlReader reader)
+        private MzIdentMlProteinDetectionProtocol ParseProteinDetectionProtocol(XmlReader reader)
 		{
-            var protocol = new ProteinDetectionProtocol
+            var protocol = new MzIdentMlProteinDetectionProtocol
             {
                 Id = reader.GetAttribute("id"),
                 SoftwareId = reader.GetAttribute("analysisSoftware_ref")
@@ -597,10 +597,10 @@ namespace TopDownProteomics.IO.MzIdentML
                     switch (reader.Name)
                     {
                         case ("AnalysisParams"):
-                            protocol.AnalysisParams = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.AnalysisParams = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
                         case ("Threshold"):
-                            protocol.Thresholds = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.Thresholds = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
                         default:
                             break;
@@ -611,9 +611,9 @@ namespace TopDownProteomics.IO.MzIdentML
             return protocol;
         }
 
-		private SpectrumIdentificationProtocol ParseSpectrumIdentificationProtocol(XmlReader reader)
+		private MzIdentMlSpectrumIdentificationProtocol ParseSpectrumIdentificationProtocol(XmlReader reader)
         {
-            var protocol = new SpectrumIdentificationProtocol
+            var protocol = new MzIdentMlSpectrumIdentificationProtocol
             {
                 Id = reader.GetAttribute("id"),
                 SoftwareId = reader.GetAttribute("analysisSoftware_ref")
@@ -628,22 +628,22 @@ namespace TopDownProteomics.IO.MzIdentML
                     switch (reader.Name)
                     {
                         case ("SearchType"):
-                            protocol.SearchTypes = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.SearchTypes = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
                         case ("AdditionalSearchParams"):
-                            protocol.SearchParams = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.SearchParams = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
 						case ("FragmentTolerance"):
-							protocol.FragmentTolerances = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+							protocol.FragmentTolerances = this.GetChildNodeParams(reader, reader.Name).ToList();
 							break;
 						case ("ParentTolerance"):
-							protocol.PrecursorTolerances = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+							protocol.PrecursorTolerances = this.GetChildNodeParams(reader, reader.Name).ToList();
 							break;
 						case ("Threshold"):
-                            protocol.Thresholds = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.Thresholds = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
                         case ("DatabaseFilters"):
-                            protocol.DatabaseFilterParams = this.GetChildNodeCvParams(reader, reader.Name).ToList();
+                            protocol.DatabaseFilterParams = this.GetChildNodeParams(reader, reader.Name).ToList();
                             break;
                         default:
                             break;
@@ -654,69 +654,35 @@ namespace TopDownProteomics.IO.MzIdentML
             return protocol;
         }
 
-        private IEnumerable<CvParam> GetChildNodeCvParams(XmlReader reader, string endElementName)
+        private IEnumerable<MzIdentMlParam> GetChildNodeParams(XmlReader reader, string endElementName)
         {
 			while (reader.Read())
 			{
 				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == endElementName)
 					break;
 
-				if (reader.NodeType == XmlNodeType.Element && reader.Name == "cvParam")
+				if (reader.NodeType == XmlNodeType.Element && (reader.Name == "cvParam" || reader.Name == "userParam"))
 				{
-                    var cvParam = new CvParam();
-                    this.AddCvParam(cvParam, reader);
-                    yield return cvParam;
+                    yield return this.GetParam(reader);
 				}
 			}
         }
 
-        private void AddCvParam(ICvParam param, XmlReader reader)
+        private MzIdentMlParam GetParam(XmlReader reader)
         {
-            param.Name = reader.GetAttribute("name");
-            param.Value = reader.GetAttribute("value");
-            param.Accession = reader.GetAttribute("accession");
-
-            if (param is CvUnitParam)
+            return new MzIdentMlParam
             {
-                (param as CvUnitParam).UnitAccession = reader.GetAttribute("unitAccession");
-                (param as CvUnitParam).UnitName = reader.GetAttribute("unitName");
-            }
+                Name = reader.GetAttribute("name"),
+                Value = reader.GetAttribute("value"),
+                Accession = reader.GetAttribute("accession"),
+                UnitAccession = reader.GetAttribute("unitAccession"),
+                UnitName = reader.GetAttribute("unitName")
+            };
         }
 
-        private IEnumerable<UserParam> GetChildNodeUserParams(XmlReader reader, string endElementName)
+        private MzIdentMlPeptideEvidence ParsePeptideEvidences(XmlReader reader)
         {
-            while (reader.Read())
-            {
-                if (reader.NodeType == XmlNodeType.EndElement && reader.Name == endElementName)
-                    break;
-
-                if (reader.NodeType == XmlNodeType.Element && (reader.Name == "userParam"))
-                {
-                    var userParam = new UserParam();
-                    this.AddParam(userParam, reader);
-                    yield return userParam;
-                }
-            }
-        }
-
-        private void AddParam(IUserParam param, XmlReader reader)
-        {
-            param.Name = reader.GetAttribute("name");
-            param.Value = reader.GetAttribute("value");
-
-            if (param is ICvParam)
-                (param as ICvParam).Accession = reader.GetAttribute("accession");
-
-            if (param is CvUnitParam)
-            {
-                (param as CvUnitParam).UnitAccession = reader.GetAttribute("unitAccession");
-                (param as CvUnitParam).UnitName = reader.GetAttribute("unitName");
-            }
-        }
-
-        private PeptideEvidence ParseProteoformEvidence(XmlReader reader)
-        {
-            return new PeptideEvidence
+            return new MzIdentMlPeptideEvidence
             {
                 Id = reader.GetAttribute("id"),
                 Start = Convert.ToInt32(reader.GetAttribute("start")),
@@ -729,9 +695,9 @@ namespace TopDownProteomics.IO.MzIdentML
             };
         }
 
-        private Peptide ParseProteoform(XmlReader reader)
+        private MzIdentMlPeptide ParsePeptide(XmlReader reader)
         {
-            var proteoform = new Peptide
+            var peptide = new MzIdentMlPeptide
             {
                 Id = reader.GetAttribute("id")
             };
@@ -742,40 +708,41 @@ namespace TopDownProteomics.IO.MzIdentML
                 if (reader.NodeType == XmlNodeType.Element)
                 {
                     if (reader.Name == "PeptideSequence")
-                        proteoform.Sequence = reader.ReadInnerXml();
+                        peptide.Sequence = reader.ReadInnerXml();
                     else if (reader.Name == "Modification")
-                        proteoform.Modifications.Add(this.ParseModification(reader));
+                        peptide.Modifications.Add(this.ParseModification(reader));
                 }
             }
 
-            proteoform.CreateProForma();
-            return proteoform;
+            return peptide;
         }
 
-        private Modification ParseModification(XmlReader reader)
+        private MzIdentMlModification ParseModification(XmlReader reader)
         {
-            var oneBasedLocationIndex = Convert.ToInt32(reader.GetAttribute("location"));
-            var monoisotopicMassDelta = Convert.ToDouble(reader.GetAttribute("monoisotopicMassDelta"));
-            var cvParams = new List<CvParam>();
+            var modification = new MzIdentMlModification
+            {
+                Location = Convert.ToInt32(reader.GetAttribute("location")),
+                MonoisotopicMassDelta = Convert.ToDouble(reader.GetAttribute("monoisotopicMassDelta")),
+            };
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "Modification")
                     break;
 
-                if (reader.NodeType == XmlNodeType.Element && reader.Name == "cvParam")
+                else if (reader.NodeType == XmlNodeType.Element && reader.Name == "cvParam")
                 {
-                    var cvParam = new CvParam();
-                    this.AddCvParam(cvParam, reader);
-                    cvParams.Add(cvParam);
+                    modification.Accession = reader.GetAttribute("accession");
+                    modification.Name = reader.GetAttribute("name");
+                    modification.Reference = reader.GetAttribute("cvRef");
                 }
-                    
             }
-            return new Modification(oneBasedLocationIndex, monoisotopicMassDelta, cvParams);
+
+            return modification;
         }
 
-        private DatabaseSequence ParseDatabaseSequence(XmlReader reader)
+        private MzIdentMlDatabaseSequence ParseDatabaseSequence(XmlReader reader)
         {
-            var sequence = new DatabaseSequence
+            var sequence = new MzIdentMlDatabaseSequence
             {
                 Id = reader.GetAttribute("id"),
                 Length = Convert.ToInt32(reader.GetAttribute("length")),
@@ -817,9 +784,9 @@ namespace TopDownProteomics.IO.MzIdentML
             return sequence;
         }
 
-        private AnalysisSoftware ParseAnalysisSoftware(XmlReader reader)
+        private MzIdentMlAnalysisSoftware ParseAnalysisSoftware(XmlReader reader)
         {
-            return new AnalysisSoftware
+            return new MzIdentMlAnalysisSoftware
 			{
 				Id = reader.GetAttribute("id"),
 				Name = reader.GetAttribute("name"),

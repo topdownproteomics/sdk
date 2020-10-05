@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace TopDownProteomics.IO.MzIdentML.Models
+namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to the SpectrumIdentificationProtocol element
-    /// </summary>
-    public class SpectrumIdentificationProtocol
+	/// <summary>
+	/// Corresponds to the SpectrumIdentificationProtocol element
+	/// </summary>
+	public class MzIdentMlSpectrumIdentificationProtocol
     {
         /// <summary>
         /// Gets and sets the id
@@ -22,31 +20,31 @@ namespace TopDownProteomics.IO.MzIdentML.Models
         /// <summary>
         /// Gets and sets the search types
         /// </summary>
-        public List<CvParam> SearchTypes { get; set; }
+        public List<MzIdentMlParam> SearchTypes { get; set; }
 
         /// <summary>
         /// Gets and sets the search params
         /// </summary>
-        public List<CvParam> SearchParams { get; set; } = new List<CvParam>();
+        public List<MzIdentMlParam> SearchParams { get; set; } = new List<MzIdentMlParam>();
 
         /// <summary>
         /// Gets and sets the database filter params
         /// </summary>
-        public List<CvParam> DatabaseFilterParams { get; set; } = new List<CvParam>();
+        public List<MzIdentMlParam> DatabaseFilterParams { get; set; } = new List<MzIdentMlParam>();
 
         /// <summary>
         /// Gets and sets the fragment tolerances
         /// </summary>
-        public List<CvParam> FragmentTolerances { get; set; }
+        public List<MzIdentMlParam> FragmentTolerances { get; set; }
 
         /// <summary>
         /// Gets and sets the precursor tolerances
         /// </summary>
-        public List<CvParam> PrecursorTolerances { get; set; }
+        public List<MzIdentMlParam> PrecursorTolerances { get; set; }
 
         /// <summary>
-        /// Gets and sets the  thresholds
+        /// Gets and sets the thresholds
         /// </summary>
-        public List<CvParam> Thresholds { get; set; }
+        public List<MzIdentMlParam> Thresholds { get; set; }
     }
 }
