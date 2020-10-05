@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using TopDownProteomics.Chemistry;
-using TopDownProteomics.IO.MzIdentMl;
 using TopDownProteomics.Tools;
+using UsefulProteomicsDatabases;
 using UWMadison.Chemistry;
 
 namespace TopDownProteomics.Benchmarks
@@ -15,30 +14,9 @@ namespace TopDownProteomics.Benchmarks
 
         private static void Main(string[] args)
         {
-            //PeriodicTableLoader.Load("elements.dat");
+            PeriodicTableLoader.Load("elements.dat");
 
-            //BenchmarkIsotopicEvelopeGeneration();
-            ParseMzIdentML();
-        }
-
-        private static void ParseMzIdentML()
-        {
-            using (var reader = new MzIdentMlParser(@"D:\mzid_samples\golden_new.mzid"))
-            {
-                //var reader = new MzidentmlReader(@"D:\mzid_samples\mouse_dataset_combination.pia.1.2.mzid");
-                var databaseSequences = reader.GetDatabaseSequences().ToList();
-                var proteoforms = reader.GetPeptides().ToList() ;
-                var software = reader.GetAnalysisSoftware().ToList();
-                var evidences = reader.GetPeptideEvidences().ToList();
-                var rews = reader.GetSpectrumIdentificationProtocols().ToList();
-                var pips = reader.GetProteinDetectionProtocols().ToList();
-                var inputs = reader.GetInputs();
-                var fragTable = reader.GetFragmentationMeasures().ToList();
-                var spectrumIds = reader.GetSpectrumIdentificationItems().ToList();
-                var proteinDetections = reader.GetProteinDetectionList();
-
-                IEnumerable<MzIdentMlSpectrumIdentificationItem> spectrumIdsWithProteoform = reader.GetSpectrumIdentificationItems().ToList();
-            }
+            BenchmarkIsotopicEvelopeGeneration();
         }
 
         private static void BenchmarkIsotopicEvelopeGeneration()
