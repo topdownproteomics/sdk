@@ -8,14 +8,35 @@ namespace TopDownProteomics.IO.MzIdentMl
 	public class MzIdentMlProteinAmbiguityGroup
 	{
 		/// <summary>
-		/// Gets and sets the id
+		/// Instantiates with schema-required parameters
 		/// </summary>
-		public string Id { get; set; }
+		/// <param name="id"></param>
+		/// <param name="proteinDetectionHypotheses"></param>
+		public MzIdentMlProteinAmbiguityGroup(string id, List<MzIdentMlProteinDetectionHypothesis> proteinDetectionHypotheses)
+		{
+			this.Id = id;
+			this.ProteinDetectionHypotheses = proteinDetectionHypotheses;
+		}
+
+		/// <summary>
+		/// Gets the id
+		/// </summary>
+		public string Id { get; }
 
 		/// <summary>
 		/// Gets and sets the protein detection hypotheses
 		/// </summary>
-		public List<MzIdentMlProteinDetectionHypothesis> ProteinDetectionHypotheses { get; set; }
+		public List<MzIdentMlProteinDetectionHypothesis> ProteinDetectionHypotheses { get; }
+
+		/// <summary>
+		/// Gets and sets the cvParams
+		/// </summary>
+		public List<MzIdentMlCvParam>? CvParams { get; set; }
+
+		/// <summary>
+		/// Gets and sets the userParams
+		/// </summary>
+		public List<MzIdentMlUserParam>? UserParams { get; set; }
 
 
 	}

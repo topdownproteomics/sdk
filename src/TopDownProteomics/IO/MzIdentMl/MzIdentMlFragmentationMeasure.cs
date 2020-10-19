@@ -1,18 +1,28 @@
 ﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
-	/// Corresponds to Measure elements
+	/// Corresponds to Measure elements within the FragmentationTable
 	/// </summary>
 	public class MzIdentMlFragmentationMeasure
 	{
 		/// <summary>
-		/// Gets and sets the Id
+		/// Instantiates with required id and cvParam
 		/// </summary>
-		public string Id { get; set; }
+		/// <param name="id">The id</param>
+		/// <param name="cvParam">The cvParam</param>
+		public MzIdentMlFragmentationMeasure(string id, MzIdentMlCvParam cvParam)
+		{
+			this.Id = id;
+			this.Measure = cvParam;
+		}
+		/// <summary>
+		/// Gets the Id
+		/// </summary>
+		public string Id { get; }
 
 		/// <summary>
-		/// Gets and sets the measure
+		/// Gets the measure
 		/// </summary>
-		public MzIdentMlParam Measure { get; set; }
+		public MzIdentMlCvParam Measure { get; }
 	}
 }

@@ -8,9 +8,25 @@ namespace TopDownProteomics.IO.MzIdentMl
 	public class MzIdentMlIonType
 	{
 		/// <summary>
+		/// Instantiates with required cvParams
+		/// </summary>
+		/// <param name="cvParams"></param>
+		/// <param name="charge"></param>
+		public MzIdentMlIonType(List<MzIdentMlCvParam> cvParams, int charge)
+		{
+			this.CvParams = cvParams;
+			this.Charge = charge;
+		}
+
+		/// <summary>
+		/// Gets the cvParams
+		/// </summary>
+		public List<MzIdentMlCvParam> CvParams { get; }
+
+		/// <summary>
 		/// Gets and sets the indices
 		/// </summary>
-		public int[] Indices { get; set; }
+		public int[]? Indices { get; set; }
 
 		/// <summary>
 		/// Gets and sets the charge
@@ -18,23 +34,13 @@ namespace TopDownProteomics.IO.MzIdentMl
 		public int Charge { get; set; }
 
 		/// <summary>
-		/// Gets and sets the m/z's
+		/// Gets and sets the fragment arrays
 		/// </summary>
-		public double[] Mzs { get; set; }
+		public List<MzIdentMlFragmentArray>? FragmentArrays { get; set; }
 
 		/// <summary>
-		/// Gets and sets the intensities
+		/// Gets the userParams
 		/// </summary>
-		public double[] Intensities { get; set; }
-
-		/// <summary>
-		/// Gets and sets the m/z error
-		/// </summary>
-		public double[] MzError { get; set; }
-
-		/// <summary>
-		/// Gets and sets the parameters
-		/// </summary>
-		public List<MzIdentMlParam> Parameters { get; set; } = new List<MzIdentMlParam>();
+		public List<MzIdentMlUserParam>? UserParams { get; set; }
 	}
 }

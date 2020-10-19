@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TopDownProteomics.IO.MzIdentMl
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the ProteinDetectionProtocol element
@@ -8,23 +6,41 @@ namespace TopDownProteomics.IO.MzIdentMl
 	public class MzIdentMlProteinDetectionProtocol
 	{
 		/// <summary>
-		/// Gets and sets the id
+		/// Instantiates with required parameters
 		/// </summary>
-		public string Id { get; set; }
+		/// <param name="id"></param>
+		/// <param name="softwareId"></param>
+		/// <param name="thresholds"></param>
+		public MzIdentMlProteinDetectionProtocol(string id, string softwareId, MzIdentMlParamCollection thresholds)
+		{
+			this.Id = id;
+			this.SoftwareId = softwareId;
+			this.Thresholds = thresholds;
+		}
 
 		/// <summary>
-		/// Gets and sets the software id
+		/// Gets the id
 		/// </summary>
-		public string SoftwareId { get; set; }
+		public string Id { get; }
 
 		/// <summary>
-		/// Gets and sets the analysis parameters
+		/// Gets the software id
 		/// </summary>
-		public List<MzIdentMlParam> AnalysisParams { get; set; }
+		public string SoftwareId { get; }
 
 		/// <summary>
 		/// Gets and sets the thresholds
 		/// </summary>
-		public List<MzIdentMlParam> Thresholds { get; set; }
+		public MzIdentMlParamCollection Thresholds { get; set; }
+
+		/// <summary>
+		/// Gets and sets the name
+		/// </summary>
+		public string? Name { get; set; }
+
+		/// <summary>
+		/// Gets and sets the analysis parameters
+		/// </summary>
+		public MzIdentMlParamCollection? AnalysisParams { get; set; }
 	}
 }

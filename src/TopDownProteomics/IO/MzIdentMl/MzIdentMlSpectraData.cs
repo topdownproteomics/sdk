@@ -6,23 +6,36 @@
 	public class MzIdentMlSpectraData
 	{
 		/// <summary>
-		/// Gets and sets the id
+		/// Instantiates with required parameters
 		/// </summary>
-		public string Id { get; set; }
+		/// <param name="id"></param>
+		/// <param name="location"></param>
+		/// <param name="spectrumIdFormat"></param>
+		public MzIdentMlSpectraData(string id, string location, MzIdentMlCvParam spectrumIdFormat)
+		{
+			this.Id = id;
+			this.Location = location;
+			this.SpectrumIdFormat = spectrumIdFormat;
+		}
 
 		/// <summary>
-		/// Gets and sets the location
+		/// Gets the id
 		/// </summary>
-		public string Location { get; set; }
+		public string Id { get; }
+
+		/// <summary>
+		/// Gets the location
+		/// </summary>
+		public string Location { get; }
 
 		/// <summary>
 		/// Gets and sets the file format
 		/// </summary>
-		public MzIdentMlParam FileFormat { get; set; }
+		public MzIdentMlCvParam? FileFormat { get; set; }
 
 		/// <summary>
-		/// Gets and sets the spectrum id format
+		/// Gets the spectrum id format
 		/// </summary>
-		public MzIdentMlParam SpectrumIdFormat { get; set; }
+		public MzIdentMlCvParam SpectrumIdFormat { get; }
 	}
 }

@@ -1,4 +1,6 @@
-﻿namespace TopDownProteomics.IO.MzIdentMl
+﻿using System.Collections.Generic;
+
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to Inputs element
@@ -6,18 +8,27 @@
 	public class MzIdentMlInputs
 	{
 		/// <summary>
-		/// Gets and sets the sourcefile
+		/// Instantiates with required spectra data
 		/// </summary>
-		public MzIdentMlSourceFile SourceFile { get; set; }
+		/// <param name="spectraData"></param>
+		public MzIdentMlInputs(MzIdentMlSpectraData spectraData)
+		{
+			this.SpectraData = spectraData;
+		}
 
 		/// <summary>
-		/// Gets and sets the search database
+		/// Gets the spectradata
 		/// </summary>
-		public MzIdentMlSearchDatabase SearchDatabase { get; set; }
+		public MzIdentMlSpectraData SpectraData { get; }
 
 		/// <summary>
-		/// Gets and sets the spectradata
+		/// Gets and sets the sourcefiles
 		/// </summary>
-		public MzIdentMlSpectraData SpectraData { get; set; }
+		public List<MzIdentMlSourceFile>? SourceFiles { get; set; }
+
+		/// <summary>
+		/// Gets and sets the search databases
+		/// </summary>
+		public List<MzIdentMlSearchDatabase>? SearchDatabases { get; set; }
 	}
 }

@@ -1,4 +1,6 @@
-﻿namespace TopDownProteomics.IO.MzIdentMl
+﻿using System.Collections.Generic;
+
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the ProteinDetectionHypothesis element
@@ -6,23 +8,48 @@
 	public class MzIdentMlProteinDetectionHypothesis
 	{
 		/// <summary>
-		/// Gets and sets the id
+		/// Instantiates with schema-required parameters
 		/// </summary>
-		public string Id { get; set; }
+		/// <param name="id"></param>
+		/// <param name="databaseSequenceId"></param>
+		/// <param name="passesThreshold"></param>
+		/// <param name="peptideHypotheses"></param>
+		public MzIdentMlProteinDetectionHypothesis(string id, string databaseSequenceId, bool passesThreshold, List<MzIdentMlPeptideHypothesis> peptideHypotheses)
+		{
+			this.Id = id;
+			this.DatabaseSequenceId = databaseSequenceId;
+			this.PassesThreshold = passesThreshold;
+			this.PeptideHypotheses = peptideHypotheses;
+		}
 
 		/// <summary>
-		/// Gets and sets the database sequence ids
+		/// Gets the id
 		/// </summary>
-		public string DatabaseSequenceId { get; set; }
+		public string Id { get; }
 
 		/// <summary>
-		/// Gets and sets the passes threshold flag
+		/// Gets the database sequence ids
 		/// </summary>
-		public bool PassesThreshold { get; set; }
+		public string DatabaseSequenceId { get; }
 
 		/// <summary>
-		/// Gets and sets the peptide hypothesis
+		/// Gets the passes threshold flag
 		/// </summary>
-		public MzIdentMlPeptideHypothesis PeptideHypothesis { get; set; }
+		public bool PassesThreshold { get; }
+
+		/// <summary>
+		/// Gets the peptide hypotheses
+		/// </summary>
+		public List<MzIdentMlPeptideHypothesis> PeptideHypotheses { get; }
+
+		/// <summary>
+		/// Gets and sets the cvParams
+		/// </summary>
+		public List<MzIdentMlCvParam>? CvParams { get; set; }
+
+		/// <summary>
+		/// Gets and sets the userParams
+		/// </summary>
+		public List<MzIdentMlUserParam>? UserParams { get; set; }
 	}
 }

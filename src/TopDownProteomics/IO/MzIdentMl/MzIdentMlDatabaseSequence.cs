@@ -1,4 +1,6 @@
-﻿namespace TopDownProteomics.IO.MzIdentMl
+﻿using System.Collections.Generic;
+
+namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the DBSequence element
@@ -6,43 +8,51 @@
 	public class MzIdentMlDatabaseSequence
     {
         /// <summary>
-        /// Gets and sets the Id
+        /// Instantiates with the required parameters
         /// </summary>
-        public string Id { get; set; }
+        /// <param name="id"></param>
+        /// <param name="accession"></param>
+        /// <param name="searchDatabaseId"></param>
+		public MzIdentMlDatabaseSequence(string id, string accession, string searchDatabaseId)
+		{
+            this.Id = id;
+            this.Accession = accession;
+            this.SearchDatabaseId = searchDatabaseId;
+		}
 
         /// <summary>
-        /// Gets and sets the length
+        /// Gets and sets the Id
         /// </summary>
-        public int Length { get; set; }
+        public string Id { get; }
 
         /// <summary>
         /// Gets and sets the search database Id
         /// </summary>
-        public string SearchDatabaseId { get; set; }
+        public string SearchDatabaseId { get; }
 
         /// <summary>
         /// Gets and sets the accession
         /// </summary>
-        public string Accession { get; set; }
+        public string Accession { get; }
+
+        /// <summary>
+        /// Gets and sets the length
+        /// </summary>
+        public int? Length { get; set; }
 
         /// <summary>
         /// Gets and sets the sequence
         /// </summary>
-        public string Sequence { get; set; }
+        public string? Sequence { get; set; }
 
         /// <summary>
-        /// Gets and sets the protein description
+        /// Gets and sets the cvParams
         /// </summary>
-        public string ProteinDescription { get; set; }
+		public List<MzIdentMlCvParam>? CvParams { get; set; }
 
         /// <summary>
-        /// Gets and sets the taxonomy scientific name
+        /// Gets and sets the userParams
         /// </summary>
-        public string TaxonomyScientificName { get; set; }
-
-        /// <summary>
-        /// Gets and sets the taxonomy id
-        /// </summary>
-        public int TaxonomyId { get; set; }
-    }
+		public List<MzIdentMlUserParam>? UserParams { get; set; }
+	}
 }

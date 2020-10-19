@@ -2,34 +2,55 @@
 
 namespace TopDownProteomics.IO.MzIdentMl
 {
-    /// <summary>
-    /// Corresponds to the Peptide element
-    /// </summary>
-    public class MzIdentMlPeptide
+	/// <summary>
+	/// Corresponds to the Peptide element
+	/// </summary>
+	public class MzIdentMlPeptide
     {
-        /// <summary>
-        /// Gets and sets the id
-        /// </summary>
-        public string Id { get; set; }
+		/// <summary>
+		/// Instantiates with required parameters
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="sequence"></param>
+		public MzIdentMlPeptide(string id, string sequence)
+		{
+            this.Id = id;
+            this.Sequence = sequence;
+        }
 
         /// <summary>
-        /// Gets and sets the sequence
+        /// Gets the id
         /// </summary>
-        public string Sequence { get; set; }
+        public string Id { get; }
+
+        /// <summary>
+        /// Gets the sequence
+        /// </summary>
+        public string Sequence { get; }
+
+        /// <summary>
+        /// Gets and sets the database sequences
+        /// </summary>
+        public List<MzIdentMlDatabaseSequence>? DatabaseSequences { get; set; }
+
+        /// <summary>
+        /// Gets and sets the peptide evidences
+        /// </summary>
+        public List<MzIdentMlPeptideEvidence>? PeptideEvidences { get; set; }
 
         /// <summary>
         /// Gets and sets the modifications
         /// </summary>
-        public List<MzIdentMlModification> Modifications { get; set; } = new List<MzIdentMlModification>();
+        public List<MzIdentMlModification>? Modifications { get; set; }
 
         /// <summary>
-        /// gets and sets the database sequence
+        /// Gets and sets the cvParams
         /// </summary>
-        public MzIdentMlDatabaseSequence DatabaseSequence { get; set; }
+		public List<MzIdentMlCvParam>? CvParams { get; set; }
 
         /// <summary>
-        /// gets and sets the peptide evidence
+        /// Gets and sets the user params
         /// </summary>
-        public MzIdentMlPeptideEvidence PeptideEvidence { get; set; }
+        public List<MzIdentMlUserParam>? UserParams { get; set; }
     }
 }

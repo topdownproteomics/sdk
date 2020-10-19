@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TopDownProteomics.IO.MzIdentMl
+﻿namespace TopDownProteomics.IO.MzIdentMl
 {
 	/// <summary>
 	/// Corresponds to the SpectrumIdentificationProtocol element
@@ -8,43 +6,57 @@ namespace TopDownProteomics.IO.MzIdentMl
 	public class MzIdentMlSpectrumIdentificationProtocol
     {
         /// <summary>
+        /// Instantiates with required parameters
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="softwareId"></param>
+        /// <param name="searchType"></param>
+        /// <param name="thresholds"></param>
+		public MzIdentMlSpectrumIdentificationProtocol(string id, string softwareId, MzIdentMlCvOrUserParam searchType, MzIdentMlParamCollection thresholds)
+		{
+            this.Id = id;
+            this.SoftwareId = softwareId;
+            this.SearchType = searchType;
+            this.Thresholds = thresholds;
+		}
+        /// <summary>
         /// Gets and sets the id
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; }
 
         /// <summary>
         /// Gets and sets the software id
         /// </summary>
-        public string SoftwareId { get; set; }
+        public string SoftwareId { get; }
 
         /// <summary>
-        /// Gets and sets the search types
+        /// Gets and sets the search type
         /// </summary>
-        public List<MzIdentMlParam> SearchTypes { get; set; }
+        public MzIdentMlCvOrUserParam SearchType { get; }
 
         /// <summary>
         /// Gets and sets the search params
         /// </summary>
-        public List<MzIdentMlParam> SearchParams { get; set; } = new List<MzIdentMlParam>();
+        public MzIdentMlParamCollection? SearchParams { get; set; }
 
         /// <summary>
         /// Gets and sets the database filter params
         /// </summary>
-        public List<MzIdentMlParam> DatabaseFilterParams { get; set; } = new List<MzIdentMlParam>();
+        public MzIdentMlParamCollection? DatabaseFilterParams { get; set; }
 
         /// <summary>
         /// Gets and sets the fragment tolerances
         /// </summary>
-        public List<MzIdentMlParam> FragmentTolerances { get; set; }
+        public MzIdentMlParamCollection? FragmentTolerances { get; set; }
 
         /// <summary>
         /// Gets and sets the precursor tolerances
         /// </summary>
-        public List<MzIdentMlParam> PrecursorTolerances { get; set; }
+        public MzIdentMlParamCollection? PrecursorTolerances { get; set; }
 
         /// <summary>
-        /// Gets and sets the thresholds
+        /// Gets the thresholds
         /// </summary>
-        public List<MzIdentMlParam> Thresholds { get; set; }
+        public MzIdentMlParamCollection Thresholds { get; }
     }
 }
