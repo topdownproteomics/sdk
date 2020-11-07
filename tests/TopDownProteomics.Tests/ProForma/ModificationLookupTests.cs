@@ -209,7 +209,9 @@ namespace TopDownProteomics.Tests.ProForma
             });
 
             IProteoformModification proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
-            Assert.AreEqual(chemicalFormula, proteoformModification.GetChemicalFormula());
+            Assert.IsInstanceOf(typeof(IHasChemicalFormula), proteoformModification);
+            var formulaMod = (IHasChemicalFormula)proteoformModification;
+            Assert.AreEqual(chemicalFormula, formulaMod.GetChemicalFormula());
         }
 
         [Test]
@@ -236,7 +238,15 @@ namespace TopDownProteomics.Tests.ProForma
                     new EntityCardinality<IElement>(_elementProvider.GetElement("O"), 6),
                     new EntityCardinality<IElement>(_elementProvider.GetElement("S"), 1),
                 });
-            Assert.IsTrue(chemicalFormula.Equals(mod.GetChemicalFormula()));
+
+            Assert.IsInstanceOf(typeof(IHasChemicalFormula), mod);
+            var formulaMod = (IHasChemicalFormula)mod;
+            Assert.IsTrue(chemicalFormula.Equals(formulaMod.GetChemicalFormula()));
+
+            Assert.IsInstanceOf(typeof(IIdentifiable), mod);
+            var idMod = (IIdentifiable)mod;
+            Assert.AreEqual("MOD:00402", idMod.Id);
+            Assert.AreEqual("Gygi ICAT(TM) d8 modified cysteine", idMod.Name);
         }
     }
 }

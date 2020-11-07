@@ -11,7 +11,6 @@ namespace TopDownProteomics.ProForma.Validation
     /// <seealso cref="IProteoformModificationLookup" />
     public class BrnoModificationLookup : IProteoformModificationLookup
     {
-        IElementProvider elementProvider;
         BrnoModification[] _modifications;
 
         /// <summary>
@@ -20,7 +19,6 @@ namespace TopDownProteomics.ProForma.Validation
         /// <param name="elementProvider">The element provider.</param>
         public BrnoModificationLookup(IElementProvider elementProvider)
         {
-            this.elementProvider = elementProvider;
             _modifications = this.CreateModificationArray(elementProvider);
         }
 
@@ -107,7 +105,7 @@ namespace TopDownProteomics.ProForma.Validation
             return mods;
         }
 
-        private class BrnoModification : IProFormaProteoformModification
+        private class BrnoModification : IProFormaProteoformModification, IIdentifiable, IHasChemicalFormula
         {
             public BrnoModification(string abbreviation, IReadOnlyCollection<IEntityCardinality<IElement>> elements)
             {
@@ -118,12 +116,18 @@ namespace TopDownProteomics.ProForma.Validation
             private IReadOnlyCollection<IEntityCardinality<IElement>> _elements;
             string Abbreviation { get; }
 
+            public string Id => this.Abbreviation;
+
+            public string Name => this.Abbreviation;
+
             public IChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
 
             public ProFormaDescriptor GetProFormaDescriptor()
             {
                 return new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.None, this.Abbreviation);
             }
+
+            public double GetMass(MassType massType) => this.GetChemicalFormula().GetMass(massType);
         }
     }
 }

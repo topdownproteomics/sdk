@@ -5,18 +5,16 @@ using TopDownProteomics.Chemistry;
 
 namespace TopDownProteomics.Proteomics
 {
-    /// <summary>
-    /// An observed proteoform with a sequence and modifications with possible ambiguity.
-    /// </summary>
+    /// <summary>An observed proteoform with a sequence and modifications with possible ambiguity.</summary>
     public interface IProteoformGroup : IHasMass
     {
         /// <summary>The amino acid residues.</summary>
         IReadOnlyList<IResidue> Residues { get; }
 
-        /// <summary>The N terminal modification on this proteoform.</summary>
+        /// <summary>The N-terminal modification on this proteoform.</summary>
         IProteoformModification? NTerminalModification { get; }
         
-        /// <summary>The C terminal modification on this proteoform.</summary>
+        /// <summary>The C-terminal modification on this proteoform.</summary>
         IProteoformModification? CTerminalModification { get; }
 
         /// <summary>The modifications on this proteoform.</summary>

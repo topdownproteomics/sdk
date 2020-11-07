@@ -36,11 +36,11 @@ namespace TopDownProteomics.ProForma.Validation
             }
             else
             {
-                throw new ProteoformModificationLookupException($"Could not parse formula string for descriptor {descriptor.ToString()}");
+                throw new ProteoformModificationLookupException($"Could not parse formula string for descriptor {descriptor}");
             }
         }
 
-        private class FormulaModification : IProteoformModification
+        private class FormulaModification : IProteoformModification, IHasChemicalFormula
         {
             private IChemicalFormula _chemicalFormula;
 
@@ -53,6 +53,8 @@ namespace TopDownProteomics.ProForma.Validation
             {
                 return this._chemicalFormula;
             }
+
+            public double GetMass(MassType massType) => _chemicalFormula.GetMass(massType);
         }
     }
 }

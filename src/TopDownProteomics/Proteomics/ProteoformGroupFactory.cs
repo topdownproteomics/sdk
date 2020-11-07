@@ -96,7 +96,7 @@ namespace TopDownProteomics.Proteomics
                     }
                     else
                     {
-                        throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor.ToString()}.");
+                        throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor}.");
                     }
 
                     if (modification == null)
@@ -105,7 +105,9 @@ namespace TopDownProteomics.Proteomics
                     }
                     else if (mod != null)
                     {
-                        if (!mod.GetChemicalFormula().Equals(modification.GetChemicalFormula()))
+                        if (mod is IHasChemicalFormula form1 &&
+                            modification is IHasChemicalFormula form2 &&
+                            !form1.GetChemicalFormula().Equals(form2.GetChemicalFormula()))
                         {
                             throw new ProteoformGroupCreateException(multipleModsErrorMessage);
                         }
@@ -141,9 +143,9 @@ namespace TopDownProteomics.Proteomics
             {
                 return this.Water.GetMass(massType) +
                     this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0) +
-                    (this.NTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0) +
-                    (this.CTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0);
+                    (this.Modifications?.Sum(x => x.Modification.GetMass(massType)) ?? 0.0) +
+                    (this.NTerminalModification?.GetMass(massType) ?? 0.0) +
+                    (this.CTerminalModification?.GetMass(massType) ?? 0.0);
             }
         }
     }

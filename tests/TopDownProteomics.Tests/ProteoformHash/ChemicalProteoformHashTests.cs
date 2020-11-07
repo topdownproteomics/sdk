@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.ProForma;
@@ -17,78 +15,84 @@ namespace TopDownProteomics.Tests.ProteoformHash
         IElementProvider _elementProvider;
         IResidueProvider _residueProvider;
         IProteoformModificationLookup _lookup;
-        string _acetylDescriptorString = "[Formula:C2H2O]";
         ChemicalProteoformHashGenerator _chemicalProteoformHashGenerator;
-        string _acetylBrnoString = "[B:ac]";
 
         [OneTimeSetUp]
         public void Setup()
         {
             _elementProvider = new MockElementProvider();
             _residueProvider = new IupacAminoAcidProvider(_elementProvider);
-            //_lookup = new FormulaLookup(_elementProvider);
             _lookup = new CompositeModificationLookup(new IProteoformModificationLookup[]
                 {
                     new FormulaLookup(_elementProvider),
-                    new BrnoModificationLookup(_elementProvider)
+                    new MassLookup(),
+                    new BrnoModificationLookup(_elementProvider),
+                    new IgnoreKeyModificationLookup(ProFormaKey.Info),
                 });
 
             ProFormaParser proFormaParser = new ProFormaParser();
             ProteoformGroupFactory proteoformGroupFactory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
-            _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup);
+
+            var mapper = new RelayAccessionMapper(d => 
+            {
+                if (d == "ac")
+                    return Tuple.Create(ProFormaEvidenceType.PsiMod, "MOD:00394"); // acetylated residue
+
+                return Tuple.Create(ProFormaEvidenceType.None, d);
+            });
+
+            _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup, mapper);
         }
 
         [Test]
-        public void NoMods()
+        [TestCase(null)]
+        [TestCase("")]
+        public void BadArguments(string proForma) => Assert.Throws<ArgumentNullException>(() => _chemicalProteoformHashGenerator.Generate(proForma));
+
+        [Test]
+        [TestCase("SEQUENCE")]
+        [TestCase("[Formula:C2H2O]-SEQUENCE")]
+        [TestCase("SEQUENCE-[Formula:C2H2O]")]
+        [TestCase("SEQ[Formula:C2H2O]UENCE")]
+        [TestCase("[Formula:C2H2O]-SEQ[Formula:C2H2O]UENCE-[Formula:C2H2O]")]
+        public void HashSameAsProForma(string proForma) => this.TestHash(proForma, proForma);
+
+        [Test]
+        public void MapSingleMod()
         {
-            this.TestHash("SEQUENCE", "SEQUENCE");
+            // Convert all modifications to PSI-MOD accessions
+            this.TestHash("SEQUE[B:ac]NCE", "SEQUE[MOD:00394]NCE");
+            this.TestHash("[B:ac]-SEQUENCE", "[MOD:00394]-SEQUENCE");
+            this.TestHash("SEQUENCE-[B:ac]", "SEQUENCE-[MOD:00394]");
         }
 
         [Test]
-        public void NTerminalMod()
+        public void StripInfoTags()
         {
-            string proForma = $"{_acetylDescriptorString}-SEQUENCE";
-            this.TestHash(proForma, proForma);
+            string proForma = $"SEQUE[info:erase me]NCE";
+            string expected = $"SEQUENCE";
+
+            this.TestHash(proForma, expected);
         }
 
         [Test]
-        public void CTerminalMod()
+        public void ConsistentFormulas()
         {
-            string proForma = $"SEQUENCE-{_acetylDescriptorString}";
-            this.TestHash(proForma, proForma);
+            // Convert all modifications to PSI-MOD accessions
+            this.TestHash("SEQUE[Formula:CHCHO]NCE", "SEQUE[Formula:C2H2O]NCE");
         }
 
         [Test]
-        public void OneModification()
+        public void StripLeadingTrailingZeros()
         {
-            string proForma = $"SEQ{_acetylDescriptorString}UENCE";
-            this.TestHash(proForma, proForma);
-        }
+            // Remove leading and trailing zeros on mass modifications
 
-        [Test]
-        public void MultipleModifications()
-        {
-            string proForma = $"{_acetylDescriptorString}-SEQ{_acetylDescriptorString}UENCE-{_acetylDescriptorString}";
-            this.TestHash(proForma, proForma);
-        }
-
-        [Test]
-        public void NonFormula()
-        {
-            string proForma = $"SEQUE{_acetylBrnoString}NCE";
-            this.TestHash(proForma, $"SEQUE{_acetylDescriptorString}NCE");
-        }
-
-        [Test]
-        public void NullArgument()
-        {
-            Assert.Throws<ArgumentNullException>(() => _chemicalProteoformHashGenerator.Generate(null));
-        }
-
-        [Test]
-        public void EmptyString()
-        {
-            Assert.Throws<ArgumentNullException>(() => _chemicalProteoformHashGenerator.Generate(""));
+            this.TestHash("SEQUE[+42.050]NCE", "SEQUE[+42.05]NCE");
+            this.TestHash("SEQUE[+042.05]NCE", "SEQUE[+42.05]NCE");
+            this.TestHash("SEQUE[+00042.05000]NCE", "SEQUE[+42.05]NCE");
+            this.TestHash("SEQUE[-17.050]NCE", "SEQUE[-17.05]NCE");
+            this.TestHash("SEQUE[-017.05]NCE", "SEQUE[-17.05]NCE");
+            this.TestHash("SEQUE[-00017.05000]NCE", "SEQUE[-17.05]NCE");
         }
 
         private void TestHash(string proForma, string expectedHash)
@@ -97,63 +101,6 @@ namespace TopDownProteomics.Tests.ProteoformHash
             Assert.AreEqual(expectedHash, chemicalProteoformHash.Hash);
             Assert.IsTrue(chemicalProteoformHash.HasProForma);
             Assert.AreEqual(expectedHash, chemicalProteoformHash.ProForma);
-        }
-
-        private MockProteoformGroup GetProteoformGroup(string sequence, IProteoformModification nTermMod = null, IProteoformModification cTermMod = null)
-        {
-            MockProteoformGroup mockProteoformGroup = new MockProteoformGroup();
-            mockProteoformGroup.Residues = sequence.Select(_residueProvider.GetResidue).ToList();
-            mockProteoformGroup.NTerminalModification = nTermMod;
-            mockProteoformGroup.CTerminalModification = cTermMod;
-
-            return mockProteoformGroup;
-        }
-
-        private class MockProteoformGroup : IProteoformGroup
-        {
-            private double _waterMono = 18.010565;
-            private double _waterAvg = 18.015;
-            private List<IProteoformModificationWithIndex> _modifications = null;
-
-            public IReadOnlyList<IResidue> Residues { get; set; }
-
-            public IProteoformModification NTerminalModification { get; set; }
-
-            public IProteoformModification CTerminalModification { get; set; }
-
-            public IReadOnlyCollection<IProteoformModificationWithIndex> Modifications => this._modifications;
-
-            public double GetMass(MassType massType)
-            {
-                return this.GetWaterMass(massType) +
-                    this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.GetChemicalFormula().GetMass(massType)) ?? 0.0) +
-                    (this.NTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0) +
-                    (this.CTerminalModification?.GetChemicalFormula().GetMass(massType) ?? 0.0);
-            }
-
-            private double GetWaterMass(MassType massType)
-            {
-                return massType == MassType.Monoisotopic ? this._waterMono : this._waterAvg;
-            }
-
-            public void AddModification(ProFormaDescriptor descriptor, IProteoformModificationLookup lookup, int index)
-            {
-                IProteoformModification proteoformModification = lookup.GetModification(descriptor);
-                this.AddModification(proteoformModification, index);
-            }
-
-            public void AddModification(IProteoformModification proteoformModification, int index)
-            {
-                IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(proteoformModification, index);
-
-                if (this._modifications == null)
-                {
-                    this._modifications = new List<IProteoformModificationWithIndex>();
-                }
-
-                this._modifications.Add(proteoformModificationWithIndex);
-            }
         }
     }
 }

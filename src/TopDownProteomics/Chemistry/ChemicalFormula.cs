@@ -199,7 +199,7 @@ namespace TopDownProteomics.Chemistry
         {
             chemicalFormula = ChemicalFormula.Empty; // Set to null in case of failure.
 
-            IList<IEntityCardinality<IElement>> elementList = new List<IEntityCardinality<IElement>>();
+            IDictionary<string, IEntityCardinality<IElement>> elementList = new Dictionary<string, IEntityCardinality<IElement>>();
 
             int symbolStart = 0, symbolEnd = 0;
             int digitStart = 0, digitEnd = 0;
@@ -284,12 +284,12 @@ namespace TopDownProteomics.Chemistry
                 return false;
 
             // Success!
-            chemicalFormula = new ChemicalFormula(elementList);
+            chemicalFormula = new ChemicalFormula(elementList.Values);
             return true;
         }
 
-        private static bool HandleNewElement(ReadOnlySpan<char> formula, IElementProvider elementProvider, 
-            IList<IEntityCardinality<IElement>> elementList, int symbolStart, int symbolEnd, 
+        private static bool HandleNewElement(ReadOnlySpan<char> formula, IElementProvider elementProvider,
+            IDictionary<string, IEntityCardinality<IElement>> elementList, int symbolStart, int symbolEnd,
             int digitStart, int digitEnd, int isotopeStart, int isotopeEnd)
         {
             if (formula.Length == 0)
@@ -320,10 +320,19 @@ namespace TopDownProteomics.Chemistry
 
             try
             {
-                var element = GetElement(formula.Slice(symbolStart, symbolEnd - symbolStart + 1),
-                    isotope, count, elementProvider);
+                string symbol = formula.Slice(symbolStart, symbolEnd - symbolStart + 1).ToString();
 
-                elementList.Add(element);
+                var element = GetElement(symbol, isotope, count, elementProvider);
+
+                if (elementList.ContainsKey(element.Entity.Symbol))
+                {
+                    IEntityCardinality<IElement> entityCardinality = elementList[element.Entity.Symbol];
+                    elementList[symbol] = new EntityCardinality<IElement>(entityCardinality.Entity, entityCardinality.Count + count);
+                }
+                else
+                {
+                    elementList.Add(element.Entity.Symbol, element);
+                }
 
                 return true;
             }
