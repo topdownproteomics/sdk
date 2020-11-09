@@ -59,6 +59,19 @@ namespace TopDownProteomics.Tests.Chemistry
         }
 
         [Test]
+        public void DuplicateElementTest()
+        {
+            string formulaString = "CHCHO";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 2),
+                Tuple.Create("H", 2),
+                Tuple.Create("O", 1)
+            });
+        }
+
+        [Test]
         public void NegativeParseTest()
         {
             string formulaString = "HN-1O2";

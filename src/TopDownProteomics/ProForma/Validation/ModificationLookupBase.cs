@@ -71,9 +71,7 @@ namespace TopDownProteomics.ProForma.Validation
                 (descriptor.Key == ProFormaKey.Name && descriptor.EvidenceType == ProFormaEvidenceType.None);
         }
 
-        /// <summary>
-        /// The ProForma key.
-        /// </summary>
+        /// <summary>The ProForma key.</summary>
         protected abstract ProFormaEvidenceType EvidenceType { get; }
 
         /// <summary>
@@ -90,8 +88,6 @@ namespace TopDownProteomics.ProForma.Validation
         ///   <c>true</c> if this instance is default modification type; otherwise, <c>false</c>.
         /// </value>
         protected virtual bool IsDefaultModificationType => false;
-
-        //private string GetModNameDatabaseTag() => $"({this.Key})";
 
         /// <summary>
         /// Gets the modification.
@@ -136,7 +132,7 @@ namespace TopDownProteomics.ProForma.Validation
             throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor}.");
         }
 
-        private class ModificationWrapper : IProFormaProteoformModification
+        private class ModificationWrapper : IProFormaProteoformModification, IIdentifiable, IHasChemicalFormula
         {
             private IChemicalFormula _chemicalFormula;
 
@@ -148,12 +144,18 @@ namespace TopDownProteomics.ProForma.Validation
 
             public T Modification { get; }
 
+            public string Id => this.Modification.Id;
+
+            public string Name => this.Modification.Name;
+
             public IChemicalFormula GetChemicalFormula() => _chemicalFormula;
 
             public ProFormaDescriptor GetProFormaDescriptor()
             {
                 throw new NotImplementedException();
             }
+
+            public double GetMass(MassType massType) => _chemicalFormula.GetMass(massType);
         }
     }
 }
