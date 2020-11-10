@@ -82,6 +82,9 @@ namespace TopDownProteomics.IO.UniProt
                         // Reset collections
                         taxonomicRanges = null;
                         keywords = null;
+                        resid = null;
+                        psiMod = null;
+                        unimod = null;
 
                         reader.ReadLine();
                     }
