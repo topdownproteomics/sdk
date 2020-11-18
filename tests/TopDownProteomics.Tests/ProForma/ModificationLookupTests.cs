@@ -208,7 +208,7 @@ namespace TopDownProteomics.Tests.ProForma
                 new EntityCardinality<IElement>(_elementProvider.GetElement("O"), 1),
             });
 
-            IProteoformModification proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
+            var proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
             Assert.IsInstanceOf(typeof(IHasChemicalFormula), proteoformModification);
             var formulaMod = (IHasChemicalFormula)proteoformModification;
             Assert.AreEqual(chemicalFormula, formulaMod.GetChemicalFormula());
@@ -225,7 +225,7 @@ namespace TopDownProteomics.Tests.ProForma
                 _elementProvider);
             this.FindById(psiModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, 402, "MOD:");
 
-            IProteoformModification mod = psiModLookup.GetModification(new ProFormaDescriptor(ProFormaKey.Identifier,
+            var mod = psiModLookup.GetModification(new ProFormaDescriptor(ProFormaKey.Identifier,
                 ProFormaEvidenceType.PsiMod, "MOD:00402"));
 
             ChemicalFormula chemicalFormula = new ChemicalFormula(

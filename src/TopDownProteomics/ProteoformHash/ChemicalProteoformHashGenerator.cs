@@ -75,15 +75,53 @@ namespace TopDownProteomics.ProteoformHash
             IList<ProFormaDescriptor>? cTermDescriptors = cTermDescriptor == null ? null : new[] { cTermDescriptor };
 
             IList<ProFormaTag>? tags = null;
+            IList<ProFormaDescriptor>? labileDescriptors = null;
+            IList<ProFormaUnlocalizedTag>? unlocalizedTags = null;
+            IList<ProFormaTagGroup>? tagGroups = null;
+            IList<ProFormaGlobalModification>? globalModifications = null;
+
             if (proteoformGroup.Modifications?.Count > 0)
             {
-                tags = new List<ProFormaTag>();
-                foreach (IProteoformModificationWithIndex proteoformModificationWithIndex in proteoformGroup.Modifications)
+                foreach (var mod in proteoformGroup.Modifications)
                 {
-                    ProFormaDescriptor? descriptor = this.CreateDescriptor(proteoformModificationWithIndex.Modification);
+                    ProFormaDescriptor? descriptor = this.CreateDescriptor(mod.ModificationDelta);
 
                     if (descriptor != null)
-                        tags.Add(new ProFormaTag(proteoformModificationWithIndex.ZeroBasedIndex, new[] { descriptor }));
+                    {
+                        if (mod is IProteoformUnlocalizedModification unlocalizedModification)
+                        {
+                            if (unlocalizedModification.IsLabile)
+                            {
+                                labileDescriptors ??= new List<ProFormaDescriptor>();
+
+                                for (int i = 0; i < unlocalizedModification.Count; i++)
+                                    labileDescriptors.Add(descriptor);
+                            }
+                            else
+                            {
+                                unlocalizedTags ??= new List<ProFormaUnlocalizedTag>();
+                                unlocalizedTags.Add(new ProFormaUnlocalizedTag(unlocalizedModification.Count, new[] { descriptor }));
+                            }
+                        }
+                        else if (mod is IProteoformModificationGroup tagGroup)
+                        {
+                            tagGroups ??= new List<ProFormaTagGroup>();
+                            tagGroups.Add(new ProFormaTagGroup(tagGroup.GroupName, descriptor.Key, descriptor.EvidenceType, descriptor.Value,
+                                tagGroup.Members.Select(x => new ProFormaMembershipDescriptor(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight)).ToList()));
+                        }
+                        else if (mod is IProteoformGlobalModification globalModification)
+                        {
+                            globalModifications ??= new List<ProFormaGlobalModification>();
+                            globalModifications.Add(new ProFormaGlobalModification(new[] { descriptor }, globalModification.TargetAminoAcids));
+                        }
+                        else if (mod is IProteoformLocalizedModification localizedModification)
+                        {
+                            tags ??= new List<ProFormaTag>();
+                            tags.Add(new ProFormaTag(localizedModification.ZeroBasedStartIndex, localizedModification.ZeroBasedEndIndex, new[] { descriptor }));
+                        }
+                        else
+                            throw new Exception($"Unknown modification type '{mod}'.");
+                    }
                 }
             }
 
@@ -91,8 +129,13 @@ namespace TopDownProteomics.ProteoformHash
 
             if (sequence != null)
             {
-                ProFormaTerm proFormaTerm = new ProFormaTerm(sequence, tags: tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
-                    nTerminalDescriptors: nTermDescriptors, cTerminalDescriptors: cTermDescriptors);
+                ProFormaTerm proFormaTerm = new(sequence, tags: tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
+                    nTerminalDescriptors: nTermDescriptors,
+                    cTerminalDescriptors: cTermDescriptors,
+                    labileDescriptors: labileDescriptors,
+                    unlocalizedTags: unlocalizedTags,
+                    tagGroups: tagGroups,
+                    globalModifications: globalModifications);
                 string hash = new ProFormaWriter().WriteString(proFormaTerm);
                 return new ChemicalProteoformHash(hash);
             }
@@ -100,15 +143,15 @@ namespace TopDownProteomics.ProteoformHash
             throw new Exception("Cannot get amino acid sequence for the proteoform group.");
         }
 
-        private ProFormaDescriptor? CreateDescriptor(IProteoformModification? proteoformModification)
+        private ProFormaDescriptor? CreateDescriptor(IProteoformMassDelta? proteoformModification)
         {
             // TODO: Standardize group notations and unlocalized cardinality
 
             return proteoformModification switch
             {
                 null => null,
-                IIdentifiable ontologyMod => this.GetOntologyDescriptor(ontologyMod),
-                IHasChemicalFormula formulaMod => this.GetFormulaDescriptor(formulaMod),
+                IProteoformOntologyDelta ontologyMod => this.GetOntologyDescriptor(ontologyMod),
+                IProteoformFormulaProteoformDelta formulaMod => this.GetFormulaDescriptor(formulaMod),
                 _ => new ProFormaDescriptor(ProFormaKey.Mass, this.GetMassString(proteoformModification.GetMass(MassType.Monoisotopic)))
             };
         }

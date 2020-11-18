@@ -123,7 +123,7 @@ namespace TopDownProteomics.Tests.ProForma
 
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(3, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.AreEqual(3, ((IProteoformLocalizedModification)proteoform.Modifications.Single()).ZeroBasedStartIndex);
 
             // Residue masses plus modification plus water (approx)
             Assert.AreEqual(978.36, proteoform.GetMass(MassType.Monoisotopic), 0.01);
@@ -196,7 +196,7 @@ namespace TopDownProteomics.Tests.ProForma
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(4, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.AreEqual(4, ((IProteoformLocalizedModification)proteoform.Modifications.Single()).ZeroBasedStartIndex);
 
             // Modifications have different chemical formulas ... throw!
             term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
@@ -237,7 +237,7 @@ namespace TopDownProteomics.Tests.ProForma
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
             Assert.IsNotNull(proteoform.Modifications);
             Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(7, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.AreEqual(7, ((IProteoformLocalizedModification)proteoform.Modifications.Single()).ZeroBasedStartIndex);
 
             // Multiple N terminal mods.
             term = new ProFormaTerm("SEQVKENCE", null,

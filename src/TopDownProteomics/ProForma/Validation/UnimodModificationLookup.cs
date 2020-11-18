@@ -13,6 +13,9 @@ namespace TopDownProteomics.ProForma.Validation
     {
         private readonly IUnimodCompositionAtomProvider _atomProvider;
 
+        /// <summary>The UNIMOD prefix</summary>
+        public readonly static string Prefix = "UNIMOD:";
+
         private UnimodModificationLookup(IUnimodCompositionAtomProvider atomProvider)
         {
             _atomProvider = atomProvider;
@@ -66,9 +69,9 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         protected override string RemovePrefix(string value)
         {
-            if (value.StartsWith("UNIMOD:"))
+            if (value.StartsWith(Prefix))
                 return value.Substring(7);
-
+            
             return value;
         }
     }

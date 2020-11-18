@@ -12,18 +12,16 @@ namespace TopDownProteomics.Proteomics
         IReadOnlyList<IResidue> Residues { get; }
 
         /// <summary>The N-terminal modification on this proteoform.</summary>
-        IProteoformModification? NTerminalModification { get; }
-        
+        IProteoformMassDelta? NTerminalModification { get; }
+
         /// <summary>The C-terminal modification on this proteoform.</summary>
-        IProteoformModification? CTerminalModification { get; }
+        IProteoformMassDelta? CTerminalModification { get; }
 
         /// <summary>The modifications on this proteoform.</summary>
-        IReadOnlyCollection<IProteoformModificationWithIndex>? Modifications { get; }
+        IReadOnlyCollection<IProteoformModification>? Modifications { get; }
     }
 
-    /// <summary>
-    /// Utility methods for proteoform related taskes.
-    /// </summary>
+    /// <summary>Utility methods for proteoform related taskes.</summary>
     public static class ProteoformUtility
     {
         /// <summary>

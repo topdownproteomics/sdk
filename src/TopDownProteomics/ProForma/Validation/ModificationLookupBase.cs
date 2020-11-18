@@ -12,7 +12,7 @@ namespace TopDownProteomics.ProForma.Validation
     /// <seealso cref="IProteoformModificationLookup" />
     public abstract class ModificationLookupBase<T> : IProteoformModificationLookup where T : IIdentifiable
     {
-        private IProteoformModification[]? _modifications;
+        private IProteoformMassDelta[]? _modifications;
 
         /// <summary>
         /// Gets the modification array.
@@ -24,7 +24,7 @@ namespace TopDownProteomics.ProForma.Validation
         {
             if (modifications == null) throw new ArgumentNullException(nameof(modifications));
 
-            var modArray = new IProteoformModification[10000]; // More IDs than will ever exist
+            var modArray = new IProteoformMassDelta[10000]; // More IDs than will ever exist
             int maxId = -1;
             foreach (T modification in modifications)
             {
@@ -58,7 +58,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns>
         /// <c>true</c> if this instance [can handle descriptor] the specified descriptor; otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool CanHandleDescriptor(ProFormaDescriptor descriptor)
+        public virtual bool CanHandleDescriptor(IProFormaDescriptor descriptor)
         {
             var nonDefault = descriptor.EvidenceType == this.EvidenceType && 
                 (descriptor.Key == ProFormaKey.Name || descriptor.Key == ProFormaKey.Identifier);
@@ -94,7 +94,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public virtual IProteoformModification GetModification(ProFormaDescriptor descriptor)
+        public virtual IProteoformMassDelta GetModification(IProFormaDescriptor descriptor)
         {
             if (_modifications == null)
                 throw new Exception("Modification array in not initialized.");
@@ -106,7 +106,7 @@ namespace TopDownProteomics.ProForma.Validation
             {
                 string value = descriptor.Value;
 
-                IProteoformModification modification = _modifications
+                IProteoformMassDelta modification = _modifications
                     .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
 
                 if (modification == null)
@@ -132,7 +132,7 @@ namespace TopDownProteomics.ProForma.Validation
             throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor}.");
         }
 
-        private class ModificationWrapper : IProFormaProteoformModification, IIdentifiable, IHasChemicalFormula
+        private class ModificationWrapper : IProteoformOntologyDelta
         {
             private IChemicalFormula _chemicalFormula;
 

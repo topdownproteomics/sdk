@@ -1,11 +1,17 @@
 ﻿using NUnit.Framework;
 using System;
+using System.IO;
+using System.Linq;
 using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
+using TopDownProteomics.Chemistry.Unimod;
+using TopDownProteomics.IO.Unimod;
+using TopDownProteomics.IO.UniProt;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
 using TopDownProteomics.ProteoformHash;
 using TopDownProteomics.Proteomics;
+using TopDownProteomics.Tests.IO;
 
 namespace TopDownProteomics.Tests.ProteoformHash
 {
@@ -20,10 +26,19 @@ namespace TopDownProteomics.Tests.ProteoformHash
         [OneTimeSetUp]
         public void Setup()
         {
-            _elementProvider = new MockElementProvider();
+            var unimodOboParser = new UnimodOboParser();
+            UnimodModification[] modifications = unimodOboParser.Parse(UnimodTest.GetUnimodFilePath()).ToArray();
+
+            NistElementParser nistParser = new NistElementParser();
+            IElement[] elements = nistParser.ParseFile(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "elements.dat")).ToArray();
+            _elementProvider = new InMemoryElementProvider(elements);
+
             _residueProvider = new IupacAminoAcidProvider(_elementProvider);
+            var atomProvider = new UnimodHardCodedAtomProvider(_elementProvider);
+
             _lookup = new CompositeModificationLookup(new IProteoformModificationLookup[]
                 {
+                    UnimodModificationLookup.CreateFromModifications(modifications, atomProvider),
                     new FormulaLookup(_elementProvider),
                     new MassLookup(),
                     new BrnoModificationLookup(_elementProvider),
@@ -33,13 +48,17 @@ namespace TopDownProteomics.Tests.ProteoformHash
             ProFormaParser proFormaParser = new ProFormaParser();
             ProteoformGroupFactory proteoformGroupFactory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
 
-            var mapper = new RelayAccessionMapper(d => 
-            {
-                if (d == "ac")
-                    return Tuple.Create(ProFormaEvidenceType.PsiMod, "MOD:00394"); // acetylated residue
+            //var mapper = new RelayAccessionMapper(d => 
+            //{
+            //    if (d == "ac")
+            //        return Tuple.Create(ProFormaEvidenceType.PsiMod, "MOD:00394"); // acetylated residue
 
-                return Tuple.Create(ProFormaEvidenceType.None, d);
-            });
+            //    return Tuple.Create(ProFormaEvidenceType.None, d);
+            //});
+
+            var parser = new UniProtPtmListParser();
+            var entries = parser.Parse(File.ReadAllText(UniProtTests.GetPtmListPath())).ToList();
+            var mapper = new PtmListAccessionMapper(entries);
 
             _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup, mapper);
         }
@@ -60,11 +79,22 @@ namespace TopDownProteomics.Tests.ProteoformHash
         [Test]
         public void MapSingleMod()
         {
-            // Convert all modifications to PSI-MOD accessions
-            this.TestHash("SEQUE[B:ac]NCE", "SEQUE[MOD:00394]NCE");
-            this.TestHash("[B:ac]-SEQUENCE", "[MOD:00394]-SEQUENCE");
-            this.TestHash("SEQUENCE-[B:ac]", "SEQUENCE-[MOD:00394]");
+            this.TestHash("SEQUE[B:ac]NCE", "SEQUE[MOD:00394]NCE");                 // Tag
+            this.TestHash("[B:ac]-SEQUENCE", "[MOD:00394]-SEQUENCE");               // N-term
+            this.TestHash("SEQUENCE-[B:ac]", "SEQUENCE-[MOD:00394]");               // C-term
+            this.TestHash("{B:ac}SEQUENCE", "{MOD:00394}SEQUENCE");                 // Labile
+            this.TestHash("[B:ac]?SEQUENCE", "[MOD:00394]?SEQUENCE");               // Unlocalized
+            this.TestHash("SE[B:ac#g1]QUE[#g1]NCE", "SE[MOD:00394#g1]QUE[#g1]NCE"); // Tag group
+            this.TestHash("S(EQUE)[B:ac]NCE", "S(EQUE)[MOD:00394]NCE");             // Range
+            this.TestHash("<[B:ac]@E>SEQUENCE", "<[MOD:00394]@E>SEQUENCE");         // Global
         }
+
+        // Sent question to PSI-MOD about which generic mod to use. I think it is MOD:00394
+        //[Test]
+        //public void MappingUnimodToGenericPsiMod()
+        //{
+        //    this.TestHash("SEQUE[UNIMOD:1]NCE", "SEQUE[MOD:00394]NCE");
+        //}
 
         [Test]
         public void StripInfoTags()

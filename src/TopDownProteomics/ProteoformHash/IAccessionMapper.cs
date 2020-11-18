@@ -3,11 +3,11 @@ using TopDownProteomics.ProForma;
 
 namespace TopDownProteomics.ProteoformHash
 {
-    /// <summary>Maps a modification accession to a PSI-MOD accession.</summary>
+    /// <summary>Maps a modification accession to another accession.</summary>
     public interface IAccessionMapper
     {
         /// <summary>
-        /// Maps the given accession to a PSI-MOD accession.
+        /// Maps the given accession to another accession.
         /// </summary>
         /// <param name="accession">The accession.</param>
         /// <returns></returns>
