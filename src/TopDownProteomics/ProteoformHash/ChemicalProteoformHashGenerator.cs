@@ -80,47 +80,69 @@ namespace TopDownProteomics.ProteoformHash
             IList<ProFormaTagGroup>? tagGroups = null;
             IList<ProFormaGlobalModification>? globalModifications = null;
 
-            if (proteoformGroup.Modifications?.Count > 0)
+            if (proteoformGroup.LocalizedModifications?.Count > 0)
             {
-                foreach (var mod in proteoformGroup.Modifications)
+                foreach (var mod in proteoformGroup.LocalizedModifications)
                 {
                     ProFormaDescriptor? descriptor = this.CreateDescriptor(mod.ModificationDelta);
 
                     if (descriptor != null)
                     {
-                        if (mod is IProteoformUnlocalizedModification unlocalizedModification)
-                        {
-                            if (unlocalizedModification.IsLabile)
-                            {
-                                labileDescriptors ??= new List<ProFormaDescriptor>();
+                        tags ??= new List<ProFormaTag>();
+                        tags.Add(new ProFormaTag(mod.ZeroBasedStartIndex, mod.ZeroBasedEndIndex, new[] { descriptor }));
+                    }
+                }
+            }
 
-                                for (int i = 0; i < unlocalizedModification.Count; i++)
-                                    labileDescriptors.Add(descriptor);
-                            }
-                            else
-                            {
-                                unlocalizedTags ??= new List<ProFormaUnlocalizedTag>();
-                                unlocalizedTags.Add(new ProFormaUnlocalizedTag(unlocalizedModification.Count, new[] { descriptor }));
-                            }
-                        }
-                        else if (mod is IProteoformModificationGroup tagGroup)
+            if (proteoformGroup.UnlocalizedModifications?.Count > 0)
+            {
+                foreach (var mod in proteoformGroup.UnlocalizedModifications)
+                {
+                    ProFormaDescriptor? descriptor = this.CreateDescriptor(mod.ModificationDelta);
+
+                    if (descriptor != null)
+                    {
+                        if (mod.IsLabile)
                         {
-                            tagGroups ??= new List<ProFormaTagGroup>();
-                            tagGroups.Add(new ProFormaTagGroup(tagGroup.GroupName, descriptor.Key, descriptor.EvidenceType, descriptor.Value,
-                                tagGroup.Members.Select(x => new ProFormaMembershipDescriptor(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight)).ToList()));
-                        }
-                        else if (mod is IProteoformGlobalModification globalModification)
-                        {
-                            globalModifications ??= new List<ProFormaGlobalModification>();
-                            globalModifications.Add(new ProFormaGlobalModification(new[] { descriptor }, globalModification.TargetAminoAcids));
-                        }
-                        else if (mod is IProteoformLocalizedModification localizedModification)
-                        {
-                            tags ??= new List<ProFormaTag>();
-                            tags.Add(new ProFormaTag(localizedModification.ZeroBasedStartIndex, localizedModification.ZeroBasedEndIndex, new[] { descriptor }));
+                            labileDescriptors ??= new List<ProFormaDescriptor>();
+
+                            for (int i = 0; i < mod.Count; i++)
+                                labileDescriptors.Add(descriptor);
                         }
                         else
-                            throw new Exception($"Unknown modification type '{mod}'.");
+                        {
+                            unlocalizedTags ??= new List<ProFormaUnlocalizedTag>();
+                            unlocalizedTags.Add(new ProFormaUnlocalizedTag(mod.Count, new[] { descriptor }));
+                        }
+                    }
+                }
+            }
+
+            if (proteoformGroup.ModificationGroups?.Count > 0)
+            {
+                foreach (var mod in proteoformGroup.ModificationGroups)
+                {
+                    ProFormaDescriptor? descriptor = this.CreateDescriptor(mod.ModificationDelta);
+
+                    if (descriptor != null)
+                    {
+                        tagGroups ??= new List<ProFormaTagGroup>();
+                        tagGroups.Add(new ProFormaTagGroup(mod.GroupName, descriptor.Key, descriptor.EvidenceType, descriptor.Value,
+                            mod.Members.Select(x => new ProFormaMembershipDescriptor(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight)).ToList()));
+                    }
+                }
+            }
+
+            if (proteoformGroup.GlobalModifications?.Count > 0)
+            {
+                foreach (var mod in proteoformGroup.GlobalModifications)
+                {
+                    ProFormaDescriptor? descriptor = this.CreateDescriptor(mod.ModificationDelta);
+
+                    if (descriptor != null)
+                    {
+                        globalModifications ??= new List<ProFormaGlobalModification>();
+                        globalModifications.Add(new ProFormaGlobalModification(new[] { descriptor }, mod.TargetAminoAcids));
                     }
                 }
             }

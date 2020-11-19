@@ -48,17 +48,16 @@ namespace TopDownProteomics.Tests.ProteoformHash
             ProFormaParser proFormaParser = new ProFormaParser();
             ProteoformGroupFactory proteoformGroupFactory = new ProteoformGroupFactory(_elementProvider, _residueProvider);
 
-            //var mapper = new RelayAccessionMapper(d => 
-            //{
-            //    if (d == "ac")
-            //        return Tuple.Create(ProFormaEvidenceType.PsiMod, "MOD:00394"); // acetylated residue
+            var mapper = new RelayAccessionMapper(d =>
+            {
+                if (d == "B:ac")
+                    return Tuple.Create(ProFormaEvidenceType.PsiMod, "MOD:00394"); // acetylated residue
 
-            //    return Tuple.Create(ProFormaEvidenceType.None, d);
-            //});
+                return Tuple.Create(ProFormaEvidenceType.None, d);
+            });
 
             var parser = new UniProtPtmListParser();
             var entries = parser.Parse(File.ReadAllText(UniProtTests.GetPtmListPath())).ToList();
-            var mapper = new PtmListAccessionMapper(entries);
 
             _chemicalProteoformHashGenerator = new ChemicalProteoformHashGenerator(proFormaParser, proteoformGroupFactory, _lookup, mapper);
         }

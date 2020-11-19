@@ -17,8 +17,17 @@ namespace TopDownProteomics.Proteomics
         /// <summary>The C-terminal modification on this proteoform.</summary>
         IProteoformMassDelta? CTerminalModification { get; }
 
-        /// <summary>The modifications on this proteoform.</summary>
-        IReadOnlyCollection<IProteoformModification>? Modifications { get; }
+        /// <summary>Localized modifications on this proteoform.</summary>
+        IReadOnlyCollection<IProteoformLocalizedModification>? LocalizedModifications { get; }
+
+        /// <summary>Unlocalized modifications on this proteoform.</summary>
+        IReadOnlyCollection<IProteoformUnlocalizedModification>? UnlocalizedModifications { get; }
+
+        /// <summary>Modification groups on this proteoform.</summary>
+        IReadOnlyCollection<IProteoformModificationGroup>? ModificationGroups { get; }
+
+        /// <summary>Global modifications on this proteoform.</summary>
+        IReadOnlyCollection<IProteoformGlobalModification>? GlobalModifications { get; }
     }
 
     /// <summary>Utility methods for proteoform related taskes.</summary>

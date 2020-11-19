@@ -1,7 +1,7 @@
 ﻿namespace TopDownProteomics.Proteomics
 {
     /// <summary>A modification that is not localized to any sub-region of the proteoform.</summary>
-    public interface IProteoformUnlocalizedModification
+    public interface IProteoformUnlocalizedModification : IProteoformModification
     {
         /// <summary>The number of modifications applied.</summary>
         int Count { get; }

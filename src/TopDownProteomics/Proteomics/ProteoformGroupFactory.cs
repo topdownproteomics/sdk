@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TopDownProteomics.Biochemistry;
@@ -51,7 +50,10 @@ namespace TopDownProteomics.Proteomics
 
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
-            List<IProteoformModification>? modifications = null;
+            List<IProteoformLocalizedModification>? localizedModifications = null;
+            List<IProteoformUnlocalizedModification>? unlocalizedModifications = null;
+            List<IProteoformModificationGroup>? modificationGroups = null;
+            List<IProteoformGlobalModification>? globalModifications = null;
             IProteoformMassDelta? nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
             IProteoformMassDelta? cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
 
@@ -64,8 +66,8 @@ namespace TopDownProteomics.Proteomics
 
                     if (delta != null)
                     {
-                        modifications ??= new List<IProteoformModification>();
-                        modifications.Add(new LocalizedModification(delta, tag.ZeroBasedStartIndex, tag.ZeroBasedEndIndex));
+                        localizedModifications ??= new List<IProteoformLocalizedModification>();
+                        localizedModifications.Add(new LocalizedModification(delta, tag.ZeroBasedStartIndex, tag.ZeroBasedEndIndex));
                     }
                 }
             }
@@ -78,8 +80,8 @@ namespace TopDownProteomics.Proteomics
 
                     if (delta != null)
                     {
-                        modifications ??= new List<IProteoformModification>();
-                        modifications.Add(new UnlocalizedModification(delta, 1, true));
+                        unlocalizedModifications ??= new List<IProteoformUnlocalizedModification>();
+                        unlocalizedModifications.Add(new UnlocalizedModification(delta, 1, true));
                     }
                 }
             }
@@ -93,8 +95,8 @@ namespace TopDownProteomics.Proteomics
 
                     if (delta != null)
                     {
-                        modifications ??= new List<IProteoformModification>();
-                        modifications.Add(new UnlocalizedModification(delta, item.Count, false));
+                        unlocalizedModifications ??= new List<IProteoformUnlocalizedModification>();
+                        unlocalizedModifications.Add(new UnlocalizedModification(delta, item.Count, false));
                     }
                 }
             }
@@ -107,8 +109,8 @@ namespace TopDownProteomics.Proteomics
 
                     if (delta != null)
                     {
-                        modifications ??= new List<IProteoformModification>();
-                        modifications.Add(new TagGroupModification(delta, item.Name, 
+                        modificationGroups ??= new List<IProteoformModificationGroup>();
+                        modificationGroups.Add(new TagGroupModification(delta, item.Name, 
                             item.Members.Select(x => new TagGroupModificationMember(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight))));
                     }
                 }
@@ -124,13 +126,14 @@ namespace TopDownProteomics.Proteomics
 
                     if (delta != null)
                     {
-                        modifications ??= new List<IProteoformModification>();
-                        modifications.Add(new GlobalModification(delta, item.TargetAminoAcids));
+                        globalModifications ??= new List<IProteoformGlobalModification>();
+                        globalModifications.Add(new GlobalModification(delta, item.TargetAminoAcids));
                     }
                 }
             }
 
-            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
+            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, localizedModifications, unlocalizedModifications,
+                modificationGroups, globalModifications, _water);
         }
 
         private class LocalizedModification : ProteoformModificationBase, IProteoformLocalizedModification
@@ -264,30 +267,42 @@ namespace TopDownProteomics.Proteomics
 
         private class ProteoformGroup : IProteoformGroup
         {
-            public ProteoformGroup(IReadOnlyList<IResidue> residues,
-                IProteoformMassDelta? nTerminalModification,
-                IProteoformMassDelta? cTerminalModification,
-                IReadOnlyCollection<IProteoformModification>? modifications,
+            public ProteoformGroup(IReadOnlyList<IResidue> residues, IProteoformMassDelta? nTerminalModification, 
+                IProteoformMassDelta? cTerminalModification, 
+                IReadOnlyCollection<IProteoformLocalizedModification>? localizedModifications, 
+                IReadOnlyCollection<IProteoformUnlocalizedModification>? unlocalizedModifications, 
+                IReadOnlyCollection<IProteoformModificationGroup>? modificationGroups, 
+                IReadOnlyCollection<IProteoformGlobalModification>? globalModifications, 
                 IChemicalFormula water)
             {
-                this.Residues = residues;
-                this.NTerminalModification = nTerminalModification;
-                this.CTerminalModification = cTerminalModification;
-                this.Modifications = modifications;
-                this.Water = water;
+                Residues = residues;
+                NTerminalModification = nTerminalModification;
+                CTerminalModification = cTerminalModification;
+                LocalizedModifications = localizedModifications;
+                UnlocalizedModifications = unlocalizedModifications;
+                ModificationGroups = modificationGroups;
+                GlobalModifications = globalModifications;
+                Water = water;
             }
 
             public IReadOnlyList<IResidue> Residues { get; }
             public IProteoformMassDelta? NTerminalModification { get; }
             public IProteoformMassDelta? CTerminalModification { get; }
-            public IReadOnlyCollection<IProteoformModification>? Modifications { get; }
             public IChemicalFormula Water { get; }
+
+            public IReadOnlyCollection<IProteoformLocalizedModification>? LocalizedModifications { get; }
+            public IReadOnlyCollection<IProteoformUnlocalizedModification>? UnlocalizedModifications { get; }
+            public IReadOnlyCollection<IProteoformModificationGroup>? ModificationGroups { get; }
+            public IReadOnlyCollection<IProteoformGlobalModification>? GlobalModifications { get; }
 
             public double GetMass(MassType massType)
             {
                 return this.Water.GetMass(massType) +
                     this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.LocalizedModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.UnlocalizedModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.ModificationGroups?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.GlobalModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
                     (this.NTerminalModification?.GetMass(massType) ?? 0.0) +
                     (this.CTerminalModification?.GetMass(massType) ?? 0.0);
             }
