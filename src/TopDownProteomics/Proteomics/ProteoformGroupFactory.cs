@@ -50,36 +50,165 @@ namespace TopDownProteomics.Proteomics
 
             var residues = term.Sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
 
-            List<IProteoformModificationWithIndex>? modifications = null;
-            IProteoformModification? nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
-            IProteoformModification? cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
+            List<IProteoformLocalizedModification>? localizedModifications = null;
+            List<IProteoformUnlocalizedModification>? unlocalizedModifications = null;
+            List<IProteoformModificationGroup>? modificationGroups = null;
+            List<IProteoformGlobalModification>? globalModifications = null;
+            IProteoformMassDelta? nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
+            IProteoformMassDelta? cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
 
             if (term.Tags?.Count > 0)
             {
                 foreach (var tag in term.Tags)
                 {
-                    IProteoformModification? modificationAtIndex = this.GetModification(tag.Descriptors, modificationLookup, 
+                    IProteoformMassDelta? delta = this.GetModification(tag.Descriptors, modificationLookup,
                         $"Multiple modifications at index: {tag.ZeroBasedStartIndex}");
 
-                    // Lazy create the modifications list and add
-                    if (modificationAtIndex != null)
+                    if (delta != null)
                     {
-                        if (modifications == null)
-                            modifications = new List<IProteoformModificationWithIndex>();
-
-                        IProteoformModificationWithIndex proteoformModificationWithIndex = new ProteoformModificationWithIndex(modificationAtIndex, tag.ZeroBasedStartIndex);
-                        modifications.Add(proteoformModificationWithIndex);
+                        localizedModifications ??= new List<IProteoformLocalizedModification>();
+                        localizedModifications.Add(new LocalizedModification(delta, tag.ZeroBasedStartIndex, tag.ZeroBasedEndIndex));
                     }
                 }
             }
 
-            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, modifications, _water);
+            if (term.LabileDescriptors?.Count > 0)
+            {
+                foreach (var item in term.LabileDescriptors)
+                {
+                    IProteoformMassDelta? delta = this.GetModification(item, modificationLookup);
+
+                    if (delta != null)
+                    {
+                        unlocalizedModifications ??= new List<IProteoformUnlocalizedModification>();
+                        unlocalizedModifications.Add(new UnlocalizedModification(delta, 1, true));
+                    }
+                }
+            }
+
+            if (term.UnlocalizedTags?.Count > 0)
+            {
+                foreach (var item in term.UnlocalizedTags)
+                {
+                    IProteoformMassDelta? delta = this.GetModification(item.Descriptors, modificationLookup,
+                        "Multiple unlocalized descriptors on same tag.");
+
+                    if (delta != null)
+                    {
+                        unlocalizedModifications ??= new List<IProteoformUnlocalizedModification>();
+                        unlocalizedModifications.Add(new UnlocalizedModification(delta, item.Count, false));
+                    }
+                }
+            }
+
+            if (term.TagGroups?.Count > 0)
+            {
+                foreach (var item in term.TagGroups)
+                {
+                    IProteoformMassDelta? delta = this.GetModification(item, modificationLookup);
+
+                    if (delta != null)
+                    {
+                        modificationGroups ??= new List<IProteoformModificationGroup>();
+                        modificationGroups.Add(new TagGroupModification(delta, item.Name, 
+                            item.Members.Select(x => new TagGroupModificationMember(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight))));
+                    }
+                }
+            }
+
+            // Debating about doing this as a decorators around Residues. Starting with just keeping this as another mod type.
+            if (term.GlobalModifications?.Count > 0)
+            {
+                foreach (var item in term.GlobalModifications)
+                {
+                    IProteoformMassDelta? delta = this.GetModification(item.Descriptors, modificationLookup,
+                        "Multiple global modification descriptors on same tag.");
+
+                    if (delta != null)
+                    {
+                        globalModifications ??= new List<IProteoformGlobalModification>();
+                        globalModifications.Add(new GlobalModification(delta, item.TargetAminoAcids));
+                    }
+                }
+            }
+
+            return new ProteoformGroup(residues, nTerminalModification, cTerminalModification, localizedModifications, unlocalizedModifications,
+                modificationGroups, globalModifications, _water);
         }
 
-        private IProteoformModification? GetModification(IList<ProFormaDescriptor>? descriptors, IProteoformModificationLookup modificationLookup,
+        private class LocalizedModification : ProteoformModificationBase, IProteoformLocalizedModification
+        {
+            public LocalizedModification(IProteoformMassDelta modificationDelta, int zeroBasedStartIndex, int zeroBasedEndIndex)
+                : base(modificationDelta)
+            {
+                this.ZeroBasedStartIndex = zeroBasedStartIndex;
+                this.ZeroBasedEndIndex = zeroBasedEndIndex;
+            }
+
+            public int ZeroBasedStartIndex { get; }
+
+            public int ZeroBasedEndIndex { get; }
+        }
+
+        private class UnlocalizedModification : ProteoformModificationBase, IProteoformUnlocalizedModification
+        {
+            public UnlocalizedModification(IProteoformMassDelta modificationDelta, int count, bool isLabile)
+                : base(modificationDelta)
+            {
+                this.Count = count;
+                this.IsLabile = isLabile;
+            }
+
+            public int Count { get; }
+
+            public bool IsLabile { get; }
+        }
+
+        private class TagGroupModification : ProteoformModificationBase, IProteoformModificationGroup
+        {
+            public TagGroupModification(IProteoformMassDelta modificationDelta, string groupName, IReadOnlyCollection<IProteoformModificationGroupMember> members)
+                : base(modificationDelta)
+            {
+                this.GroupName = groupName;
+                this.Members = members;
+            }
+
+            public string GroupName { get; }
+
+            public IReadOnlyCollection<IProteoformModificationGroupMember> Members { get; }
+        }
+
+        private class TagGroupModificationMember : IProteoformModificationGroupMember
+        {
+            public TagGroupModificationMember(int zeroBasedStartIndex, int zeroBasedEndIndex, double weight)
+            {
+                Weight = weight;
+                ZeroBasedStartIndex = zeroBasedStartIndex;
+                ZeroBasedEndIndex = zeroBasedEndIndex;
+            }
+
+            public double Weight { get; }
+
+            public int ZeroBasedStartIndex { get; }
+
+            public int ZeroBasedEndIndex { get; }
+        }
+
+        private class GlobalModification : ProteoformModificationBase, IProteoformGlobalModification
+        {
+            public GlobalModification(IProteoformMassDelta modificationDelta, ICollection<char>? targetAminoAcids) 
+                : base(modificationDelta)
+            {
+                this.TargetAminoAcids = targetAminoAcids;
+            }
+
+            public ICollection<char>? TargetAminoAcids { get; }
+        }
+
+        private IProteoformMassDelta? GetModification(IList<ProFormaDescriptor>? descriptors, IProteoformModificationLookup modificationLookup,
             string multipleModsErrorMessage)
         {
-            IProteoformModification? modification = null;
+            IProteoformMassDelta? modification = null;
 
             if (descriptors != null && descriptors.Count > 0)
             {
@@ -88,7 +217,7 @@ namespace TopDownProteomics.Proteomics
 
                 foreach (var descriptor in descriptors)
                 {
-                    IProteoformModification? mod = null;
+                    IProteoformMassDelta? mod = null;
 
                     if (modificationLookup.CanHandleDescriptor(descriptor))
                     {
@@ -118,32 +247,62 @@ namespace TopDownProteomics.Proteomics
             return modification;
         }
 
+        private IProteoformMassDelta? GetModification(IProFormaDescriptor? descriptor, IProteoformModificationLookup modificationLookup)
+        {
+            IProteoformMassDelta? modification = null;
+
+            if (descriptor != null)
+            {
+                if (modificationLookup == null)
+                    throw new ProteoformGroupCreateException("Cannot lookup tag because lookup wasn't provided.");
+
+                if (modificationLookup.CanHandleDescriptor(descriptor))
+                    return modificationLookup.GetModification(descriptor);
+
+                throw new ProteoformGroupCreateException($"Couldn't handle descriptor {descriptor}.");
+            }
+
+            return modification;
+        }
+
         private class ProteoformGroup : IProteoformGroup
         {
-            public ProteoformGroup(IReadOnlyList<IResidue> residues,
-                IProteoformModification? nTerminalModification,
-                IProteoformModification? cTerminalModification,
-                IReadOnlyCollection<IProteoformModificationWithIndex>? modifications,
+            public ProteoformGroup(IReadOnlyList<IResidue> residues, IProteoformMassDelta? nTerminalModification, 
+                IProteoformMassDelta? cTerminalModification, 
+                IReadOnlyCollection<IProteoformLocalizedModification>? localizedModifications, 
+                IReadOnlyCollection<IProteoformUnlocalizedModification>? unlocalizedModifications, 
+                IReadOnlyCollection<IProteoformModificationGroup>? modificationGroups, 
+                IReadOnlyCollection<IProteoformGlobalModification>? globalModifications, 
                 IChemicalFormula water)
             {
-                this.Residues = residues;
-                this.NTerminalModification = nTerminalModification;
-                this.CTerminalModification = cTerminalModification;
-                this.Modifications = modifications;
-                this.Water = water;
+                Residues = residues;
+                NTerminalModification = nTerminalModification;
+                CTerminalModification = cTerminalModification;
+                LocalizedModifications = localizedModifications;
+                UnlocalizedModifications = unlocalizedModifications;
+                ModificationGroups = modificationGroups;
+                GlobalModifications = globalModifications;
+                Water = water;
             }
 
             public IReadOnlyList<IResidue> Residues { get; }
-            public IProteoformModification? NTerminalModification { get; }
-            public IProteoformModification? CTerminalModification { get; }
-            public IReadOnlyCollection<IProteoformModificationWithIndex>? Modifications { get; }
+            public IProteoformMassDelta? NTerminalModification { get; }
+            public IProteoformMassDelta? CTerminalModification { get; }
             public IChemicalFormula Water { get; }
+
+            public IReadOnlyCollection<IProteoformLocalizedModification>? LocalizedModifications { get; }
+            public IReadOnlyCollection<IProteoformUnlocalizedModification>? UnlocalizedModifications { get; }
+            public IReadOnlyCollection<IProteoformModificationGroup>? ModificationGroups { get; }
+            public IReadOnlyCollection<IProteoformGlobalModification>? GlobalModifications { get; }
 
             public double GetMass(MassType massType)
             {
                 return this.Water.GetMass(massType) +
                     this.Residues.Sum(x => x.GetChemicalFormula().GetMass(massType)) +
-                    (this.Modifications?.Sum(x => x.Modification.GetMass(massType)) ?? 0.0) +
+                    (this.LocalizedModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.UnlocalizedModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.ModificationGroups?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
+                    (this.GlobalModifications?.Sum(x => x.ModificationDelta.GetMass(massType)) ?? 0.0) +
                     (this.NTerminalModification?.GetMass(massType) ?? 0.0) +
                     (this.CTerminalModification?.GetMass(massType) ?? 0.0);
             }

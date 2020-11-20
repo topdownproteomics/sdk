@@ -14,13 +14,13 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns>
         ///   <c>true</c> if this instance [can handle descriptor] the specified descriptor; otherwise, <c>false</c>.
         /// </returns>
-        bool CanHandleDescriptor(ProFormaDescriptor descriptor);
+        bool CanHandleDescriptor(IProFormaDescriptor descriptor);
 
         /// <summary>
-        /// Gets the modification.
+        /// Gets the modification delta.
         /// </summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        IProteoformModification? GetModification(ProFormaDescriptor descriptor);
+        IProteoformMassDelta? GetModification(IProFormaDescriptor descriptor);
     }
 }

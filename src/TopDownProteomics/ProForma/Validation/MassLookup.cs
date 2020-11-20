@@ -14,7 +14,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <param name="descriptor">The descriptor.</param>
         /// <returns>
         ///   <c>true</c> if this instance [can handle descriptor] the specified descriptor; otherwise, <c>false</c>.</returns>
-        public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
+        public bool CanHandleDescriptor(IProFormaDescriptor descriptor)
         {
             return descriptor.Key == ProFormaKey.Mass;
         }
@@ -22,7 +22,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <summary>Gets the modification.</summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public IProteoformModification? GetModification(ProFormaDescriptor descriptor)
+        public IProteoformMassDelta? GetModification(IProFormaDescriptor descriptor)
         {
             if (double.TryParse(descriptor.Value, out double mass))
             {
@@ -34,7 +34,7 @@ namespace TopDownProteomics.ProForma.Validation
             }
         }
 
-        private class MassModification : IProteoformModification
+        private class MassModification : IProteoformMassDelta
         {
             private readonly double _mass;
 

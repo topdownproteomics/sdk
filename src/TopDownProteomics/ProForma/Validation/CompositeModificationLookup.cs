@@ -28,7 +28,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns>
         /// <c>true</c> if this instance [can handle descriptor] the specified descriptor; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
+        public bool CanHandleDescriptor(IProFormaDescriptor descriptor)
         {
             return _lookups.Any(x => x.CanHandleDescriptor(descriptor));
         }
@@ -38,7 +38,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public IProteoformModification? GetModification(ProFormaDescriptor descriptor)
+        public IProteoformMassDelta? GetModification(IProFormaDescriptor descriptor)
         {
             foreach (var lookup in _lookups)
             {

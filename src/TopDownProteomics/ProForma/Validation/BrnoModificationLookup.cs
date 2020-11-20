@@ -29,7 +29,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns>
         /// <c>true</c> if this instance [can handle descriptor] the specified descriptor; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanHandleDescriptor(ProFormaDescriptor descriptor)
+        public bool CanHandleDescriptor(IProFormaDescriptor descriptor)
         {
             return descriptor.Key == ProFormaKey.Name && 
                 descriptor.EvidenceType == ProFormaEvidenceType.Brno && 
@@ -41,7 +41,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="descriptor">The descriptor.</param>
         /// <returns></returns>
-        public IProteoformModification GetModification(ProFormaDescriptor descriptor)
+        public IProteoformMassDelta GetModification(IProFormaDescriptor descriptor)
         {
             string abbreviation = descriptor.Value;
 
@@ -56,7 +56,7 @@ namespace TopDownProteomics.ProForma.Validation
                 case "ph": return _modifications[6];
 
                 default:
-                    throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor.ToString()}.");
+                    throw new ProteoformModificationLookupException($"Couldn't handle value for descriptor {descriptor}.");
             }
         }
 
@@ -69,13 +69,13 @@ namespace TopDownProteomics.ProForma.Validation
             var o = elementProvider.GetElement(8);
             var p = elementProvider.GetElement(15);
 
-            mods[0] = new BrnoModification("ac", new[]
+            mods[0] = new BrnoModification("B:ac", new[]
             {
                 new EntityCardinality<IElement>(c, 2),
                 new EntityCardinality<IElement>(h, 2),
                 new EntityCardinality<IElement>(o, 1)
             });
-            mods[1] = new BrnoModification("me1", new[]
+            mods[1] = new BrnoModification("B:me1", new[]
             {
                 new EntityCardinality<IElement>(c, 1),
                 new EntityCardinality<IElement>(h, 2)
@@ -86,16 +86,16 @@ namespace TopDownProteomics.ProForma.Validation
                 new EntityCardinality<IElement>(c, 2),
                 new EntityCardinality<IElement>(h, 4)
             };
-            mods[2] = new BrnoModification("me2s", me2);
-            mods[3] = new BrnoModification("me2a", me2);
-            mods[4] = new BrnoModification("me2", me2);
+            mods[2] = new BrnoModification("B:me2s", me2);
+            mods[3] = new BrnoModification("B:me2a", me2);
+            mods[4] = new BrnoModification("B:me2", me2);
 
-            mods[5] = new BrnoModification("me3", new[]
+            mods[5] = new BrnoModification("B:me3", new[]
             {
                 new EntityCardinality<IElement>(c, 3),
                 new EntityCardinality<IElement>(h, 6)
             });
-            mods[6] = new BrnoModification("ph", new[]
+            mods[6] = new BrnoModification("B:ph", new[]
             {
                 new EntityCardinality<IElement>(h, 1),
                 new EntityCardinality<IElement>(o, 3),
@@ -105,7 +105,7 @@ namespace TopDownProteomics.ProForma.Validation
             return mods;
         }
 
-        private class BrnoModification : IProFormaProteoformModification, IIdentifiable, IHasChemicalFormula
+        private class BrnoModification : IProteoformOntologyDelta
         {
             public BrnoModification(string abbreviation, IReadOnlyCollection<IEntityCardinality<IElement>> elements)
             {

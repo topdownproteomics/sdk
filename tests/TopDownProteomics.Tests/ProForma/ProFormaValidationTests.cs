@@ -43,7 +43,7 @@ namespace TopDownProteomics.Tests.ProForma
             Assert.IsNotNull(proteoform.Residues);
             Assert.AreEqual(8, proteoform.Residues.Count);
             Assert.AreEqual(sequence, proteoform.GetSequence());
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
 
             // Residue masses plus water (approx)
             Assert.AreEqual(936.35, proteoform.GetMass(MassType.Monoisotopic), 0.01);
@@ -72,7 +72,7 @@ namespace TopDownProteomics.Tests.ProForma
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
         }
 
         [Test]
@@ -91,7 +91,7 @@ namespace TopDownProteomics.Tests.ProForma
             }); ;
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
 
             term = new ProFormaTerm("SEQVENCE", tags: new List<ProFormaTag>
             {
@@ -103,7 +103,7 @@ namespace TopDownProteomics.Tests.ProForma
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
         }
 
         private ProFormaDescriptor CreateBrnoDescriptor(string name) => 
@@ -121,9 +121,9 @@ namespace TopDownProteomics.Tests.ProForma
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNotNull(proteoform.Modifications);
-            Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(3, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
+            Assert.AreEqual(1, proteoform.LocalizedModifications.Count);
+            Assert.AreEqual(3, ((IProteoformLocalizedModification)proteoform.LocalizedModifications.Single()).ZeroBasedStartIndex);
 
             // Residue masses plus modification plus water (approx)
             Assert.AreEqual(978.36, proteoform.GetMass(MassType.Monoisotopic), 0.01);
@@ -140,7 +140,7 @@ namespace TopDownProteomics.Tests.ProForma
             var term = new ProFormaTerm(sequence, null, new[] { descriptor }, null, null);
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
             Assert.IsNotNull(proteoform.NTerminalModification);
             Assert.IsNull(proteoform.CTerminalModification);
             
@@ -152,7 +152,7 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm(sequence, null, null, new[] { descriptor }, null);
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
 
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
             Assert.IsNull(proteoform.NTerminalModification);
             Assert.IsNotNull(proteoform.CTerminalModification);
 
@@ -194,9 +194,9 @@ namespace TopDownProteomics.Tests.ProForma
                 })
             });
             var proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
-            Assert.IsNotNull(proteoform.Modifications);
-            Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(4, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
+            Assert.AreEqual(1, proteoform.LocalizedModifications.Count);
+            Assert.AreEqual(4, ((IProteoformLocalizedModification)proteoform.LocalizedModifications.Single()).ZeroBasedStartIndex);
 
             // Modifications have different chemical formulas ... throw!
             term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
@@ -222,8 +222,8 @@ namespace TopDownProteomics.Tests.ProForma
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
-            Assert.IsNotNull(proteoform.Modifications);
-            Assert.AreEqual(2, proteoform.Modifications.Count);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
+            Assert.AreEqual(2, proteoform.LocalizedModifications.Count);
 
             // What about descriptors that don't have chemical formulas?
             term = new ProFormaTerm("SEQVKENCE", tags: new List<ProFormaTag>
@@ -235,9 +235,9 @@ namespace TopDownProteomics.Tests.ProForma
                 })
             });
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
-            Assert.IsNotNull(proteoform.Modifications);
-            Assert.AreEqual(1, proteoform.Modifications.Count);
-            Assert.AreEqual(7, proteoform.Modifications.Single().ZeroBasedIndex);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
+            Assert.AreEqual(1, proteoform.LocalizedModifications.Count);
+            Assert.AreEqual(7, ((IProteoformLocalizedModification)proteoform.LocalizedModifications.Single()).ZeroBasedStartIndex);
 
             // Multiple N terminal mods.
             term = new ProFormaTerm("SEQVKENCE", null,
@@ -248,7 +248,7 @@ namespace TopDownProteomics.Tests.ProForma
                 }, null, null
             );
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
             Assert.IsNotNull(proteoform.NTerminalModification);
 
             term = new ProFormaTerm("SEQVKENCE", null,
@@ -269,7 +269,7 @@ namespace TopDownProteomics.Tests.ProForma
                 }, null
             );
             proteoform = _factory.CreateProteoformGroup(term, modificationLookup);
-            Assert.IsNull(proteoform.Modifications);
+            Assert.IsNull(proteoform.LocalizedModifications);
             Assert.IsNotNull(proteoform.CTerminalModification);
 
             term = new ProFormaTerm("SEQVKENCE", null, null,
@@ -291,7 +291,7 @@ namespace TopDownProteomics.Tests.ProForma
             });
             var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
 
-            Assert.IsNotNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
             
             // Residue masses plus water (approx)
             Assert.AreEqual(1016.32, proteoform.GetMass(MassType.Monoisotopic), 0.01);
@@ -311,7 +311,7 @@ namespace TopDownProteomics.Tests.ProForma
             });
             var proteoform = _factory.CreateProteoformGroup(term, _residLookup);
 
-            Assert.IsNotNull(proteoform.Modifications);
+            Assert.IsNotNull(proteoform.LocalizedModifications);
 
             // Residue masses plus water (approx)
             Assert.AreEqual(1019.46, proteoform.GetMass(MassType.Monoisotopic), 0.01);
