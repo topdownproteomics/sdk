@@ -132,7 +132,6 @@ namespace TopDownProteomics.Tests.Chemistry
         }
 
         [Test]
-        [Ignore("Not sure if this is in the spec or not.")]
         public void MergeDuplicatesTest()
         {
             string formulaString = "CCHHHCC";
@@ -156,26 +155,6 @@ namespace TopDownProteomics.Tests.Chemistry
         //        Tuple.Create("H", 14)
         //    });
         //}
-
-        private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
-        {
-            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
-
-            Assert.IsTrue(success);
-            Assert.IsNotNull(chemicalFormula);
-
-            IReadOnlyCollection<IEntityCardinality<IElement>> elementCollection = chemicalFormula.GetElements();
-            Assert.AreEqual(elements.Length, elementCollection.Count, "Element Count");
-
-            foreach (var (symbol, count) in elements)
-            {
-                IEntityCardinality<IElement> h = elementCollection.SingleOrDefault(e => e.Entity.Symbol == symbol);
-                Assert.IsNotNull(h, $"For element '{symbol}{count}'");
-                Assert.AreEqual(count, h.Count, $"For element '{symbol}{count}'");
-            }
-
-            return chemicalFormula;
-        }
 
         [Test]
         public void IncorrectFormatTest()
@@ -368,6 +347,39 @@ namespace TopDownProteomics.Tests.Chemistry
                     }
                 }
             }
+        }
+
+        [Test]
+        public void IgnoreZerosTest()
+        {
+            string formulaString = "C2H2N0O1";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 2),
+                Tuple.Create("H", 2),
+                Tuple.Create("O", 1),
+            });
+        }
+
+        private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
+        {
+            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
+
+            Assert.IsTrue(success);
+            Assert.IsNotNull(chemicalFormula);
+
+            IReadOnlyCollection<IEntityCardinality<IElement>> elementCollection = chemicalFormula.GetElements();
+            Assert.AreEqual(elements.Length, elementCollection.Count, "Element Count");
+
+            foreach (var (symbol, count) in elements)
+            {
+                IEntityCardinality<IElement> h = elementCollection.SingleOrDefault(e => e.Entity.Symbol == symbol);
+                Assert.IsNotNull(h, $"For element '{symbol}{count}'");
+                Assert.AreEqual(count, h.Count, $"For element '{symbol}{count}'");
+            }
+
+            return chemicalFormula;
         }
     }
 }

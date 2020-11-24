@@ -190,8 +190,21 @@ namespace TopDownProteomics.Chemistry
             return formula;
         }
 
-        /// <summary>  Attempts to parse the string into a ChemicalFormula.</summary>
-        /// <param name="formula">The chemical formula. as a string</param>
+        /// <summary>Parses the string into a chemical formula.</summary>
+        /// <param name="formula">The formula.</param>
+        /// <param name="elementProvider">The element provider.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Could not parse '{formula.ToString()}' into a chemical formula.</exception>
+        public static IChemicalFormula ParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider)
+        {
+            if (TryParseString(formula, elementProvider, out IChemicalFormula result))
+                return result;
+            
+            throw new Exception($"Could not parse '{formula.ToString()}' into a chemical formula.");
+        }
+
+        /// <summary>Attempts to parse the string into a ChemicalFormula.</summary>
+        /// <param name="formula">The chemical formula as a string.</param>
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
         /// <returns>True if successful, otherwise false.</returns>
@@ -303,6 +316,9 @@ namespace TopDownProteomics.Chemistry
                 if (!int.TryParse(digitSpan, out count))
                     //throw new Exception($"Can't convert {digitSpan.ToString()} to an integer.");
                     return false;
+
+                if (count == 0)
+                    return true; // A valid cardinality, but nothing should be added to the formula
             }
 
             // Handle isotopes
