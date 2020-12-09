@@ -86,6 +86,12 @@ namespace TopDownProteomics.Tests.IO
             PsiModTerm stearoylated = result[2001];
             Assert.AreEqual("MOD:02001", stearoylated.Id);
             Assert.IsNull(stearoylated.ExternalReferences);
+            Assert.IsNull(stearoylated.Remap);
+
+            // Check for Obsolete and Remap
+            PsiModTerm residueMethylEster = result[407];
+            Assert.IsTrue(residueMethylEster.IsObsolete);
+            Assert.AreEqual("MOD:00599", residueMethylEster.Remap);
         }
     }
 }

@@ -35,11 +35,13 @@ namespace TopDownProteomics.IO.PsiMod
         /// <param name="source">The source.</param>
         /// <param name="terminus">The terminus.</param>
         /// <param name="isObsolete">if set to <c>true</c> [is obsolete].</param>
+        /// <param name="remap">The remapping term.</param>
         /// <param name="formalCharge">The formal charge.</param>
         /// <param name="isA">The is a.</param>
         public PsiModTerm(string id, string name, string definition, ICollection<PsiModExternalReference>? externalReferences, 
             ICollection<PsiModSynonym>? synonyms, string? comment, double? diffAvg, string? diffFormula, double? diffMono, string? formula, double? massAvg, 
-            double? massMono, char? origin, PsiModModificationSource? source, Terminus? terminus, bool isObsolete, int formalCharge, ICollection<string>? isA)
+            double? massMono, char? origin, PsiModModificationSource? source, Terminus? terminus, bool isObsolete, string? remap, int formalCharge, 
+            ICollection<string>? isA)
         {
             Id = id;
             ExternalReferences = externalReferences;
@@ -57,6 +59,7 @@ namespace TopDownProteomics.IO.PsiMod
             Source = source;
             Terminus = terminus;
             IsObsolete = isObsolete;
+            Remap = remap;
             FormalCharge = formalCharge;
             IsA = isA;
         }
@@ -108,6 +111,9 @@ namespace TopDownProteomics.IO.PsiMod
 
         /// <summary>A value indicating whether this instance is obsolete.</summary>
         public bool IsObsolete { get; }
+
+        /// <summary>Indicates that the term should be remapped to another term.</summary>
+        public string? Remap { get; }
 
         /// <summary>The formal charge.</summary>
         public int FormalCharge { get; }

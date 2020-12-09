@@ -41,6 +41,7 @@ namespace TopDownProteomics.IO.PsiMod
             ICollection<string>? isA = null;
             string? comment = null;
             bool isObsolete = false;
+            string? remap = null;
 
             double? diffAvg = null;
             string? diffFormula = null;
@@ -93,12 +94,13 @@ namespace TopDownProteomics.IO.PsiMod
                             comment = pair.Value;
                             break;
                         case "xref":
-                            string[] splitColon = pair.Value.Split(':');
-                            string value = splitColon[1].Trim(' ', '"');
+                            int colonIndex = pair.Value.IndexOf(':');
+                            string key = pair.Value[0..colonIndex];
+                            string value = pair.Value[(colonIndex + 1)..].Trim(' ', '"');
 
                             if (value != "none")
                             {
-                                switch (splitColon[0])
+                                switch (key)
                                 {
                                     case "DiffAvg":
                                         diffAvg = Convert.ToDouble(value);
@@ -150,6 +152,9 @@ namespace TopDownProteomics.IO.PsiMod
                                         else if (value == "C-term")
                                             terminus = Terminus.C;
                                         break;
+                                    case "Remap":
+                                        remap = value;
+                                        break;
                                 }
                             }
                             break;
@@ -167,7 +172,7 @@ namespace TopDownProteomics.IO.PsiMod
 
             if (definition != null)
                 return new PsiModTerm(oboTerm.Id, oboTerm.Name, definition, externalReferences, synonyms, comment, diffAvg, diffFormula,
-                    diffMono, massFormula, massAvg, massMono, origin, source, terminus, isObsolete, formalCharge, isA);
+                    diffMono, massFormula, massAvg, massMono, origin, source, terminus, isObsolete, remap, formalCharge, isA);
 
             throw new Exception("Could not find required 'definition' field.");
         }
