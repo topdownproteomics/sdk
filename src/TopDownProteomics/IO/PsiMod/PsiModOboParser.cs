@@ -51,7 +51,7 @@ namespace TopDownProteomics.IO.PsiMod
             double? massMono = null;
 
             int formalCharge = 0;
-            char? origin = null;
+            ICollection<char>? origin = null;
 
             PsiModModificationSource? source = null;
             Terminus? terminus = null;
@@ -131,12 +131,27 @@ namespace TopDownProteomics.IO.PsiMod
                                         {
                                             coefficient = -1;
                                         }
-                                        int num = Convert.ToInt32(value.Substring(0, value.Length - 1));
+                                        int num = Convert.ToInt32(value[0..^1]);
                                         formalCharge = coefficient * num;
                                         break;
                                     case "Origin":
-                                        if (value.Length == 1 && value != "X")
-                                            origin = value[0];
+                                        if (!string.IsNullOrEmpty(value))
+                                        {
+                                            if (value.Length == 1 && value != "X")
+                                            {
+                                                Utility.LazyCreateAndAdd(ref origin, value[0]);
+                                            }
+                                            else if (value.Contains(",")) // Crosslinks
+                                            {
+                                                var origins = value
+                                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                    .Select(x => x.Trim())
+                                                    .Where(x => x.Length == 1)
+                                                    .Select(x => x[0]);
+
+                                                Utility.LazyCreateAndAdd(ref origin, origins);
+                                            }
+                                        }
                                         break;
                                     case "Source":
                                         if (value == "natural")

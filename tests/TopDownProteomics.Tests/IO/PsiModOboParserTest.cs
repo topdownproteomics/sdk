@@ -20,7 +20,7 @@ namespace TopDownProteomics.Tests.IO
             List<PsiModTerm> result = new List<PsiModTerm>(parser.Parse(GetFilePath()));
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(2027, result.Count);
+            Assert.AreEqual(2077, result.Count);
             Assert.AreEqual("MOD:00812", result[812].Id);
             Assert.AreEqual("alkylated residue", result[1].Name);
             Assert.AreEqual("A protein modification that effectively converts an L-serine residue to O3-glycosylserine.", result[2].Definition);
@@ -39,17 +39,17 @@ namespace TopDownProteomics.Tests.IO
             Assert.AreEqual(true, result[4].IsObsolete);
             Assert.AreEqual(false, result[813].IsObsolete);
 
-            // Should be just one character ... if more, report nothing
-            // TODO: Handle cross-links differently
-            Assert.AreEqual('T', result[813].Origin);
-            Assert.AreEqual(null, result[34].Origin); // Cross-link, origin is C, C
+            // Should be just one character unless cross link
+            Assert.AreEqual('T', result[813].Origin.Single());
+            CollectionAssert.AreEquivalent(new[] { 'C', 'C' }, result[34].Origin); // Cross-link, origin is C, C
+            CollectionAssert.AreEquivalent(new[] { 'K', 'K', 'K', 'K' }, result[1934].Origin); // Cross-link, 4 AA origin
             Assert.AreEqual(null, result[1038].Origin); // says 'none'
             Assert.AreEqual(null, result[458].Origin); // Special case for 'X'
 
             Assert.AreEqual(null, result[0].Source);
             Assert.AreEqual(null, result[1].Source);
             Assert.AreEqual(PsiModModificationSource.Natural, result[812].Source);
-            Assert.AreEqual(PsiModModificationSource.Artifact, result[7].Source);
+            Assert.AreEqual(PsiModModificationSource.Artifact, result[54].Source);
             Assert.AreEqual(PsiModModificationSource.Hypothetical, result[231].Source);
 
             Assert.AreEqual(null, result[813].Terminus); // says 'none'

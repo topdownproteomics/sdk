@@ -25,6 +25,26 @@ namespace TopDownProteomics
         }
 
         /// <summary>
+        /// Lazy creates the collection if needed and adds the item.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list">The list.</param>
+        /// <param name="items">The items.</param>
+        /// <returns></returns>
+        public static void LazyCreateAndAdd<T>(ref ICollection<T>? list, IEnumerable<T> items)
+        {
+            if (list == null)
+            {
+                list = new List<T>(items);
+            }
+            else
+            {
+                foreach (var item in items)
+                    list.Add(item);
+            }
+        }
+
+        /// <summary>
         /// Finds the first element that maximizes a given function.
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
