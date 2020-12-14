@@ -31,7 +31,7 @@ namespace TopDownProteomics.IO.PsiMod
         /// <param name="formula">The formula.</param>
         /// <param name="massAvg">The mass average.</param>
         /// <param name="massMono">The mass mono.</param>
-        /// <param name="origin">The origin.</param>
+        /// <param name="origin">The origin amino acid.</param>
         /// <param name="source">The source.</param>
         /// <param name="terminus">The terminus.</param>
         /// <param name="isObsolete">if set to <c>true</c> [is obsolete].</param>
@@ -39,7 +39,7 @@ namespace TopDownProteomics.IO.PsiMod
         /// <param name="isA">The is a.</param>
         public PsiModTerm(string id, string name, string definition, ICollection<PsiModExternalReference>? externalReferences, 
             ICollection<PsiModSynonym>? synonyms, string? comment, double? diffAvg, string? diffFormula, double? diffMono, string? formula, double? massAvg, 
-            double? massMono, char? origin, PsiModModificationSource? source, Terminus? terminus, bool isObsolete, int formalCharge, ICollection<string>? isA)
+            double? massMono, ICollection<char>? origin, PsiModModificationSource? source, Terminus? terminus, bool isObsolete, int formalCharge, ICollection<string>? isA)
         {
             Id = id;
             ExternalReferences = externalReferences;
@@ -97,8 +97,8 @@ namespace TopDownProteomics.IO.PsiMod
         /// <summary>The total monoisotopic mass.</summary>
         public double? MassMono { get; }
 
-        /// <summary>The origin amino acid.</summary>
-        public char? Origin { get; }
+        /// <summary>The origin amino acid (multiple for crosslinks).</summary>
+        public ICollection<char>? Origin { get; }
 
         /// <summary>The source of the term.</summary>
         public PsiModModificationSource? Source { get; }
