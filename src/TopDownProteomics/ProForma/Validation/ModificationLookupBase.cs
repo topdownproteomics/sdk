@@ -13,6 +13,7 @@ namespace TopDownProteomics.ProForma.Validation
     public abstract class ModificationLookupBase<T> : IProteoformModificationLookup where T : IIdentifiable
     {
         private IProteoformMassDelta[]? _modifications;
+        private Dictionary<string, IProteoformMassDelta>? _modificationNames;
 
         /// <summary>
         /// Gets the modification array.
@@ -23,6 +24,8 @@ namespace TopDownProteomics.ProForma.Validation
         protected void SetupModificationArray(IEnumerable<T> modifications)
         {
             if (modifications == null) throw new ArgumentNullException(nameof(modifications));
+
+            _modificationNames = new Dictionary<string, IProteoformMassDelta>();
 
             var modArray = new IProteoformMassDelta[10000]; // More IDs than will ever exist
             int maxId = -1;
@@ -37,6 +40,14 @@ namespace TopDownProteomics.ProForma.Validation
 
                 // Keep all the way up to the max passed in, even if it turns out to be NULL
                 maxId = Math.Max(maxId, id);
+
+                if (_modificationNames != null)
+                {
+                    // HACK for obsolete PSI-MOD terms with same name as something else ... skip
+                    if (modification.Id == "MOD:00949" || modification.Id == "MOD:01966") continue;
+
+                    _modificationNames.Add(modification.Name, modArray[id]);
+                }
             }
 
             Array.Resize(ref modArray, maxId + 1);
@@ -60,15 +71,14 @@ namespace TopDownProteomics.ProForma.Validation
         /// </returns>
         public virtual bool CanHandleDescriptor(IProFormaDescriptor descriptor)
         {
-            var nonDefault = descriptor.EvidenceType == this.EvidenceType && 
+            var nonDefault = descriptor.EvidenceType == this.EvidenceType &&
                 (descriptor.Key == ProFormaKey.Name || descriptor.Key == ProFormaKey.Identifier);
 
-            if (!this.IsDefaultModificationType)
+            if (!this.IsDefaultModificationType || nonDefault)
                 return nonDefault;
 
-            // If this is the default modification type, allow one more condition.
-            return nonDefault ||
-                (descriptor.Key == ProFormaKey.Name && descriptor.EvidenceType == ProFormaEvidenceType.None);
+            // If this is the default modification type, allow no evidence name check.
+            return _modificationNames?.ContainsKey(descriptor.Value) ?? false;
         }
 
         /// <summary>The ProForma key.</summary>
@@ -106,13 +116,13 @@ namespace TopDownProteomics.ProForma.Validation
             {
                 string value = descriptor.Value;
 
-                IProteoformMassDelta modification = _modifications
-                    .SingleOrDefault(x => x != null && ((ModificationWrapper)x).Modification.Name == value);
+                if (_modificationNames != null)
+                {
+                    if (!_modificationNames.ContainsKey(value))
+                        throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor}.");
 
-                if (modification == null)
-                    throw new ProteoformModificationLookupException($"Could not find modification using Name in descriptor {descriptor}.");
-
-                return modification;
+                    return _modificationNames[value];
+                }
             }
             else if (descriptor.Key == ProFormaKey.Identifier)
             {

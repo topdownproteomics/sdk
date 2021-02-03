@@ -59,7 +59,9 @@ namespace TopDownProteomics.ProteoformHash
                 originalProFormaTerm.TagGroups == null &&
                 originalProFormaTerm.UnlocalizedTags == null)
             {
-                return new ChemicalProteoformHash(originalProFormaTerm.Sequence);
+                IProteoformGroup simpleGroup = this._proteoformGroupFactory.CreateProteoformGroup(originalProFormaTerm.Sequence);
+
+                return new ChemicalProteoformHash(originalProFormaTerm.Sequence, simpleGroup);
             }
 
             // Create proteoform group (flattens all features into Ids)
@@ -159,7 +161,7 @@ namespace TopDownProteomics.ProteoformHash
                     tagGroups: tagGroups,
                     globalModifications: globalModifications);
                 string hash = new ProFormaWriter().WriteString(proFormaTerm);
-                return new ChemicalProteoformHash(hash);
+                return new ChemicalProteoformHash(hash, proteoformGroup);
             }
 
             throw new Exception("Cannot get amino acid sequence for the proteoform group.");
@@ -196,11 +198,14 @@ namespace TopDownProteomics.ProteoformHash
             return mass.ToString();
         }
 
-        private class ChemicalProteoformHash : IChemicalProteoformHash
+        private class ChemicalProteoformHash : IChemicalProteoformHash, IHasMass
         {
-            public ChemicalProteoformHash(string hash)
+            private IHasMass _hasMass;
+
+            public ChemicalProteoformHash(string hash, IHasMass hasMass)
             {
                 Hash = hash;
+                _hasMass = hasMass;
             }
 
             public string Hash { get; }
@@ -208,6 +213,8 @@ namespace TopDownProteomics.ProteoformHash
             public bool HasProForma => true;
 
             public string ProForma => Hash;
+
+            public double GetMass(MassType massType) => _hasMass.GetMass(massType);
         }
     }
 }
