@@ -112,8 +112,8 @@ namespace TopDownProteomics.Tests.ProForma
 
             // If using modification name, must have no ending or end in proper ending
             Assert.IsTrue(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, key, "Something")));
+            Assert.IsFalse(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, "Something")));
             Assert.IsFalse(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, "Something")));
-            Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, "Something")), isDefault);
 
             // This is malformed and must be interpreted as a mod "name" ... will fail when looking up modification
             //Assert.AreEqual(lookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Name, $"Something [{key}]")), isDefault);
@@ -247,6 +247,18 @@ namespace TopDownProteomics.Tests.ProForma
             var idMod = (IIdentifiable)mod;
             Assert.AreEqual("MOD:00402", idMod.Id);
             Assert.AreEqual("Gygi ICAT(TM) d8 modified cysteine", idMod.Name);
+        }
+
+        [Test]
+        public void MultipleDefaultLookups()
+        {
+            var lookup = new CompositeModificationLookup(new[] { _psiModLookup, _unimodLookup });
+
+            var mod_psi = lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, "3-hydroxy-L-proline"));
+            Assert.IsNotNull(mod_psi);
+
+            var mod_uni = lookup.GetModification(new ProFormaDescriptor(ProFormaKey.Name, "Trimethyl"));
+            Assert.IsNotNull(mod_uni);
         }
     }
 }

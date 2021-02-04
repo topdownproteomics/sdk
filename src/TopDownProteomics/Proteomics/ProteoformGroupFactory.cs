@@ -136,6 +136,18 @@ namespace TopDownProteomics.Proteomics
                 modificationGroups, globalModifications, _water);
         }
 
+        /// <summary>
+        /// Creates the proteoform group for a simple sequence of amino acids.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <returns></returns>
+        public IProteoformGroup CreateProteoformGroup(string sequence)
+        {
+            var residues = sequence.Select(x => _residueProvider.GetResidue(x)).ToArray();
+
+            return new ProteoformGroup(residues, null, null, null, null, null, null, _water);
+        }
+
         private class LocalizedModification : ProteoformModificationBase, IProteoformLocalizedModification
         {
             public LocalizedModification(IProteoformMassDelta modificationDelta, int zeroBasedStartIndex, int zeroBasedEndIndex)
