@@ -107,21 +107,21 @@ namespace TopDownProteomics.Tests.ProteoformHash
         [Test]
         public void ConsistentFormulas()
         {
-            // Convert all modifications to PSI-MOD accessions
+            // Merge duplicate elements
             this.TestHash("SEQUE[Formula:CHCHO]NCE", "SEQUE[Formula:C2H2O]NCE");
         }
 
         [Test]
         public void StripLeadingTrailingZeros()
         {
-            // Remove leading and trailing zeros on mass modifications
+            // Remove leading and ensure 4 decimal places on mass modifications
 
-            this.TestHash("SEQUE[+42.050]NCE", "SEQUE[+42.05]NCE");
-            this.TestHash("SEQUE[+042.05]NCE", "SEQUE[+42.05]NCE");
-            this.TestHash("SEQUE[+00042.05000]NCE", "SEQUE[+42.05]NCE");
-            this.TestHash("SEQUE[-17.050]NCE", "SEQUE[-17.05]NCE");
-            this.TestHash("SEQUE[-017.05]NCE", "SEQUE[-17.05]NCE");
-            this.TestHash("SEQUE[-00017.05000]NCE", "SEQUE[-17.05]NCE");
+            this.TestHash("SEQUE[+42.050]NCE", "SEQUE[+42.0500]NCE");
+            this.TestHash("SEQUE[+042.05]NCE", "SEQUE[+42.0500]NCE");
+            this.TestHash("SEQUE[+00042.05000]NCE", "SEQUE[+42.0500]NCE");
+            this.TestHash("SEQUE[-17.050]NCE", "SEQUE[-17.0500]NCE");
+            this.TestHash("SEQUE[-017.05]NCE", "SEQUE[-17.0500]NCE");
+            this.TestHash("SEQUE[-00017.05000]NCE", "SEQUE[-17.0500]NCE");
         }
 
         private void TestHash(string proForma, string expectedHash)
