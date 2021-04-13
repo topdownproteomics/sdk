@@ -7,6 +7,7 @@ using TopDownProteomics.IO.PsiMod;
 using TopDownProteomics.IO.Resid;
 using TopDownProteomics.IO.Unimod;
 using TopDownProteomics.IO.UniProt;
+using TopDownProteomics.IO.Xlmod;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
 using TopDownProteomics.Proteomics;
@@ -26,6 +27,8 @@ namespace TopDownProteomics.Tests.ProForma
         private PsiModTerm _psiMod38;
         private IProteoformModificationLookup _uniProtModLookup;
         private UniprotModification _uniProtMod312;
+        private IProteoformModificationLookup _xlmodLookup;
+        private XlmodTerm _xlMod2009;
         private IProteoformModificationLookup _formulaLookup;
 
         [OneTimeSetUp]
@@ -40,6 +43,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.SetupResid();
             this.SetupPsiMod();
             this.SetupUniProt();
+            this.SetupXlMod();
             this.SetupFormula();
         }
 
@@ -88,6 +92,14 @@ namespace TopDownProteomics.Tests.ProForma
             _uniProtModLookup = UniProtModificationLookup.CreateFromModifications(modifications,
                 _elementProvider);
         }
+        private void SetupXlMod()
+        {
+            var parser = new XlmodOboParser();
+            XlmodTerm[] modifications = parser.Parse(XlmodOboParserTest.GetFilePath()).ToArray();
+
+            _xlmodLookup = XlModModificationLookup.CreateFromModifications(modifications,
+                _elementProvider);
+        }
         private void SetupFormula()
         {
             _formulaLookup = new FormulaLookup(_elementProvider);
@@ -100,6 +112,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.DescriptorHandling(_residLookup, ProFormaEvidenceType.Resid, false);
             this.DescriptorHandling(_psiModLookup, ProFormaEvidenceType.PsiMod, true);
             this.DescriptorHandling(_uniProtModLookup, ProFormaEvidenceType.UniProt, false);
+            this.DescriptorHandling(_xlmodLookup, ProFormaEvidenceType.XlMod, false);
 
             Assert.IsTrue(_formulaLookup.CanHandleDescriptor(new ProFormaDescriptor(ProFormaKey.Formula, "Anything")));
         }
@@ -129,6 +142,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.InvalidIdHandling(id, _residLookup, ProFormaKey.Identifier, ProFormaEvidenceType.Resid);
             this.InvalidIdHandling(id, _psiModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod);
             this.InvalidIdHandling(id, _uniProtModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.UniProt);
+            this.InvalidIdHandling(id, _xlmodLookup, ProFormaKey.Identifier, ProFormaEvidenceType.XlMod);
             this.InvalidIdHandling(id, _formulaLookup, ProFormaKey.Formula);
         }
         private void InvalidIdHandling(string id, IProteoformModificationLookup lookup, ProFormaKey key,
@@ -159,6 +173,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.FindById(_residLookup, ProFormaKey.Identifier, ProFormaEvidenceType.Resid, 38, "AA");
             this.FindById(_psiModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, 38, "MOD:");
             this.FindById(_uniProtModLookup, ProFormaKey.Identifier, ProFormaEvidenceType.UniProt, 312, "PTM-");
+            this.FindById(_xlmodLookup, ProFormaKey.Identifier, ProFormaEvidenceType.XlMod, 2009, "XLMOD:");
         }
         private void FindById(IProteoformModificationLookup lookup, ProFormaKey key, ProFormaEvidenceType evidenceType,
             int correctId, string extraPrefix)
@@ -181,6 +196,7 @@ namespace TopDownProteomics.Tests.ProForma
             this.FindByName(_residLookup, ProFormaEvidenceType.Resid, false, "O-phospho-L-threonine");
             this.FindByName(_psiModLookup, ProFormaEvidenceType.PsiMod, false, "3-hydroxy-L-proline");
             this.FindByName(_uniProtModLookup, ProFormaEvidenceType.UniProt, false, "(2-aminosuccinimidyl)acetic acid (Asp-Gly)");
+            this.FindByName(_xlmodLookup, ProFormaEvidenceType.XlMod, false, "Disulfide");
         }
         private void FindByName(IProteoformModificationLookup lookup, ProFormaEvidenceType evidenceType,
             bool isDefault, string correctName)

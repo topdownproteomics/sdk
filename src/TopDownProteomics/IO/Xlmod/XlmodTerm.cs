@@ -3,7 +3,7 @@
 namespace TopDownProteomics.IO.Xlmod
 {
     /// <summary>A term from the XLMOD modification ontology.</summary>
-    public class XlmodTerm
+    public class XlmodTerm : IIdentifiable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="XlmodTerm"/> class.
