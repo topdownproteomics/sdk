@@ -20,7 +20,7 @@ namespace TopDownProteomics.Tests.IO
             List<PsiModTerm> result = new List<PsiModTerm>(parser.Parse(GetFilePath()));
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(2077, result.Count);
+            Assert.AreEqual(2098, result.Count);
             Assert.AreEqual("MOD:00812", result[812].Id);
             Assert.AreEqual("alkylated residue", result[1].Name);
             Assert.AreEqual("A protein modification that effectively converts an L-serine residue to O3-glycosylserine.", result[2].Definition);
@@ -63,11 +63,11 @@ namespace TopDownProteomics.Tests.IO
             CollectionAssert.Contains(result[5].IsA.ToList(), "MOD:00917");
 
             PsiModTerm formylMethionine = result[30];
-            Assert.AreEqual(9, formylMethionine.ExternalReferences.Count);
+            Assert.AreEqual(8, formylMethionine.ExternalReferences.Count);
             CollectionAssert.Contains(formylMethionine.ExternalReferences.Select(x => x.Id).ToList(), "AA0021#FMET");
             CollectionAssert.Contains(formylMethionine.ExternalReferences.Select(x => x.Name).ToList(), "RESID");
 
-            Assert.AreEqual(11, formylMethionine.Synonyms.Count);
+            Assert.AreEqual(10, formylMethionine.Synonyms.Count);
             CollectionAssert.Contains(formylMethionine.Synonyms.Select(x => x.Scope).ToList(), "EXACT");
             CollectionAssert.Contains(formylMethionine.Synonyms.Select(x => x.Text).ToList(), "2-formylamino-4-(methylthio)butanoic acid");
             CollectionAssert.Contains(formylMethionine.Synonyms.Select(x => x.Type).ToList(), "PSI-MOD-alternate");
