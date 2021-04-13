@@ -193,9 +193,9 @@ namespace TopDownProteomics.ProteoformHash
         private string GetMassString(double mass)
         {
             if (mass >= 0.0)
-                return $"+{mass}";
+                return $"+{mass:N4}";
 
-            return mass.ToString();
+            return mass.ToString("N4");
         }
 
         private class ChemicalProteoformHash : IChemicalProteoformHash, IHasMass
