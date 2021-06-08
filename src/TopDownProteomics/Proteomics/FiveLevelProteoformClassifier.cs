@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using TopDownProteomics.ProForma;
 
 namespace TopDownProteomics.Proteomics
 {
@@ -12,8 +13,172 @@ namespace TopDownProteomics.Proteomics
     /// </summary>
     public static class FiveLevelProteoformClassifier
     {
+        private static ProFormaParser Parser = new ProFormaParser();
+
 
         /// <summary>
+        /// Determine 5-level proteoform classification from ProForma
+        /// </summary>
+        /// <param name="proFormaString">ProForma string </param>
+        /// <param name="genes">List of genes for this proForma </param>
+        /// <returns></returns>
+        public static string ClassifyProForma(string proFormaString, List<string> genes)
+        {
+            ProFormaTerm parsedProteoform = Parser.ParseString(proFormaString);
+
+            bool ptmLocalized = ProFormaHasLocalizedPTMs(parsedProteoform);
+            bool ptmIdentified = ProFormaHasIdentifiedPTMs(parsedProteoform);
+            bool sequenceIdentified = ProFormaHasSequenceIdentified(parsedProteoform);
+            bool geneIdentified = genes.Count == 1;
+            return GetProteoformClassification(ptmLocalized, ptmIdentified, sequenceIdentified, geneIdentified);
+        }
+
+        /// <summary>
+        /// Determine if proteoform has all of its PTMs localized
+        /// </summary>
+        /// <param name="proteoform"></param>
+        /// <returns></returns>
+        private static bool ProFormaHasLocalizedPTMs(ProFormaTerm proteoform)
+        {
+            //check unlocalized tags 
+            if (proteoform.UnlocalizedTags == null || proteoform.UnlocalizedTags.Count == 0)
+            {
+                //check tag groups
+                if (proteoform.TagGroups != null && proteoform.TagGroups.Count != 0)
+                {
+                    foreach (ProFormaTagGroup group in proteoform.TagGroups)
+                    {
+                        if (group.Members != null && group.Members.Count > 1)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                //check tags
+                if (proteoform.Tags != null) 
+                {
+                    foreach (ProFormaTag tag in proteoform.Tags)
+                    {
+                        if (tag.ZeroBasedStartIndex != tag.ZeroBasedEndIndex)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                //check labile (inherently unlocalized)
+                if(proteoform.LabileDescriptors!=null && proteoform.LabileDescriptors.Count!=0)
+                {
+                    return false;
+                }
+                //don't need to check N- or C-term, those are localized
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Determine if proteoform has all of its PTMs identified
+        /// </summary>
+        /// <param name="proteoform"></param>
+        /// <returns></returns>
+        private static bool ProFormaHasIdentifiedPTMs(ProFormaTerm proteoform)
+        {
+            //if we observed some tags, check that they have names and/or formulas (identified) instead of just a mass shift (not identified)
+            if (proteoform.Tags!=null)
+            {
+                foreach(var tag in proteoform.Tags)
+                {
+                    if(AmbiguousPtmFromDescriptor(tag.Descriptors))
+                    {
+                        return false;
+                    }
+                }
+            }
+            if(proteoform.UnlocalizedTags!=null)
+            {
+                foreach (var tag in proteoform.UnlocalizedTags)
+                {
+                    if (AmbiguousPtmFromDescriptor(tag.Descriptors))
+                    {
+                        return false;
+                    }
+                }
+            }
+            if(proteoform.TagGroups!=null)
+            {
+                foreach(var tag in proteoform.TagGroups)
+                {
+                    if(AmbiguousPtmFromKey(tag.Key))
+                    {
+                        return false;
+                    }
+                }
+            }
+            if (proteoform.NTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.NTerminalDescriptors))
+            {
+                return false;
+            }
+            if (proteoform.CTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.CTerminalDescriptors))
+            {
+                return false;
+            }
+            if (proteoform.LabileDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.LabileDescriptors))
+            {
+                return false;
+            }
+            //All PTMs had an ID (or there were no PTMs)
+            return true;
+        }
+
+        /// <summary>
+        /// Given a PTM descriptor, is the PTM unknown (i.e. not have an ID)?
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <returns></returns>
+        private static bool AmbiguousPtmFromDescriptor(IList<ProFormaDescriptor>? descriptor)
+        {
+            if (descriptor == null)
+            {
+                return false;
+            }
+            else if (descriptor.Count == 1)
+            {
+                return AmbiguousPtmFromKey(descriptor[0].Key);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Given a PTM key, is the PTM unknown (i.e. not have an ID)?
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private static bool AmbiguousPtmFromKey(ProFormaKey key)
+        {
+            return (key.Equals(ProFormaKey.Mass) || key.Equals(ProFormaKey.None));
+        }
+
+
+        /// <summary>
+        /// Determine if proteoform has its entire sequence identified
+        /// </summary>
+        /// <param name="proteoform"></param>
+        /// <returns></returns>
+        private static bool ProFormaHasSequenceIdentified(ProFormaTerm proteoform)
+        {
+            //easier to check if the sequence is ambiguous and then reverse the bool to find if the sequence is not ambiguous.
+            return !((proteoform.AmbiguousAASequences!=null && proteoform.AmbiguousAASequences.Count!=0) ||
+                proteoform.Sequence.Contains('X') ||
+                proteoform.Sequence.Contains('J') ||
+                proteoform.Sequence.Contains('B') ||
+                proteoform.Sequence.Contains('Z'));
+        }
+
+        /// <summary>
+        /// Determine 5-level proteoform classification from pipe-format
         /// All input strings are delimited with "|"
         /// PTMs are annotated with []
         /// </summary>
