@@ -13,19 +13,14 @@ namespace TopDownProteomics.Proteomics
     /// </summary>
     public static class FiveLevelProteoformClassifier
     {
-        private static ProFormaParser Parser = new ProFormaParser();
-
-
         /// <summary>
         /// Determine 5-level proteoform classification from ProForma
         /// </summary>
-        /// <param name="proFormaString">ProForma string </param>
+        /// <param name="parsedProteoform">ProForma proteoform </param>
         /// <param name="genes">List of genes for this proForma </param>
         /// <returns></returns>
-        public static string ClassifyProForma(string proFormaString, List<string> genes)
+        public static string ClassifyProForma(ProFormaTerm parsedProteoform, List<string> genes)
         {
-            ProFormaTerm parsedProteoform = Parser.ParseString(proFormaString);
-
             bool ptmLocalized = ProFormaHasLocalizedPTMs(parsedProteoform);
             bool ptmIdentified = ProFormaHasIdentifiedPTMs(parsedProteoform);
             bool sequenceIdentified = ProFormaHasSequenceIdentified(parsedProteoform);
@@ -55,7 +50,7 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
                 //check tags
-                if (proteoform.Tags != null) 
+                if (proteoform.Tags != null)
                 {
                     foreach (ProFormaTag tag in proteoform.Tags)
                     {
@@ -66,7 +61,7 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
                 //check labile (inherently unlocalized)
-                if(proteoform.LabileDescriptors!=null && proteoform.LabileDescriptors.Count!=0)
+                if (proteoform.LabileDescriptors != null && proteoform.LabileDescriptors.Count != 0)
                 {
                     return false;
                 }
@@ -84,17 +79,17 @@ namespace TopDownProteomics.Proteomics
         private static bool ProFormaHasIdentifiedPTMs(ProFormaTerm proteoform)
         {
             //if we observed some tags, check that they have names and/or formulas (identified) instead of just a mass shift (not identified)
-            if (proteoform.Tags!=null)
+            if (proteoform.Tags != null)
             {
-                foreach(var tag in proteoform.Tags)
+                foreach (var tag in proteoform.Tags)
                 {
-                    if(AmbiguousPtmFromDescriptor(tag.Descriptors))
+                    if (AmbiguousPtmFromDescriptor(tag.Descriptors))
                     {
                         return false;
                     }
                 }
             }
-            if(proteoform.UnlocalizedTags!=null)
+            if (proteoform.UnlocalizedTags != null)
             {
                 foreach (var tag in proteoform.UnlocalizedTags)
                 {
@@ -104,11 +99,11 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
             }
-            if(proteoform.TagGroups!=null)
+            if (proteoform.TagGroups != null)
             {
-                foreach(var tag in proteoform.TagGroups)
+                foreach (var tag in proteoform.TagGroups)
                 {
-                    if(AmbiguousPtmFromKey(tag.Key))
+                    if (AmbiguousPtmFromKey(tag.Key))
                     {
                         return false;
                     }
@@ -170,7 +165,7 @@ namespace TopDownProteomics.Proteomics
         private static bool ProFormaHasSequenceIdentified(ProFormaTerm proteoform)
         {
             //easier to check if the sequence is ambiguous and then reverse the bool to find if the sequence is not ambiguous.
-            return !((proteoform.AmbiguousAASequences!=null && proteoform.AmbiguousAASequences.Count!=0) ||
+            return !((proteoform.AmbiguousAASequences != null && proteoform.AmbiguousAASequences.Count != 0) ||
                 proteoform.Sequence.Contains('X') ||
                 proteoform.Sequence.Contains('J') ||
                 proteoform.Sequence.Contains('B') ||

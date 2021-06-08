@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System.Collections.Generic;
+using TopDownProteomics.ProForma;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.Tests
@@ -52,6 +53,7 @@ namespace TopDownProteomics.Tests
         [TestCase("EM[+15.9949]EVEES[-79.9663]PEK", 1, "2B")]
         [TestCase("EMEVEESPEK[Acetyl|Trimethyl]", 1, "2B")]
         [TestCase("EMEVEE(?SP)EK", 1, "2C")]
+        [TestCase("PROTEOSFORMSISK(?N)", 1, "2C")]
         [TestCase("EMEVEESPEKB", 1, "2C")]
         [TestCase("EMEVEESPEKJ", 1, "2C")]
         [TestCase("EMEVEESPEKX", 1, "2C")]
@@ -60,11 +62,11 @@ namespace TopDownProteomics.Tests
         [TestCase("PROT(EOSFORMS)[+19.0523]ISKN", 1, "3")]
         [TestCase("PROT(EOSFORMS)[+19.0523]ISK(?N)", 1, "4")]
         [TestCase("PROT(EOSFORMS)[+19.0523]ISK(?N)", 2, "5")]
-        [TestCase("PROT(?EOSFORMS[+19.0523])ISKN", 2, "5")]
-        [TestCase("PROT(?EOSFORMS[Oxidation])ISKN", 2, "4")]
-        [TestCase("PROT(?EOSFORMS)[+19.0523]ISKN", 2, "5")] //incorrect syntax, but should be handled
+        [TestCase("PROT(?EOSFORMS)[Oxidation]ISKN", 2, "4")]
+        [TestCase("PROT(?EOSFORMS)[+19.0523]ISKN", 2, "5")]
+        [TestCase("PROT(?EOSFORMS[+19.0523])ISKN", 2, "5", false)] //incorrect syntax, but should be handled
         [TestCase("PROT(?EOSFORMS)IS(KK)[Acetyl]", 1, "3")]
-        public static void TestProForma_ProteoformClassification(string proForma, int numGenes, string expectedLevel)
+        public static void TestProForma_ProteoformClassification(string proFormaString, int numGenes, string expectedLevel, bool checkWriter = true)
         {
             List<string> genes = new List<string>();
             for (int i = 0; i < numGenes; i++)
@@ -72,11 +74,21 @@ namespace TopDownProteomics.Tests
                 genes.Add(i.ToString());
             }
 
+            //parse string
+            ProFormaParser parser = new ProFormaParser();
+            ProFormaTerm parsedProteoform = parser.ParseString(proFormaString);
+
             //check that the level is what we expect
-            string level = FiveLevelProteoformClassifier.ClassifyProForma(proForma, genes);
+            string level = FiveLevelProteoformClassifier.ClassifyProForma(parsedProteoform, genes);
             Assert.AreEqual(expectedLevel, level);
+
             //check that we can write what we read
-            
+            if (checkWriter)
+            {
+                ProFormaWriter writer = new ProFormaWriter();
+                string writtenProForma = writer.WriteString(parsedProteoform);
+                Assert.AreEqual(proFormaString, writtenProForma);
+            }
         }
     }
 }

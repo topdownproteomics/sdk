@@ -129,8 +129,19 @@ namespace TopDownProteomics.ProteoformHash
                     if (descriptor != null)
                     {
                         tagGroups ??= new List<ProFormaTagGroup>();
+                        double maxWeight = 0;
+                        int maxWeightIndex = 0;
+                        IProteoformModificationGroupMember[] memberArray = mod.Members.ToArray();
+                        for (int i = 0; i < memberArray.Length; i++)
+                        {
+                            if (memberArray[i].Weight > maxWeight)
+                            {
+                                maxWeight = memberArray[i].Weight;
+                                maxWeightIndex = i;
+                            }
+                        }
                         tagGroups.Add(new ProFormaTagGroup(mod.GroupName, descriptor.Key, descriptor.EvidenceType, descriptor.Value,
-                            mod.Members.Select(x => new ProFormaMembershipDescriptor(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight)).ToList()));
+                            mod.Members.Select(x => new ProFormaMembershipDescriptor(x.ZeroBasedStartIndex, x.ZeroBasedEndIndex, x.Weight)).ToList(), maxWeightIndex));
                     }
                 }
             }

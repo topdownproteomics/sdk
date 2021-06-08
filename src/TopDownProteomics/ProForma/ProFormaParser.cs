@@ -49,24 +49,24 @@ namespace TopDownProteomics.ProForma
             int? startRange = null;
             int? endRange = null;
             bool inAmbiguousSequence = false;
-                       
+
             for (int i = 0; i < proFormaString.Length; i++)
             {
                 char current = proFormaString[i];
 
-                if(current =='?')
+                if (current == '?')
                 {
-                    if(i==0)
+                    if (i == 0)
                     {
                         throw new ProFormaParseException("ProForma string cannot begin with '?'.");
                     }
-                    else if(proFormaString[i-1]==']') //if unlocalized
+                    else if (proFormaString[i - 1] == ']') //if unlocalized
                     {
                         continue; //skip unlocalized separator
                     }
                     else // if a sequence ambiguity... proFormaString[i-1] should be '('. Example: PROTEI(?N) where 'N' could be "GG".
                     {
-                        if(inAmbiguousSequence)
+                        if (inAmbiguousSequence)
                             throw new ProFormaParseException("Nested '?' are not allowed in within ambiguous sequences.");
 
                         inAmbiguousSequence = true;
@@ -107,9 +107,9 @@ namespace TopDownProteomics.ProForma
                 {
                     endRange = sequence.Length;
 
-                    if(inAmbiguousSequence)
+                    if (inAmbiguousSequence)
                     {
-                        if(startRange==null)
+                        if (startRange == null)
                             throw new ProFormaParseException("Somehow you're in an ambiguous sequence without a starting '('. Check for nested parenthesis.");
 
                         ProcessAmbiguousAASequence(startRange.Value, endRange.Value, ref ambiguousAASequences);
@@ -194,7 +194,7 @@ namespace TopDownProteomics.ProForma
                     }
                     else
                     {
-                        if(inAmbiguousSequence) //Tag must be at the end of an ambiguous sequence
+                        if (inAmbiguousSequence) //Tag must be at the end of an ambiguous sequence
                         {
                             endRange = i + 2; //end range is the end of the ambiguous sequence
                         }
@@ -205,7 +205,7 @@ namespace TopDownProteomics.ProForma
                     tag.Clear();
 
                     // Reset the range if we have processed the tag on the end of it (but not if in ambiguous sequence, because start and end range are needed for that)
-                    if (endRange.HasValue &&!inAmbiguousSequence)
+                    if (endRange.HasValue && !inAmbiguousSequence)
                     {
                         startRange = null;
                         endRange = null;
@@ -242,8 +242,8 @@ namespace TopDownProteomics.ProForma
                 unlocalizedTags, tagGroups?.Values, globalModifications, ambiguousAASequences);
         }
 
-        private void HandleGlobalModification(ref IDictionary<string, ProFormaTagGroup>? tagGroups, 
-            ref IList<ProFormaGlobalModification>? globalModifications, StringBuilder sequence, 
+        private void HandleGlobalModification(ref IDictionary<string, ProFormaTagGroup>? tagGroups,
+            ref IList<ProFormaGlobalModification>? globalModifications, StringBuilder sequence,
             int? startRange, int? endRange, string tagText)
         {
             // Check for '@' to specify targets
@@ -328,15 +328,16 @@ namespace TopDownProteomics.ProForma
                         x.ValueFlux = value;
                         x.Key = key;
                         x.EvidenceType = evidence;
+                        currentGroup.AssignPreferredLocalization(currentGroup.Members.Count);
                     }
 
                     // If the group was defined before the sequence, don't include it in the membership
                     if (index >= 0)
                     {
                         if (startIndex.HasValue)
-                            tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(startIndex.Value, index, weight));
+                            currentGroup.Members.Add(new ProFormaMembershipDescriptor(startIndex.Value, index, weight));
                         else
-                            tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(index, weight));
+                            currentGroup.Members.Add(new ProFormaMembershipDescriptor(index, weight));
                     }
                 }
                 else if (key != ProFormaKey.None) // typical descriptor
@@ -376,7 +377,7 @@ namespace TopDownProteomics.ProForma
         private class ProFormaTagGroupChangingValue : ProFormaTagGroup
         {
             public ProFormaTagGroupChangingValue(string name, ProFormaKey key, ProFormaEvidenceType evidenceType,
-                IList<ProFormaMembershipDescriptor> members) : base(name, key, evidenceType, string.Empty, members)
+                IList<ProFormaMembershipDescriptor> members) : base(name, key, evidenceType, string.Empty, members, 0)
             {
             }
 

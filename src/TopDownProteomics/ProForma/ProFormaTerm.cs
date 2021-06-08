@@ -19,7 +19,7 @@ namespace TopDownProteomics.ProForma
         /// <param name="tagGroups">The tag groups.</param>
         /// <param name="globalModifications">The global modifications.</param>
         /// <param name="ambiguousAASequences">Ambiguous amino acids tags (Example: XXX(?NKK)XXX). Contain only start and end indexes for the ambiguous residues.</param>
-        public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null, 
+        public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null,
             IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaDescriptor>? labileDescriptors = null,
             IList<ProFormaUnlocalizedTag>? unlocalizedTags = null, ICollection<ProFormaTagGroup>? tagGroups = null,
             IList<ProFormaGlobalModification>? globalModifications = null, IList<ProFormaTag>? ambiguousAASequences = null)
