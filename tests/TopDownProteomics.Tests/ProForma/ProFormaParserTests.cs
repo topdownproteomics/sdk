@@ -954,7 +954,7 @@ namespace TopDownProteomics.Tests
             var term = _parser.ParseString("<13C>ATPEILTVNSIGQLK");
             Assert.IsNull(term.Tags);
             Assert.AreEqual(1, term.GlobalModifications.Count);
-            
+
             var globalMod = term.GlobalModifications.Single().Descriptors.Single();
             Assert.AreEqual(ProFormaKey.Name, globalMod.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, globalMod.EvidenceType);

@@ -67,7 +67,9 @@ namespace TopDownProteomics.ProForma
             if (term.TagGroups != null)
                 tagsAndGroups.AddRange(term.TagGroups
                     .SelectMany(x => x.Members
-                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members.FirstOrDefault(), member.Weight))));
+                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members[x.PreferredLocalization], member.Weight))));
+
+            //Remove any 
 
             // Check indexed modifications
             if (tagsAndGroups.Count > 0)
@@ -90,7 +92,15 @@ namespace TopDownProteomics.ProForma
                         sb.Append(term.Sequence.Substring(currentIndex, startIndex - currentIndex));
 
                         // Write sequence in range
-                        sb.Append($"({term.Sequence.Substring(startIndex, endIndex - startIndex + 1)})");
+                        //if ambiguous sequence, don't add parenthesis because they're already in the sequence
+                        if (term.AmbiguousAASequences != null && term.AmbiguousAASequences.Any(x => x.ZeroBasedStartIndex == startIndex && x.ZeroBasedEndIndex == endIndex))
+                        {
+                            sb.Append($"{term.Sequence.Substring(startIndex, endIndex - startIndex + 1)}");
+                        }
+                        else
+                        {
+                            sb.Append($"({term.Sequence.Substring(startIndex, endIndex - startIndex + 1)})");
+                        }
                         currentIndex = endIndex + 1;
                     }
 

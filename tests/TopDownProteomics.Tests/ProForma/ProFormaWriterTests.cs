@@ -67,11 +67,11 @@ namespace TopDownProteomics.Tests.ProForma
                 {
                     new ProFormaMembershipDescriptor(2),
                     new ProFormaMembershipDescriptor(5),
-                }),
+                }, 1)
             });
             var result = _writer.WriteString(term);
 
-            Assert.AreEqual("SEQ[+14.05#test]UEN[#test]CE", result);
+            Assert.AreEqual("SEQ[#test]UEN[+14.05#test]CE", result);
 
             // With weights
             term = new ProFormaTerm("SEQUENCE", tagGroups: new[]
@@ -80,7 +80,7 @@ namespace TopDownProteomics.Tests.ProForma
                 {
                     new ProFormaMembershipDescriptor(2, 0.9),
                     new ProFormaMembershipDescriptor(5, 0.1),
-                }),
+                },0)
             });
             result = _writer.WriteString(term);
 
@@ -179,7 +179,7 @@ namespace TopDownProteomics.Tests.ProForma
                 {
                     new ProFormaMembershipDescriptor(2),
                     new ProFormaMembershipDescriptor(5),
-                }),
+                },0)
             }, nTerminalDescriptors: new[] { new ProFormaDescriptor(ProFormaKey.Info, "unknown") });
 
             var result = _writer.WriteString(term);
@@ -301,13 +301,13 @@ namespace TopDownProteomics.Tests.ProForma
             var term = new ProFormaTerm("SEQUENCE", labileDescriptors: new[]
             {
                 new ProFormaDescriptor( ProFormaKey.Glycan, "Hex")
-            }, 
-            tags: new[] 
-            { 
+            },
+            tags: new[]
+            {
                 new ProFormaTag(2, new[]
                 {
-                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation") 
-                }) 
+                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation")
+                })
             });
             var result = _writer.WriteString(term);
 
