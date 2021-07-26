@@ -153,7 +153,7 @@ namespace TopDownProteomics.ProteoformHash
 
             if (sequence != null)
             {
-                ProFormaTerm proFormaTerm = new(sequence, tags: tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
+                var proFormaTerm = new ProFormaTerm(sequence, tags: tags?.OrderBy(t => t.Descriptors.First().Value).ToArray(),
                     nTerminalDescriptors: nTermDescriptors,
                     cTerminalDescriptors: cTermDescriptors,
                     labileDescriptors: labileDescriptors,
