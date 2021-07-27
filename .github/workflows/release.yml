@@ -39,11 +39,11 @@ jobs:
       - name: Pack
         run: 
           $version= &git describe --tags;
-          dotnet pack --configuration Release /p:Version=${version}" --no-build --output .
+          dotnet pack --configuration Release /p:Version=${version} --no-build --output .
 
       - name: Push
         run: 
           $version= &git describe --tags;
-          dotnet nuget push NuGet.Workflow.${version}".nupkg --source https://nuget.pkg.github.com/topdownproteomics/index.json --api-key ${env:GITHUB_TOKEN}
+          dotnet nuget push NuGet.Workflow.${version}.nupkg --source https://nuget.pkg.github.com/topdownproteomics/index.json --api-key ${env:GITHUB_TOKEN}
         env:
           GITHUB_TOKEN: ${{ secrets.NUGET_KEY }}
