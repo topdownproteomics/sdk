@@ -1,6 +1,4 @@
 # TopDown SDK
-[![Build status](https://ci.appveyor.com/api/projects/status/1prqceqvss9ve6lt/branch/master?svg=true)](https://ci.appveyor.com/project/smith-chem-wisc/testlib/branch/master)
-
 The TopDown Software Development Kit (SDK) is the Consortium for Top-Down Proteomics' open-source software solution for common top-down proteomics tasks.
 
 ## Nuget Installation
