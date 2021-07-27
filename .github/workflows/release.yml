@@ -44,6 +44,6 @@ jobs:
       - name: Push
         run: |
           $version= &git describe --tags
-          dotnet nuget push NuGet.Workflow.${version}.nupkg --source https://nuget.pkg.github.com/topdownproteomics/index.json --api-key ${env:GITHUB_TOKEN}
+          dotnet nuget push TopDownProteomics.${version}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${env:GITHUB_TOKEN}
         env:
           GITHUB_TOKEN: ${{ secrets.NUGET_KEY }}
