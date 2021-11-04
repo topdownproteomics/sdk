@@ -11,11 +11,11 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// Instantiates with schema-required parameters
 		/// </summary>
 		/// <param name="peptideEvidenceId"></param>
-		/// <param name="spectrumIdentificationItemId"></param>
-		public MzIdentMlPeptideHypothesis(string peptideEvidenceId, string spectrumIdentificationItemId)
+		/// <param name="spectrumIdentificationItemIds"></param>
+		public MzIdentMlPeptideHypothesis(string peptideEvidenceId, List<string> spectrumIdentificationItemIds)
 		{
 			this.PeptideEvidenceId = peptideEvidenceId;
-			this.SpectrumIdentificationItemId = spectrumIdentificationItemId;
+			this.SpectrumIdentificationItemIds = spectrumIdentificationItemIds;
 		}
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// <summary>
 		/// Gets the SpectrumIdentification ids
 		/// </summary>
-		public string SpectrumIdentificationItemId { get; }
+		public List<string> SpectrumIdentificationItemIds { get; }
 
 		/// <summary>
 		/// Gets and sets the cvParams

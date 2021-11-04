@@ -1022,7 +1022,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "ProteinDetectionHypothesis")
 					break;
 
-				if (reader.NodeType == XmlNodeType.EndElement)
+				if (reader.NodeType == XmlNodeType.Element)
 				{
 					if (reader.Name == "PeptideHypothesis")
 						peptideHypotheses.Add(this.ParsePeptideHypothesis(reader));
@@ -1052,10 +1052,9 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 		private MzIdentMlPeptideHypothesis ParsePeptideHypothesis(XmlReader reader)
 		{
-			string peptideEvidenceId = "";
-			string spectrumIdentificationId = "";
+			string peptideEvidenceId = reader.GetAttribute("peptideEvidence_ref");
+			var spectrumIdentificationIds = new List<string>();
 			var cvParams = new List<MzIdentMlCvParam>();
-
 			while (reader.Read())
 			{
 				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "PeptideHypothesis")
@@ -1063,19 +1062,21 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 				if (reader.NodeType == XmlNodeType.Element)
 				{
-					if (reader.Name == "PeptideHypothesis")
-						peptideEvidenceId = reader.GetAttribute("peptideEvidence_ref");
-					else if (reader.Name == "SpectrumIdentificationItemRef")
-						spectrumIdentificationId = reader.GetAttribute("spectrumIdentificationItem_ref");
+					if (reader.Name == "SpectrumIdentificationItemRef")
+					{
+						string spectrumIdentificationId = reader.GetAttribute("spectrumIdentificationItem_ref");
+						spectrumIdentificationIds.Add(spectrumIdentificationId);
+					}
+						
 					else if (reader.Name == "cvParam" || reader.Name == "userParam")
 						cvParams.Add(this.GetCvParam(reader));
 				}
 			}
 
-			if (string.IsNullOrEmpty(peptideEvidenceId) || string.IsNullOrEmpty(spectrumIdentificationId))
-				throw new Exception("PeptideHypothesis elements require a peptideEvidenceId and spectrumIdentificationId");
+			if (string.IsNullOrEmpty(peptideEvidenceId) || !spectrumIdentificationIds.Any())
+				throw new Exception("PeptideHypothesis elements require a peptideEvidenceId and spectrumIdentificationIds");
 
-			var peptideHypothesis = new MzIdentMlPeptideHypothesis(peptideEvidenceId, spectrumIdentificationId);
+			var peptideHypothesis = new MzIdentMlPeptideHypothesis(peptideEvidenceId, spectrumIdentificationIds);
 
 			if (cvParams.Any())
 				peptideHypothesis.CvParams = cvParams;
