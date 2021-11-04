@@ -524,24 +524,27 @@ namespace TopDownProteomics.IO.MzIdentMl
 			var userParams = new List<MzIdentMlUserParam>();
 			var cvParams = new List<MzIdentMlCvParam>();
 
-			while (reader.Read())
+			if (!reader.IsEmptyElement)
 			{
-				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "SourceFile")
-					break;
-
-				if (reader.NodeType == XmlNodeType.Element)
+				while (reader.Read())
 				{
-					if (reader.Name == "FileFormat")
+					if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "SourceFile")
+						break;
+
+					if (reader.NodeType == XmlNodeType.Element)
 					{
-						// only one cvParam allowed per FileFormat
-						fileFormat = this.GetNestedCvParams(reader, "FileFormat").First();
+						if (reader.Name == "FileFormat")
+						{
+							// only one cvParam allowed per FileFormat
+							fileFormat = this.GetNestedCvParams(reader, "FileFormat").First();
+						}
+
+						else if (reader.Name == "userParam")
+							userParams.Add(this.GetUserParam(reader));
+
+						else if (reader.Name == "cvParam")
+							cvParams.Add(this.GetCvParam(reader));
 					}
-
-					else if (reader.Name == "userParam")
-						userParams.Add(this.GetUserParam(reader));
-
-					else if (reader.Name == "cvParam")
-						cvParams.Add(this.GetCvParam(reader));
 				}
 			}
 
@@ -598,11 +601,13 @@ namespace TopDownProteomics.IO.MzIdentMl
 				}
 			}
 
-			if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(location) || string.IsNullOrEmpty(name) || fileFormat is null || databaseName is null)
-				throw new Exception("SearchDatabase elements must contain an id, location, name, fileFormat, and database name");
+			if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(location))
+				throw new Exception("SearchDatabase elements must contain an id and location");
 
-			var database = new MzIdentMlSearchDatabase(id, location, fileFormat, databaseName)
+			var database = new MzIdentMlSearchDatabase(id, location)
 			{
+				DatabaseName = databaseName,
+				FileFormat = fileFormat,
 				Name = name,
 				Version = version,
 				ReleaseDate = releaseDate
@@ -730,7 +735,12 @@ namespace TopDownProteomics.IO.MzIdentMl
 			}
 		}
 
-		private IEnumerable<MzIdentMlSpectrumIdentificationResult> GetSpectrumIdentificationResults(XmlReader reader)
+		/// <summary>
+		/// Gets the spectrum identification results
+		/// </summary>
+		/// <param name="reader"></param>
+		/// <returns></returns>
+		public IEnumerable<MzIdentMlSpectrumIdentificationResult> GetSpectrumIdentificationResults(XmlReader reader)
 		{
 			while (reader.Read())
 			{

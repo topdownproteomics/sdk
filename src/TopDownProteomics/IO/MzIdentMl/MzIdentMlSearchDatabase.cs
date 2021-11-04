@@ -12,14 +12,10 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="location"></param>
-		/// <param name="fileFormat"></param>
-		/// <param name="databaseName"></param>
-		public MzIdentMlSearchDatabase(string id, string location, MzIdentMlCvParam fileFormat, MzIdentMlCvOrUserParam databaseName)
+		public MzIdentMlSearchDatabase(string id, string location)
 		{
 			this.Id = id;
 			this.Location = location;
-			this.FileFormat = fileFormat;
-			this.DatabaseName = databaseName;
 		}
 
 		/// <summary>
@@ -35,7 +31,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// <summary>
 		/// Gets and sets the database name
 		/// </summary>
-		public MzIdentMlCvOrUserParam DatabaseName { get; }
+		public MzIdentMlCvOrUserParam? DatabaseName { get; set; }
 
 		/// <summary>
 		/// Gets and sets the name

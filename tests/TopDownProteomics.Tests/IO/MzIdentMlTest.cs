@@ -12,6 +12,32 @@ namespace TopDownProteomics.Tests.IO
 	public class MzIdentMlTest
 	{
 		public static string GetFilePath() => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "MzIdentMl.mzid");
+		internal static string GoldenPath => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "golden.mzid");
+
+		[Test]
+		public void MultipleSpectrumIdentificationProtocolsTest()
+		{
+			using (var parser = new MzIdentMlParser(GoldenPath))
+			{
+				var softwares = parser.GetAnalysisSoftware().ToList();
+				var databaseSequences = parser.GetDatabaseSequences().ToList();
+				var dbSequence = databaseSequences[0];
+				var peptides = parser.GetPeptides().ToList();
+				var pep = peptides[0];
+				var evidences = parser.GetPeptideEvidences().ToList();
+				var ev = evidences[0];
+				var inputs = parser.GetInputs();
+				var database = inputs.SearchDatabases[0];
+				var measures = parser.GetFragmentationMeasures().ToList();
+				var meas = measures[0];
+				var proteinDetectionList = parser.GetProteinDetectionList();
+				var proteinProtocols = parser.GetProteinDetectionProtocols().ToList();
+				var spectrumIds = parser.GetSpectrumIdentificationItems().ToList();
+				var id = spectrumIds[0];
+				var spectrumProtocols = parser.GetSpectrumIdentificationProtocols().ToList();
+				var protocol = spectrumProtocols[0];
+			}
+		}
 
 		[Test]
 		public void BasicTest()
@@ -167,7 +193,6 @@ namespace TopDownProteomics.Tests.IO
 				Assert.AreEqual("AS_mascot_server", protocol.SoftwareId);
 				Assert.AreEqual(1, protocol.Thresholds.CvParams.Count);
 			}
-
 		}
 	}
 }
