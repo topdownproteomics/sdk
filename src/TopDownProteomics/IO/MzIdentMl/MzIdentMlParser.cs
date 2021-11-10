@@ -825,7 +825,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 			MzIdentMlSpectraData spectraData = GetInputsAux(reader).SpectraData;
 
-			List<MzIdentMlSpectrumIdentificationList> spectrumIdLists = new();
+			List<MzIdentMlSpectrumIdentificationList> spectrumIdLists = new List<MzIdentMlSpectrumIdentificationList>();
 
 			while (reader.Read())
 			{
@@ -850,8 +850,8 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 		private MzIdentMlAnalysisCollection GetAnalysisCollection(XmlReader reader)
 		{
-			List<MzIdentMlSpectrumIdentification> spectrumIds = new();
-			List<MzIdentMlProteinDetection> proteinDetections = new();
+			List<MzIdentMlSpectrumIdentification> spectrumIds = new List<MzIdentMlSpectrumIdentification>();
+			List<MzIdentMlProteinDetection> proteinDetections = new List<MzIdentMlProteinDetection>();
 			do
 			{
 				if (reader.Name == "AnalysisCollection" && reader.NodeType == XmlNodeType.EndElement)
@@ -948,8 +948,8 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 			bool hasSequencedSearched = int.TryParse(reader.GetAttribute("numSequencesSearched"), out int numSequencesSearched);
 
-			Dictionary<string, MzIdentMlFragmentationMeasure> measures = new();
-			List<MzIdentMlSpectrumIdentificationResult> results = new();
+			Dictionary<string, MzIdentMlFragmentationMeasure> measures = new Dictionary<string, MzIdentMlFragmentationMeasure>();
+			List<MzIdentMlSpectrumIdentificationResult> results = new List<MzIdentMlSpectrumIdentificationResult>();
 
 			while (reader.Read())
 			{
@@ -978,7 +978,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		private MzIdentMlProteinDetectionProtocol GetProteinDetectionProtocol(MzIdentMlAnalysisCollection analysisCollection, IEnumerable<MzIdentMlProteinDetectionProtocol> proteinProtocols, string spectrumListId)
 		{
 			string? proteinProtocolId = analysisCollection.ProteinDetections.FirstOrDefault(x => x.SpectrumIdentificationListId == spectrumListId).ProteinDetectionProtocolId;
-			if (proteinProtocolId is not null)
+			if (proteinProtocolId != null)
 			{
 				return proteinProtocols.FirstOrDefault(x => x.Id == proteinProtocolId);
 			}
@@ -990,7 +990,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		{
 
 			string? spectrumProtocolId = analysisCollection.SpectrumIdentifications.FirstOrDefault(x => x.SpectrumIdentificationListId == spectrumListId).SpectrumIdentificationProtocolId;
-			if (spectrumProtocolId is not null)
+			if (spectrumProtocolId != null)
 			{
 				return spectrumProtocols.FirstOrDefault(x => x.Id == spectrumProtocolId);
 			}
