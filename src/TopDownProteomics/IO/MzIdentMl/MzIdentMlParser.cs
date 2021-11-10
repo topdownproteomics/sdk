@@ -1120,7 +1120,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 			return spectrumId;
 		}
 
-		private MzIdentMlIonType ParseIonType(XmlReader reader, Dictionary<string, MzIdentMlFragmentationMeasure>? measures)
+		private MzIdentMlIonType ParseIonType(XmlReader reader, Dictionary<string, MzIdentMlFragmentationMeasure> measures)
 		{
 			var indices = this.ParseIonTypeIndices(reader.GetAttribute("index"));
 			var chargeAttribute = reader.GetAttribute("charge");
@@ -1192,7 +1192,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 			}
 		}
 
-		private MzIdentMlFragmentArray ParseFragmentArray(XmlReader reader, Dictionary<string, MzIdentMlFragmentationMeasure>? measures)
+		private MzIdentMlFragmentArray ParseFragmentArray(XmlReader reader, Dictionary<string, MzIdentMlFragmentationMeasure> measures)
 		{
 			double[] values = this.ParseFragmentValues(reader.GetAttribute("values"));
 			var measureId = reader.GetAttribute("measure_ref");
@@ -1200,9 +1200,9 @@ namespace TopDownProteomics.IO.MzIdentMl
 			if (values.Length == 0 || string.IsNullOrEmpty(measureId))
 				throw new Exception("FragmentArray elements must contain values and a measure_ref");
 
-			if (measures?.TryGetValue(measureId, out MzIdentMlFragmentationMeasure measure) == true)
+			if (measures.ContainsKey(measureId))
 			{
-				return new MzIdentMlFragmentArray(measure, values);
+				return new MzIdentMlFragmentArray(measures[measureId], values);
 			}
 
 			throw new Exception($"Unable to find measure for {measureId}");
