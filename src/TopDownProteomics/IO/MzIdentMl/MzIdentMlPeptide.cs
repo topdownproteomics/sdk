@@ -16,7 +16,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		{
             this.Id = id;
             this.Sequence = sequence;
-        }
+		}
 
         /// <summary>
         /// Gets the id

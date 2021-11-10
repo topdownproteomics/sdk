@@ -8,18 +8,18 @@
 		/// <summary>
 		/// Instantiates with required parameters
 		/// </summary>
-		/// <param name="measureId"></param>
+		/// <param name="measure"></param>
 		/// <param name="values"></param>
-		public MzIdentMlFragmentArray(string measureId, double[] values)
+		public MzIdentMlFragmentArray(MzIdentMlFragmentationMeasure measure, double[] values)
 		{
-			this.MeasureId = measureId;
+			this.Measure = measure;
 			this.Values = values;
 		}
 
 		/// <summary>
-		/// Gets the measure Id
+		/// Gets the measure
 		/// </summary>
-		public string MeasureId { get; }
+		public MzIdentMlFragmentationMeasure Measure { get; }
 
 		/// <summary>
 		/// Gets the values
