@@ -946,7 +946,12 @@ namespace TopDownProteomics.IO.MzIdentMl
 			if (string.IsNullOrEmpty(name))
 				name = null;
 
-			bool hasSequencedSearched = int.TryParse(reader.GetAttribute("numSequencesSearched"), out int numSequencesSearched);
+
+			int? numSequencesSearched = null;
+			if (int.TryParse(reader.GetAttribute("numSequencesSearched"), out int sequencesSearched))
+			{
+				numSequencesSearched = sequencesSearched;
+			}
 
 			Dictionary<string, MzIdentMlFragmentationMeasure> measures = new Dictionary<string, MzIdentMlFragmentationMeasure>();
 			List<MzIdentMlSpectrumIdentificationResult> results = new List<MzIdentMlSpectrumIdentificationResult>();
@@ -972,7 +977,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 				}
 			}
 
-			return new MzIdentMlSpectrumIdentificationList(id, measures.Values.ToList(), results, proteinProtocol, spectrumProtocol, name, hasSequencedSearched ? numSequencesSearched : null);
+			return new MzIdentMlSpectrumIdentificationList(id, measures.Values.ToList(), results, proteinProtocol, spectrumProtocol, name, numSequencesSearched);
 		}
 
 		private MzIdentMlProteinDetectionProtocol GetProteinDetectionProtocol(MzIdentMlAnalysisCollection analysisCollection, IEnumerable<MzIdentMlProteinDetectionProtocol> proteinProtocols, string spectrumListId)
@@ -1000,9 +1005,9 @@ namespace TopDownProteomics.IO.MzIdentMl
 
 		private MzIdentMlSpectrumIdentificationResult ParseSpectrumIdentificationResult(XmlReader reader, Dictionary<string, MzIdentMlPeptideEvidence> peptideEvidences, Dictionary<string, MzIdentMlFragmentationMeasure> measures, MzIdentMlSpectraData spectraData)
 		{
-			var id = reader.GetAttribute("id");
-			var spectrumId = reader.GetAttribute("spectrumID");
-			var inputSpectraDataId = reader.GetAttribute("spectraData_ref");
+			string id = reader.GetAttribute("id");
+			string spectrumId = reader.GetAttribute("spectrumID");
+			string inputSpectraDataId = reader.GetAttribute("spectraData_ref");
 
 			var spectrumIdentificationItems = new List<MzIdentMlSpectrumIdentificationItem>();
 			var cvParams = new List<MzIdentMlCvParam>();
@@ -1032,9 +1037,13 @@ namespace TopDownProteomics.IO.MzIdentMl
 			if (inputSpectraDataId != spectraData.Id)
 				throw new Exception("SpectrumIdentificationResult spectra data ID does not match spectral data provided in Inputs.");
 
-			bool hasScanNumber = int.TryParse(spectrumId.Split("scan = ").Last(), out int scan);
+			int? scanNumber = null;
+			if (int.TryParse(spectrumId.Split("scan = ").Last(), out int scan))
+			{
+				scanNumber = scan;
+			}
 
-			var spectrumIdentificationResult = new MzIdentMlSpectrumIdentificationResult(id, spectrumId, hasScanNumber ? scan : null, spectraData, inputSpectraDataId, spectrumIdentificationItems);
+			var spectrumIdentificationResult = new MzIdentMlSpectrumIdentificationResult(id, spectrumId, scanNumber, spectraData, inputSpectraDataId, spectrumIdentificationItems);
 
 			if (cvParams.Any())
 				spectrumIdentificationResult.CvParams = cvParams;
@@ -1191,12 +1200,12 @@ namespace TopDownProteomics.IO.MzIdentMl
 			if (values.Length == 0 || string.IsNullOrEmpty(measureId))
 				throw new Exception("FragmentArray elements must contain values and a measure_ref");
 
-			if (measures?.TryGetValue(measureId, out MzIdentMlFragmentationMeasure measure) != true)
+			if (measures?.TryGetValue(measureId, out MzIdentMlFragmentationMeasure measure) == true)
 			{
-				throw new Exception($"Unable to find measure for {measureId}");
-			}			
+				return new MzIdentMlFragmentArray(measure, values);
+			}
 
-			return new MzIdentMlFragmentArray(measure, values);
+			throw new Exception($"Unable to find measure for {measureId}");
 		}
 
 		private double[] ParseFragmentValues(string spectraString)
