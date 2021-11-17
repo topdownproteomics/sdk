@@ -12,32 +12,46 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="spectrumId"></param>
+		/// <param name="spectrumScanNumber"></param>
+		/// <param name="spectralData"></param>
 		/// <param name="inputSpectraDataId"></param>
 		/// <param name="spectrumIdentificationItems"></param>
-		public MzIdentMlSpectrumIdentificationResult(string id, string spectrumId, string inputSpectraDataId, List<MzIdentMlSpectrumIdentificationItem> spectrumIdentificationItems)
+		public MzIdentMlSpectrumIdentificationResult(string id, string spectrumId, int? spectrumScanNumber, MzIdentMlSpectraData spectralData, string inputSpectraDataId, List<MzIdentMlSpectrumIdentificationItem> spectrumIdentificationItems)
 		{
-			this.Id = id;
-			this.SpectrumId = spectrumId;
-			this.InputSpectraDataId = inputSpectraDataId;
-			this.SpectrumIdentificationItems = spectrumIdentificationItems;
+			Id = id;
+			SpectrumId = spectrumId;
+			SpectrumScanNumber = spectrumScanNumber;
+			SpectralData = spectralData;
+			InputSpectraDataId = inputSpectraDataId;
+			SpectrumIdentificationItems = spectrumIdentificationItems;
 		}
 		/// <summary>
-		/// Gets and sets the id
+		/// Gets the id
 		/// </summary>
 		public string Id { get; }
 
 		/// <summary>
-		/// Gets and sets the spectrum id
+		/// Gets the spectrum id
 		/// </summary>
 		public string SpectrumId { get; }
 
 		/// <summary>
-		/// Gets and sets the input spectra data id
+		/// Gets  the spectrum id
+		/// </summary>
+		public int? SpectrumScanNumber { get; }
+
+		/// <summary>
+		/// Gets the spectral data
+		/// </summary>
+		public MzIdentMlSpectraData SpectralData { get; }
+
+		/// <summary>
+		/// Gets the input spectra data id
 		/// </summary>
 		public string InputSpectraDataId { get; }
 
 		/// <summary>
-		/// Gets and sets the spectrum identification items
+		/// Gets the spectrum identification items
 		/// </summary>
 		public List<MzIdentMlSpectrumIdentificationItem> SpectrumIdentificationItems { get; }
 

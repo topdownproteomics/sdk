@@ -2,10 +2,10 @@
 
 namespace TopDownProteomics.IO.MzIdentMl
 {
-	/// <summary>
-	/// Corresponds to the DBSequence element
-	/// </summary>
-	public class MzIdentMlDatabaseSequence
+    /// <summary>
+    /// Corresponds to the DBSequence element
+    /// </summary>
+    public class MzIdentMlDatabaseSequence
     {
         /// <summary>
         /// Instantiates with the required parameters
@@ -14,11 +14,11 @@ namespace TopDownProteomics.IO.MzIdentMl
         /// <param name="accession"></param>
         /// <param name="searchDatabaseId"></param>
 		public MzIdentMlDatabaseSequence(string id, string accession, string searchDatabaseId)
-		{
+        {
             this.Id = id;
             this.Accession = accession;
             this.SearchDatabaseId = searchDatabaseId;
-		}
+        }
 
         /// <summary>
         /// Gets and sets the Id
@@ -54,5 +54,20 @@ namespace TopDownProteomics.IO.MzIdentMl
         /// Gets and sets the userParams
         /// </summary>
 		public List<MzIdentMlUserParam>? UserParams { get; set; }
+
+        /// <summary>
+        /// Gets and sets the protein description
+        /// </summary>
+        public string? ProteinDescription { get; set; }
+
+        /// <summary>
+        /// Gets and sets the taxonomy scientific name
+        /// </summary>
+        public string? TaxonomyScientificName { get; set; }
+
+        /// <summary>
+        /// Gets and sets the taxon ID
+        /// </summary>
+        public int? TaxonId { get; set; }
 	}
 }

@@ -5,19 +5,21 @@
 	/// </summary>
 	public class MzIdentMlSpectrumIdentificationProtocol
     {
-        /// <summary>
-        /// Instantiates with required parameters
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="softwareId"></param>
-        /// <param name="searchType"></param>
-        /// <param name="thresholds"></param>
-		public MzIdentMlSpectrumIdentificationProtocol(string id, string softwareId, MzIdentMlCvOrUserParam searchType, MzIdentMlParamCollection thresholds)
+		/// <summary>
+		/// Instantiates with required parameters
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="softwareId"></param>
+		/// <param name="searchType"></param>
+		/// <param name="thresholds"></param>
+		/// <param name="name"></param>
+		public MzIdentMlSpectrumIdentificationProtocol(string id, string softwareId, MzIdentMlCvOrUserParam searchType, MzIdentMlParamCollection thresholds, string? name = null)
 		{
             this.Id = id;
             this.SoftwareId = softwareId;
             this.SearchType = searchType;
             this.Thresholds = thresholds;
+			this.Name = name;
 		}
         /// <summary>
         /// Gets and sets the id
@@ -58,5 +60,10 @@
         /// Gets the thresholds
         /// </summary>
         public MzIdentMlParamCollection Thresholds { get; }
-    }
+
+        /// <summary>
+        /// Gets the name
+        /// </summary>
+		public string? Name { get; }
+	}
 }

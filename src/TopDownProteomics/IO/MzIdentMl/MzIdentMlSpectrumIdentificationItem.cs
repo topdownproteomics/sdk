@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace TopDownProteomics.IO.MzIdentMl
 {
@@ -16,8 +17,8 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// <param name="experimentalMz"></param>
 		/// <param name="passesThreshold"></param>
 		/// <param name="rank"></param>
-		/// <param name="peptideEvidenceIds"></param>
-		public MzIdentMlSpectrumIdentificationItem(string id, int chargeState, double calculatedMz, double experimentalMz, bool passesThreshold, int rank, List<string> peptideEvidenceIds)
+		/// <param name="peptideEvidences"></param>
+		public MzIdentMlSpectrumIdentificationItem(string id, int chargeState, double calculatedMz, double experimentalMz, bool passesThreshold, int rank, List<MzIdentMlPeptideEvidence> peptideEvidences)
 		{
 			this.Id = id;
 			this.ChargeState = chargeState;
@@ -25,7 +26,8 @@ namespace TopDownProteomics.IO.MzIdentMl
 			this.ExperimentalMz = experimentalMz;
 			this.PassesThreshold = passesThreshold;
 			this.Rank = rank;
-			this.PeptideEvidenceIds = peptideEvidenceIds;
+			this.PeptideEvidences = peptideEvidences;
+			this.Peptides = this.PeptideEvidences.Select(x => x.Peptide).ToList();
 		}
 
 		/// <summary>
@@ -59,19 +61,14 @@ namespace TopDownProteomics.IO.MzIdentMl
 		public bool PassesThreshold { get; }
 
 		/// <summary>
-		/// Gets and sets the peptide evidence ids
-		/// </summary>
-		public List<string> PeptideEvidenceIds { get; }
-
-		/// <summary>
 		/// Gets and sets the peptide evidences
 		/// </summary>
-		public List<MzIdentMlPeptideEvidence>? PeptideEvidences { get; set; }
+		public List<MzIdentMlPeptideEvidence> PeptideEvidences { get; }
 
 		/// <summary>
 		/// Gets and sets the proteoforms
 		/// </summary>
-		public List<MzIdentMlPeptide>? Peptides { get; set; }
+		public List<MzIdentMlPeptide> Peptides { get; set; }
 
 		/// <summary>
 		/// Gets and sets the ion types

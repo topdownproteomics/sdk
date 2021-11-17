@@ -10,28 +10,28 @@ namespace TopDownProteomics.IO.MzIdentMl
         /// <summary>
         /// Instantiates with schema-required parameters
         /// </summary>
-        /// <param name="databaseSequenceId"></param>
+        /// <param name="databaseSequence"></param>
         /// <param name="id"></param>
-        /// <param name="peptideId"></param>
-		public MzIdentMlPeptideEvidence(string databaseSequenceId, string id, string peptideId)
+        /// <param name="peptide"></param>
+		public MzIdentMlPeptideEvidence(MzIdentMlDatabaseSequence databaseSequence, string id, MzIdentMlPeptide peptide)
 		{
-            this.DatabaseSequenceId = databaseSequenceId;
+            this.DatabaseSequence = databaseSequence;
             this.Id = id;
-            this.PeptideId = peptideId;
+            this.Peptide = peptide;
 		}
 
         /// <summary>
-        /// Gets and sets the database sequence id
+        /// Gets the database sequence
         /// </summary>
-        public string DatabaseSequenceId { get; }
+        public MzIdentMlDatabaseSequence DatabaseSequence { get; }
 
         /// <summary>
-        /// Gets and sets the peptide id
+        /// Gets  the peptide
         /// </summary>
-        public string PeptideId { get; }
+        public MzIdentMlPeptide Peptide { get; }
 
         /// <summary>
-        /// Gets and sets the id
+        /// Gets the id
         /// </summary>
         public string Id { get; }
 

@@ -39,6 +39,21 @@ namespace TopDownProteomics.IO.MzIdentMl
 		public List<MzIdentMlFragmentArray>? FragmentArrays { get; set; }
 
 		/// <summary>
+		/// Gets and sets the m/z array
+		/// </summary>
+		public MzIdentMlFragmentArray? MzArray { get; set; }
+
+		/// <summary>
+		/// Gets and sets the m/z error array
+		/// </summary>
+		public MzIdentMlFragmentArray? MzErrorArray { get; set; }
+
+		/// <summary>
+		/// Gets and sets the intensity array
+		/// </summary>
+		public MzIdentMlFragmentArray? IntensityArray { get; set; }
+
+		/// <summary>
 		/// Gets the userParams
 		/// </summary>
 		public List<MzIdentMlUserParam>? UserParams { get; set; }
