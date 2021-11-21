@@ -13,6 +13,9 @@ namespace TopDownProteomics.Chemistry
         /// <summary>Get the element's atomic number</summary>
         int AtomicNumber { get; }
 
+        /// <summary>The name of the element</summary>
+        string Name { get; }
+
         /// <summary>Gets the element's symbol</summary>
         string Symbol { get; }
 

@@ -12,39 +12,39 @@ namespace TopDownProteomics.Benchmarks
         public MockElementProvider()
         {
             _elements = new IElement[128];
-            _elements[1] = new Element(1, "H", new[]
+            _elements[1] = new Element(1, "H", "Hydrogen", new[]
             {
                 new Isotope(1.007825032, 0, 0.999885),
                 new Isotope(2.014101778, 1, 0.000115)
             });
-            _elements[6] = new Element(6, "C", new[]
+            _elements[6] = new Element(6, "C", "Carbon", new[]
             {
                 new Isotope(12.0, 6, 0.9893),
                 new Isotope(13.0033548378, 7, 0.0107)
             });
-            _elements[7] = new Element(7, "N", new[]
+            _elements[7] = new Element(7, "N", "Nitrogen", new[]
             {
                 new Isotope(14.0030740052, 7, 0.99632),
                 new Isotope(15.0001088984, 8, 0.00368)
             });
-            _elements[8] = new Element(8, "O", new[]
+            _elements[8] = new Element(8, "O", "Oxygen", new[]
             {
                 new Isotope(15.99491463, 8, 0.99757),
                 new Isotope(16.9991312, 9, 0.00038),
                 new Isotope(17.9991603, 10, 0.00205)
             });
-            _elements[15] = new Element(15, "P", new[]
+            _elements[15] = new Element(15, "P", "Phosphorus", new[]
             {
                 new Isotope(30.97376163, 16, 1.0000)
             });
-            _elements[16] = new Element(16, "S", new[]
+            _elements[16] = new Element(16, "S", "Sulfur", new[]
             {
                 new Isotope(31.97207100, 16, 0.9499),
                 new Isotope(32.97145876, 17, 0.0075),
                 new Isotope(33.96786690, 18, 0.0425),
                 new Isotope(35.96708076, 20, 0.0001)
             });
-            _elements[34] = new Element(34, "Se", new[]
+            _elements[34] = new Element(34, "Se", "Selenium", new[]
             {
                 new Isotope(73.9224764, 40, 0.0089),
                 new Isotope(75.9192136, 42, 0.0937),
@@ -54,7 +54,7 @@ namespace TopDownProteomics.Benchmarks
                 new Isotope(81.9166994, 48, 0.0873)
             });
 
-            _carbon13 = new Element(6, "13C", new[]
+            _carbon13 = new Element(6, "13C", "Heavy Carbon", new[]
             {
                 new Isotope(13.0033548378, 7, 1.0)
             });
