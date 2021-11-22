@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TopDownProteomics.Chemistry;
 
@@ -80,6 +81,11 @@ namespace TopDownProteomics.Benchmarks
 
             var symbolString = symbol.ToString();
             return _elements.Single(x => x?.Symbol == symbolString);
+        }
+
+        public IEnumerable<IElement> GetElements()
+        {
+            return _elements.Where(x => x != null);
         }
     }
 }

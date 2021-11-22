@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TopDownProteomics.Benchmarks</RootNamespace>
     <AssemblyName>TopDownProteomics.Benchmarks</AssemblyName>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Authors>Consortium for Top-Down Proteomics</Authors>
   </PropertyGroup>
   

@@ -1,4 +1,7 @@
-﻿using TopDownProteomics.ProForma;
+﻿using System;
+using System.Collections.Generic;
+using TopDownProteomics.Chemistry;
+using TopDownProteomics.ProForma;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.IO.Resid
@@ -77,5 +80,37 @@ namespace TopDownProteomics.IO.Resid
 
         /// <summary>The swissprot term.</summary>
         public string? SwissprotTerm { get; }
+
+        /// <summary>Gets the chemical formula.</summary>
+        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        {
+            string? formula = this.DiffFormula;
+
+            if (string.IsNullOrEmpty(formula))
+                return null;
+
+            string[] cells = formula.Split(' ');
+
+            var elements = new List<IEntityCardinality<IElement>>();
+
+            for (int i = 0; i < cells.Length; i += 2)
+            {
+                if (cells[i] == "+")
+                    continue;
+
+                int count = Convert.ToInt32(cells[i + 1]);
+
+                if (count != 0)
+                {
+                    // Handle formal charge by adding or removing hydrogen atoms
+                    if (this.FormalCharge != 0 && cells[i] == "H")
+                        count -= this.FormalCharge;
+
+                    elements.Add(new EntityCardinality<IElement>(elementProvider.GetElement(cells[i]), count));
+                }
+            }
+
+            return new ChemicalFormula(elements);
+        }
     }
 }

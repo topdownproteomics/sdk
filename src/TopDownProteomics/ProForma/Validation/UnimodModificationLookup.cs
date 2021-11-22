@@ -57,9 +57,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         protected override IChemicalFormula GetChemicalFormula(UnimodModification modification)
         {
-            var composition = UnimodComposition.CreateFromFormula(modification.DeltaComposition, _atomProvider);
-
-            return composition.GetChemicalFormula();
+            return modification.GetChemicalFormula(_atomProvider);
         }
 
         /// <summary>

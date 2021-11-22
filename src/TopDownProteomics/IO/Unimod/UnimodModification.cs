@@ -1,4 +1,7 @@
-﻿namespace TopDownProteomics.IO.Unimod
+﻿using TopDownProteomics.Chemistry;
+using TopDownProteomics.Chemistry.Unimod;
+
+namespace TopDownProteomics.IO.Unimod
 {
     /// <summary>
     /// A modification from the UniMod database.
@@ -41,5 +44,13 @@
 
         /// <summary>Gets the delta average mass.</summary>
         public double DeltaAverageMass { get; }
+
+        /// <summary>Gets the chemical formula.</summary>
+        public IChemicalFormula GetChemicalFormula(IUnimodCompositionAtomProvider atomProvider)
+        {
+            var composition = UnimodComposition.CreateFromFormula(this.DeltaComposition, atomProvider);
+
+            return composition.GetChemicalFormula();
+        }
     }
 }

@@ -53,43 +53,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         protected override IChemicalFormula? GetChemicalFormula(PsiModTerm modification)
         {
-            string? formula = modification.DiffFormula;
-
-            if (string.IsNullOrEmpty(formula) || formula == "none")
-                return null;
-
-            string[] cells = formula.Split(' ');
-
-            var elements = new List<IEntityCardinality<IElement>>();
-
-            for (int i = 0; i < cells.Length; i += 2)
-            {
-                if (cells[i] == "+")
-                    continue;
-
-                int count = Convert.ToInt32(cells[i + 1]);
-
-                if (count != 0)
-                {
-                    // Handle formal charge by adding or removing hydrogen atoms
-                    if (modification.FormalCharge != 0 && cells[i] == "H")
-                        count -= modification.FormalCharge;
-
-                    if (cells[i][0] == '(') // Fixed isotope.
-                    {
-                        int endIsotopeIndex = cells[i].IndexOf(')');
-                        string isotopeStr = cells[i].Substring(1, endIsotopeIndex - 1);
-                        int fixedIsotope = Convert.ToInt32(isotopeStr);
-                        elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i].Substring(endIsotopeIndex + 1), fixedIsotope), count));
-                    }
-                    else
-                    {
-                        elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
-                    }
-                }
-            }
-
-            return new ChemicalFormula(elements);
+            return modification.GetChemicalFormula(_elementProvider);
         }
 
         /// <summary>

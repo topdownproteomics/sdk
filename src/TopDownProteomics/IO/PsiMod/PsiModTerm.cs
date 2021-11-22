@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using TopDownProteomics.Chemistry;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.IO.PsiMod
@@ -120,5 +122,47 @@ namespace TopDownProteomics.IO.PsiMod
 
         /// <summary>The is-a collection.</summary>
         public ICollection<string>? IsA { get; set; }
+
+        /// <summary>Gets the chemical formula.</summary>
+        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        {
+            string? formula = this.DiffFormula;
+
+            if (string.IsNullOrEmpty(formula) || formula == "none")
+                return null;
+
+            string[] cells = formula.Split(' ');
+
+            var elements = new List<IEntityCardinality<IElement>>();
+
+            for (int i = 0; i < cells.Length; i += 2)
+            {
+                if (cells[i] == "+")
+                    continue;
+
+                int count = Convert.ToInt32(cells[i + 1]);
+
+                if (count != 0)
+                {
+                    // Handle formal charge by adding or removing hydrogen atoms
+                    if (this.FormalCharge != 0 && cells[i] == "H")
+                        count -= this.FormalCharge;
+
+                    if (cells[i][0] == '(') // Fixed isotope.
+                    {
+                        int endIsotopeIndex = cells[i].IndexOf(')');
+                        string isotopeStr = cells[i].Substring(1, endIsotopeIndex - 1);
+                        int fixedIsotope = Convert.ToInt32(isotopeStr);
+                        elements.Add(new EntityCardinality<IElement>(elementProvider.GetElement(cells[i].Substring(endIsotopeIndex + 1), fixedIsotope), count));
+                    }
+                    else
+                    {
+                        elements.Add(new EntityCardinality<IElement>(elementProvider.GetElement(cells[i]), count));
+                    }
+                }
+            }
+
+            return new ChemicalFormula(elements);
+        }
     }
 }

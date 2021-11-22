@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using TopDownProteomics.Chemistry;
@@ -109,6 +110,11 @@ namespace TopDownProteomics.Tests
 
             return new Element(element.AtomicNumber, element.Symbol,
                 new ReadOnlyCollection<IIsotope>(new[] { newIsotope }));
+        }
+
+        public IEnumerable<IElement> GetElements()
+        {
+            return _elements.Where(x => x != null);
         }
     }
 }
