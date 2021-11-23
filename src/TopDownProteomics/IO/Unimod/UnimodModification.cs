@@ -1,4 +1,6 @@
-﻿using TopDownProteomics.Chemistry;
+﻿using System.Collections.Generic;
+using TopDownProteomics.Biochemistry;
+using TopDownProteomics.Chemistry;
 using TopDownProteomics.Chemistry.Unimod;
 
 namespace TopDownProteomics.IO.Unimod
@@ -17,7 +19,10 @@ namespace TopDownProteomics.IO.Unimod
         /// <param name="deltaComposition">The delta composition.</param>
         /// <param name="deltaMonoisotopicMass">The delta monoisotopic mass.</param>
         /// <param name="deltaAverageMass">The delta average mass.</param>
-        public UnimodModification(string id, string name, string definition, string deltaComposition, double deltaMonoisotopicMass, double deltaAverageMass)
+        /// <param name="allowedResidueSymbols"></param>
+        /// <param name="allowedTermini"></param>
+        public UnimodModification(string id, string name, string definition, string deltaComposition, double deltaMonoisotopicMass, double deltaAverageMass,
+            ICollection<char>? allowedResidueSymbols, ModificationTerminalSpecificity allowedTermini)
         {
             this.Id = id;
             this.Name = name;
@@ -25,6 +30,8 @@ namespace TopDownProteomics.IO.Unimod
             this.DeltaComposition = deltaComposition;
             this.DeltaMonoisotopicMass = deltaMonoisotopicMass;
             this.DeltaAverageMass = deltaAverageMass;
+            this.AllowedResidueSymbols = allowedResidueSymbols;
+            this.AllowedTermini = allowedTermini;
         }
 
         /// <summary>Gets the modification identifier.</summary>
@@ -44,6 +51,12 @@ namespace TopDownProteomics.IO.Unimod
 
         /// <summary>Gets the delta average mass.</summary>
         public double DeltaAverageMass { get; }
+
+        /// <summary>The symbols of the residues allowed by this modification.</summary>
+        public ICollection<char>? AllowedResidueSymbols { get; }
+
+        /// <summary>The terminus that is allowed by this modification.</summary>
+        public ModificationTerminalSpecificity AllowedTermini { get; }
 
         /// <summary>Gets the chemical formula.</summary>
         public IChemicalFormula GetChemicalFormula(IUnimodCompositionAtomProvider atomProvider)

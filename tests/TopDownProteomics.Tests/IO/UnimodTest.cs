@@ -1,7 +1,9 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.IO.Unimod;
 
 namespace TopDownProteomics.Tests.IO
@@ -27,6 +29,16 @@ namespace TopDownProteomics.Tests.IO
             Assert.AreEqual("H(2) C(2) O", unimod1.DeltaComposition);
             Assert.AreEqual(42.0367, unimod1.DeltaAverageMass);
             Assert.AreEqual(42.010565, unimod1.DeltaMonoisotopicMass);
+
+            CollectionAssert.AreEquivalent(new[] { 'K', 'C', 'S', 'T', 'Y', 'H', 'R' }, (ICollection)unimod1.AllowedResidueSymbols);
+            Assert.AreEqual(ModificationTerminalSpecificity.N, unimod1.AllowedTermini);
+
+            var pyridylethylation = mods.Single(x => x.Id == "UNIMOD:31");
+            Assert.AreEqual(ModificationTerminalSpecificity.None, pyridylethylation.AllowedTermini);
+
+            var methyl = mods.Single(x => x.Id == "UNIMOD:34");
+            Assert.AreEqual(ModificationTerminalSpecificity.N | ModificationTerminalSpecificity.C, methyl.AllowedTermini);
+            Assert.AreEqual(ModificationTerminalSpecificity.Both, methyl.AllowedTermini);
         }
     }
 }

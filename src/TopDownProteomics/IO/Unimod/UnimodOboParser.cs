@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.IO.Obo;
 
 namespace TopDownProteomics.IO.Unimod
@@ -57,6 +58,8 @@ namespace TopDownProteomics.IO.Unimod
             string? diffFormula = null;
             double diffMonoMass = 0;
             double diffAvMass = 0;
+            List<char>? allowedResidueSymbols = null;
+            ModificationTerminalSpecificity termini = ModificationTerminalSpecificity.None;
 
             if (term.ValuePairs != null)
             {
@@ -70,11 +73,32 @@ namespace TopDownProteomics.IO.Unimod
                         diffMonoMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
                     else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_avge_mass"))
                         diffAvMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
+                    else if (pair.Tag == "xref" && pair.Value.Contains("_site"))
+                    {
+                        int startIndex = pair.Value.IndexOf('"');
+                        string value = pair.Value.Substring(startIndex + 1, pair.Value.LastIndexOf('"') - startIndex - 1);
+
+                        if (value.Length == 1)
+                        {
+                            if (allowedResidueSymbols == null)
+                                allowedResidueSymbols = new List<char>();
+
+                            allowedResidueSymbols.Add(value[0]);
+                        }
+                    }
+                    else if (pair.Tag == "xref" && pair.Value.Contains("N-term"))
+                    {
+                        termini |= ModificationTerminalSpecificity.N;
+                    }
+                    else if (pair.Tag == "xref" && pair.Value.Contains("C-term"))
+                    {
+                        termini |= ModificationTerminalSpecificity.C;
+                    }
                 }
             }
 
             if (definition != null && diffFormula != null)
-                return new UnimodModification(code, name, definition, diffFormula, diffMonoMass, diffAvMass);
+                return new UnimodModification(code, name, definition, diffFormula, diffMonoMass, diffAvMass, allowedResidueSymbols, termini);
 
             throw new Exception("Could not find required 'definition' field.");
         }
