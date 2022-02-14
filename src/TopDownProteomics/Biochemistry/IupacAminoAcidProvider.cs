@@ -228,6 +228,8 @@ namespace TopDownProteomics.Biochemistry
             public char Symbol { get; }
 
             public IChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
+
+            public double GetMass(MassType massType) => this.GetChemicalFormula().GetMass(massType);
         }
     }
 }

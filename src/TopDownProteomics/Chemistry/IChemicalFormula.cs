@@ -23,6 +23,13 @@ namespace TopDownProteomics.Chemistry
         IChemicalFormula Add(IChemicalFormula formula);
 
         /// <summary>
+        /// Subtracts the specified formula.
+        /// </summary>
+        /// <param name="formula">The formula.</param>
+        /// <returns></returns>
+        IChemicalFormula Subtract(IChemicalFormula formula);
+
+        /// <summary>
         /// Multiplies the formula by the specified multiplier.
         /// </summary>
         /// <param name="multiplier">The multiplier.</param>

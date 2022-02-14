@@ -55,18 +55,34 @@ namespace TopDownProteomics.IO.Unimod
             string name = term.Name;
 
             string? definition = null;
+            string? definitionRemainder = null;
             string? diffFormula = null;
             double diffMonoMass = 0;
             double diffAvMass = 0;
             List<char>? allowedResidueSymbols = null;
             ModificationTerminalSpecificity termini = ModificationTerminalSpecificity.None;
+            HashSet<string> classifications = new();
 
             if (term.ValuePairs != null)
             {
                 foreach (OboTagValuePair pair in term.ValuePairs)
                 {
                     if (pair.Tag == "def")
-                        definition = pair.Value.Replace("\\", string.Empty);
+                    {
+                        string rawDefinition = pair.Value.Replace("\\", string.Empty).Replace("\"", string.Empty);
+
+                        int remainderStart = rawDefinition.IndexOf('[');
+
+                        if (remainderStart >= 0)
+                        {
+                            definition = rawDefinition[..remainderStart].Replace(".", string.Empty).Trim();
+                            definitionRemainder = rawDefinition[remainderStart..].Trim();
+                        }
+                        else
+                        {
+                            throw new Exception("Couldn't find Unimod definition remainder.");
+                        }
+                    }
                     else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_composition"))
                         diffFormula = pair.Value.Replace("\"", string.Empty).Substring(18);
                     else if (pair.Tag == "xref" && pair.Value.StartsWith("delta_mono_mass"))
@@ -75,14 +91,11 @@ namespace TopDownProteomics.IO.Unimod
                         diffAvMass = Convert.ToDouble(pair.Value.Replace("\"", string.Empty).Substring(16));
                     else if (pair.Tag == "xref" && pair.Value.Contains("_site"))
                     {
-                        int startIndex = pair.Value.IndexOf('"');
-                        string value = pair.Value.Substring(startIndex + 1, pair.Value.LastIndexOf('"') - startIndex - 1);
+                        string value = this.GetXRefValue(pair.Value);
 
                         if (value.Length == 1)
                         {
-                            if (allowedResidueSymbols == null)
-                                allowedResidueSymbols = new List<char>();
-
+                            allowedResidueSymbols ??= new List<char>();
                             allowedResidueSymbols.Add(value[0]);
                         }
                     }
@@ -94,13 +107,26 @@ namespace TopDownProteomics.IO.Unimod
                     {
                         termini |= ModificationTerminalSpecificity.C;
                     }
+                    else if (pair.Tag == "xref" && pair.Value.Contains("_classification"))
+                    {
+                        string value = this.GetXRefValue(pair.Value);
+
+                        classifications.Add(value);
+                    }
                 }
             }
 
-            if (definition != null && diffFormula != null)
-                return new UnimodModification(code, name, definition, diffFormula, diffMonoMass, diffAvMass, allowedResidueSymbols, termini);
+            if (definition != null && definitionRemainder != null && diffFormula != null)
+                return new UnimodModification(code, name, definition, definitionRemainder, diffFormula, diffMonoMass, diffAvMass, allowedResidueSymbols, termini, classifications);
 
-            throw new Exception("Could not find required 'definition' field.");
+            throw new Exception("Could not find required fields 'definition' (with square brackets) and 'diffFormula'.");
+        }
+
+        private string GetXRefValue(string fullValue)
+        {
+            // Return everything between the outermost double quotes
+            int startIndex = fullValue.IndexOf('"');
+            return fullValue.Substring(startIndex + 1, fullValue.LastIndexOf('"') - startIndex - 1);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace TopDownProteomics.Tools
     /// RTF: I think this is the link, but not confirmed: http://fiehnlab.ucdavis.edu/projects/Seven_Golden_Rules/Isotopic_Pattern_Generator
     /// RTF: Paper: Efficient calculation of accurate masses of isotopic peaks. JASMS 2006, Rockwood AL, Haimi P.
     /// </summary>
-    public class Mercury7
+    public class Mercury7 : IIsotopicDistributionGenerator
     {
         private readonly double _limit;
 
@@ -105,7 +105,7 @@ namespace TopDownProteomics.Tools
             foreach (IEntityCardinality<IElement> kvp in cf.GetElements())
             {
                 uint n = (uint)kvp.Count;
-                
+
                 if (n == 0)
                     continue;
 
@@ -162,17 +162,17 @@ namespace TopDownProteomics.Tools
                 }
             }
 
-            if (msaMz != null && msaAbundance != null)
-                return new IsotopicDistribution(msaMz, msaAbundance);
+            if (msaMz == null || msaAbundance == null)
+                throw new Exception("msa Arrays must not be empty.");
 
-            throw new Exception("Couldn't create masses or abundances.");
+            return new IsotopicDistribution(msaMz, msaAbundance);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private double[] CopyArray(double[]? source)
         {
-            if (source == null)
-                throw new Exception("Cannot copy NULL array.");
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
 
             double[] target = new double[source.Length];
             Array.Copy(source, target, source.Length);
@@ -185,8 +185,8 @@ namespace TopDownProteomics.Tools
             int start = 0;
             int end = mz.Length - 1;
 
-            while (ab[start] < limit)
-                start++;
+            //while (ab[start] < limit)
+            //    start++;
 
             while (ab[end] < limit)
                 end--;
@@ -208,9 +208,8 @@ namespace TopDownProteomics.Tools
         private void Convolve(ref double[]? resultMz, ref double[]? resultAb, double[]? mz1, double[]? ab1,
             double[] mz2, double[] ab2)
         {
-            if (mz1 == null || ab1 == null)
-                throw new Exception("Cannot convolve NULL arrays.");
-
+            // RTF ignoring here for speed ... should look into changing the logic to avoid this
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             int n1 = mz1.Length;
             int n2 = mz2.Length;
 
@@ -244,6 +243,7 @@ namespace TopDownProteomics.Tools
                 resultMz[k] = totalAbundance > 0 ? massExpectation / totalAbundance : 0;
                 resultAb[k] = totalAbundance;
             }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 }
