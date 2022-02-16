@@ -400,13 +400,13 @@ namespace TopDownProteomics.IO.MzIdentMl
 		{
 			do
 			{
-				if (reader.NodeType == XmlNodeType.Element && reader.Name == "ProteinDetectionProtocol")
-					break;
-
 				if (reader.NodeType == XmlNodeType.Element && reader.Name == "SpectrumIdentificationProtocol")
 				{
 					yield return this.ParseSpectrumIdentificationProtocol(reader);
 				}
+
+				if (reader.NodeType == XmlNodeType.EndElement && (reader.Name == "ProteinDetectionProtocol" || reader.Name == "AnalysisProtocolCollection"))
+					break;
 			}
 			while (reader.Read());
 		}
@@ -425,7 +425,8 @@ namespace TopDownProteomics.IO.MzIdentMl
 			MzIdentMlParamCollection? fragmentTolerances = null;
 			MzIdentMlParamCollection? precursorTolerances = null;
 
-			while (reader.Read())
+
+			do
 			{
 				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "SpectrumIdentificationProtocol")
 					break;
@@ -457,6 +458,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 					}
 				}
 			}
+			while (reader.Read());
 
 			if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(softwareId) || thresholds is null || searchType is null)
 				throw new Exception("SpectrumIdentificationProtocol elements must contain an id, software reference, thresholds, and search type");
@@ -939,7 +941,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		{
 			string id = reader.GetAttribute("id");
 
-			MzIdentMlProteinDetectionProtocol proteinProtocol = GetProteinDetectionProtocol(analysisCollection, proteinProtocols, id);
+			MzIdentMlProteinDetectionProtocol? proteinProtocol = GetProteinDetectionProtocol(analysisCollection, proteinProtocols, id);
 			MzIdentMlSpectrumIdentificationProtocol spectrumProtocol = GetSpectrumIdentificationProtocol(analysisCollection, spectrumProtocols, id);
 
 			string? name = reader.GetAttribute("name");
@@ -980,15 +982,15 @@ namespace TopDownProteomics.IO.MzIdentMl
 			return new MzIdentMlSpectrumIdentificationList(id, measures.Values.ToList(), results, proteinProtocol, spectrumProtocol, name, numSequencesSearched);
 		}
 
-		private MzIdentMlProteinDetectionProtocol GetProteinDetectionProtocol(MzIdentMlAnalysisCollection analysisCollection, IEnumerable<MzIdentMlProteinDetectionProtocol> proteinProtocols, string spectrumListId)
+		private MzIdentMlProteinDetectionProtocol? GetProteinDetectionProtocol(MzIdentMlAnalysisCollection analysisCollection, IEnumerable<MzIdentMlProteinDetectionProtocol> proteinProtocols, string spectrumListId)
 		{
-			string? proteinProtocolId = analysisCollection.ProteinDetections.FirstOrDefault(x => x.SpectrumIdentificationListId == spectrumListId).ProteinDetectionProtocolId;
+			string? proteinProtocolId = analysisCollection.ProteinDetections.FirstOrDefault(x => x.SpectrumIdentificationListId == spectrumListId)?.ProteinDetectionProtocolId;
 			if (proteinProtocolId != null)
 			{
 				return proteinProtocols.FirstOrDefault(x => x.Id == proteinProtocolId);
 			}
 
-			throw new Exception("Unable to find protein detection protocol for spectrum identification lists.");
+			return null;
 		}
 
 		private MzIdentMlSpectrumIdentificationProtocol GetSpectrumIdentificationProtocol(MzIdentMlAnalysisCollection analysisCollection, IEnumerable<MzIdentMlSpectrumIdentificationProtocol> spectrumProtocols, string spectrumListId)

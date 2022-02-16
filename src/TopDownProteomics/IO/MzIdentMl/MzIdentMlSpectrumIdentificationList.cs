@@ -19,7 +19,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// <param name="spectrumIdentificationProtocol"></param>
 		/// <param name="name"></param>
 		/// <param name="sequencesSearched"></param>
-		public MzIdentMlSpectrumIdentificationList(string id, List<MzIdentMlFragmentationMeasure> measures, List<MzIdentMlSpectrumIdentificationResult> spectrumIdentificationResults, MzIdentMlProteinDetectionProtocol proteinDetectionProtocol, MzIdentMlSpectrumIdentificationProtocol spectrumIdentificationProtocol, string? name = null, int? sequencesSearched = null)
+		public MzIdentMlSpectrumIdentificationList(string id, List<MzIdentMlFragmentationMeasure> measures, List<MzIdentMlSpectrumIdentificationResult> spectrumIdentificationResults, MzIdentMlProteinDetectionProtocol? proteinDetectionProtocol, MzIdentMlSpectrumIdentificationProtocol spectrumIdentificationProtocol, string? name = null, int? sequencesSearched = null)
 		{
 			Id = id;
 			Measures = measures;
@@ -48,7 +48,7 @@ namespace TopDownProteomics.IO.MzIdentMl
 		/// <summary>
 		/// Gets the protein detection protocol
 		/// </summary>
-		public MzIdentMlProteinDetectionProtocol ProteinDetectionProtocol { get; }
+		public MzIdentMlProteinDetectionProtocol? ProteinDetectionProtocol { get; }
 
 		/// <summary>
 		/// Gets the spectrum identification protocol
