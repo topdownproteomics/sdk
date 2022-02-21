@@ -78,5 +78,14 @@ namespace TopDownProteomics.Chemistry
             return new Element(element.AtomicNumber, element.Symbol,
                 new ReadOnlyCollection<IIsotope>(new[] { newIsotope }));
         }
+
+        /// <summary>
+        /// Gets all the elements.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<IElement> GetElements()
+        {
+            return _by_atomic_number.Where(x => x != null);
+        }
     }
 }

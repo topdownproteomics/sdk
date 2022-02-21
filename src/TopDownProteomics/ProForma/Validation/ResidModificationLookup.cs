@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.IO.Resid;
 
@@ -45,33 +44,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         protected override IChemicalFormula? GetChemicalFormula(ResidModification modification)
         {
-            string? formula = modification.DiffFormula;
-
-            if (string.IsNullOrEmpty(formula))
-                return null;
-
-            string[] cells = formula.Split(' ');
-
-            var elements = new List<IEntityCardinality<IElement>>();
-
-            for (int i = 0; i < cells.Length; i += 2)
-            {
-                if (cells[i] == "+")
-                    continue;
-
-                int count = Convert.ToInt32(cells[i + 1]);
-
-                if (count != 0)
-                {
-                    // Handle formal charge by adding or removing hydrogen atoms
-                    if (modification.FormalCharge != 0 && cells[i] == "H")
-                        count -= modification.FormalCharge;
-
-                    elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(cells[i]), count));
-                }
-            }
-
-            return new ChemicalFormula(elements);
+            return modification.GetChemicalFormula(_elementProvider);
         }
 
         /// <summary>

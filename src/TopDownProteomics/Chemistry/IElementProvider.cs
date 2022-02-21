@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TopDownProteomics.Chemistry
 {
@@ -22,5 +23,11 @@ namespace TopDownProteomics.Chemistry
         /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
         /// <returns></returns>
         IElement GetElement(ReadOnlySpan<char> symbol, int? fixedIsotopeNumber = null);
+
+        /// <summary>
+        /// Gets all of the elements.
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IElement> GetElements();
     }
 }

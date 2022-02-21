@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TopDownProteomics.Chemistry;
+using TopDownProteomics.IO;
 using TopDownProteomics.IO.UniProt;
 
 namespace TopDownProteomics.ProForma.Validation
@@ -45,32 +45,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         protected override IChemicalFormula? GetChemicalFormula(UniprotModification modification)
         {
-            string? formula = modification.CorrectionFormula;
-
-            if (string.IsNullOrEmpty(formula))
-                return null;
-
-            string[] cells = formula.Split(' ');
-
-            var elements = new List<IEntityCardinality<IElement>>();
-
-            for (int i = 0; i < cells.Length; i++)
-            {
-                // Find last index for element name
-                int j = cells[i].Length - 1;
-                while (char.IsDigit(cells[i][j]) || cells[i][j] == '-')
-                {
-                    j--;
-                }
-
-                string elementSymbol = cells[i].Substring(0, j + 1);
-                int count = Convert.ToInt32(cells[i].Substring(j + 1));
-
-                if (count != 0)
-                    elements.Add(new EntityCardinality<IElement>(_elementProvider.GetElement(elementSymbol), count));
-            }
-
-            return new ChemicalFormula(elements);
+            return modification.GetChemicalFormula(_elementProvider);
         }
 
         /// <summary>

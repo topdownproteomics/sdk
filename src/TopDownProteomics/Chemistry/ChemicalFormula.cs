@@ -134,7 +134,10 @@ namespace TopDownProteomics.Chemistry
         /// </returns>
         public override int GetHashCode()
         {
-            return _elements.GetHashCode();
+            // RTF: TODO: This is a terrible hash code, but at least it favors a correct result.
+
+            //return _elements.GetHashCode();
+            return _elements.Count;
         }
 
         /// <summary>
@@ -143,6 +146,21 @@ namespace TopDownProteomics.Chemistry
         /// <param name="otherFormula">The formula.</param>
         /// <returns></returns>
         public IChemicalFormula Add(IChemicalFormula otherFormula)
+        {
+            return this.Merge(otherFormula, true);
+        }
+
+        /// <summary>
+        /// Subtracts the specified formula.
+        /// </summary>
+        /// <param name="otherFormula"></param>
+        /// <returns></returns>
+        public IChemicalFormula Subtract(IChemicalFormula otherFormula)
+        {
+            return this.Merge(otherFormula, false);
+        }
+
+        private IChemicalFormula Merge(IChemicalFormula otherFormula, bool add)
         {
             if (otherFormula == null)
                 return this;
@@ -163,14 +181,23 @@ namespace TopDownProteomics.Chemistry
                     formula._elements.Add(element);
                 else
                 {
-                    formula._elements.Add(new EntityCardinality<IElement>(element.Entity, element.Count + otherElement.Count));
+                    int newCount = add ? element.Count + otherElement.Count : element.Count - otherElement.Count;
+
+                    if (newCount != 0)
+                        formula._elements.Add(new EntityCardinality<IElement>(element.Entity, newCount));
+
                     otherElements.Remove(otherElement);
                 }
             }
 
             // Add unique things from other formula
             foreach (var otherElement in otherElements)
-                formula._elements.Add(otherElement);
+            {
+                if (add)
+                    formula._elements.Add(otherElement);
+                else
+                    formula._elements.Add(new EntityCardinality<IElement>(otherElement.Entity, -otherElement.Count));
+            }
 
             return formula;
         }
@@ -199,8 +226,8 @@ namespace TopDownProteomics.Chemistry
         {
             if (TryParseString(formula, elementProvider, out IChemicalFormula result))
                 return result;
-            
-            throw new Exception($"Could not parse '{formula.ToString()}' into a chemical formula.");
+
+            throw new InvalidChemicalFormula($"Could not parse '{formula.ToString()}' into a chemical formula.");
         }
 
         /// <summary>Attempts to parse the string into a ChemicalFormula.</summary>
@@ -361,6 +388,32 @@ namespace TopDownProteomics.Chemistry
         private static IEntityCardinality<IElement> GetElement(ReadOnlySpan<char> symbol, int? isotope, int count, IElementProvider elementProvider)
         {
             return new EntityCardinality<IElement>(elementProvider.GetElement(symbol, isotope), count);
+        }
+
+        /// <summary>
+        /// Invalid Chemical Formula when parsing a text string.
+        /// </summary>
+        /// <seealso cref="Exception" />
+        [Serializable]
+        public class InvalidChemicalFormula : Exception
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InvalidChemicalFormula"/> class.
+            /// </summary>
+            public InvalidChemicalFormula() { }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InvalidChemicalFormula"/> class.
+            /// </summary>
+            /// <param name="message">The message that describes the error.</param>
+            public InvalidChemicalFormula(string message) : base(message) { }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InvalidChemicalFormula"/> class.
+            /// </summary>
+            /// <param name="message">The error message that explains the reason for the exception.</param>
+            /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+            public InvalidChemicalFormula(string message, Exception innerException) : base(message, innerException) { }
         }
     }
 }

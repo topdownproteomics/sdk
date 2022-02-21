@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using TopDownProteomics.Chemistry;
 
 namespace TopDownProteomics.IO.UniProt
 {
@@ -96,5 +98,36 @@ namespace TopDownProteomics.IO.UniProt
 
         /// <summary>The Unimod identifier mapping.</summary>
         public string? Unimod { get; }
+
+        /// <summary>Gets the chemical formula.</summary>
+        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        {
+            string? formula = this.CorrectionFormula;
+
+            if (string.IsNullOrEmpty(formula))
+                return null;
+
+            string[] cells = formula.Split(' ');
+
+            var elements = new List<IEntityCardinality<IElement>>();
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                // Find last index for element name
+                int j = cells[i].Length - 1;
+                while (char.IsDigit(cells[i][j]) || cells[i][j] == '-')
+                {
+                    j--;
+                }
+
+                string elementSymbol = cells[i].Substring(0, j + 1);
+                int count = Convert.ToInt32(cells[i].Substring(j + 1));
+
+                if (count != 0)
+                    elements.Add(new EntityCardinality<IElement>(elementProvider.GetElement(elementSymbol), count));
+            }
+
+            return new ChemicalFormula(elements);
+        }
     }
 }

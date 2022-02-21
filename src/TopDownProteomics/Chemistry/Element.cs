@@ -18,18 +18,33 @@ namespace TopDownProteomics.Chemistry
         public Element(int atomicNumber, string symbol, IReadOnlyCollection<IIsotope> isotopes)
         {
             this.AtomicNumber = atomicNumber;
+            this.Name = symbol;
             this.Symbol = symbol;
             this.Isotopes = isotopes;
         }
 
         /// <summary>
-        /// Get the element's atomic number
+        /// Initializes a new instance of the <see cref="Element"/> class.
         /// </summary>
+        /// <param name="atomicNumber">The atomic number.</param>
+        /// <param name="symbol">The symbol.</param>
+        /// <param name="name">The element name.</param>
+        /// <param name="isotopes">The isotopes.</param>
+        public Element(int atomicNumber, string symbol, string name, IReadOnlyCollection<IIsotope> isotopes)
+        {
+            this.AtomicNumber = atomicNumber;
+            this.Name = name;
+            this.Symbol = symbol;
+            this.Isotopes = isotopes;
+        }
+
+        /// <summary>The element's atomic number</summary>
         public int AtomicNumber { get; }
 
-        /// <summary>
-        /// Gets the element's symbol
-        /// </summary>
+        /// <summary>The name of the element.</summary>
+        public string Name { get; }
+
+        /// <summary>The element's symbol</summary>
         public string Symbol { get; }
 
         /// <summary>

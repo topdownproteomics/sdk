@@ -5,7 +5,7 @@ namespace TopDownProteomics.Biochemistry
     /// <summary>
     /// Represents an individual building block of a larger structure.
     /// </summary>
-    public interface IResidue : IHasChemicalFormula
+    public interface IResidue : IHasChemicalFormula, IHasMass
     {
         /// <summary>
         /// The residue name.

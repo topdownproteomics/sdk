@@ -362,6 +362,60 @@ namespace TopDownProteomics.Tests.Chemistry
             });
         }
 
+        [Test]
+        public void ZeroOutTest()
+        {
+            const string metLossFormula = "C-5H-9N-1O-1S-1";
+            var metLoss = ChemicalFormula.ParseString(metLossFormula, _elementProvider);
+            Assert.AreEqual(-131.040485, metLoss.GetMass(MassType.Monoisotopic), 0.01);
+
+            const string arginineFormula = "C6H12N4O";
+            var arginine = ChemicalFormula.ParseString(arginineFormula, _elementProvider);
+
+            var diff = arginine.Add(metLoss);
+
+            // Should be 4 because Oxygen got zeroed out
+            this.SimpleParseTest(diff, new[]
+            {
+                Tuple.Create("C", 1),
+                Tuple.Create("H", 3),
+                Tuple.Create("N", 3),
+                Tuple.Create("S", -1)
+            });
+        }
+
+        [Test]
+        public void SubtractTest()
+        {
+            var a = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
+            var b = ChemicalFormula.ParseString("C7H14N2O2S2", _elementProvider);
+
+            var diff = a.Subtract(b);
+
+            this.SimpleParseTest(diff, new[]
+            {
+                Tuple.Create("C", -1),
+                Tuple.Create("H", -2),
+                Tuple.Create("N", 2),
+                Tuple.Create("O", -1),
+                Tuple.Create("S", -2)
+            });
+        }
+
+        [Test]
+        public void HashCodeTest()
+        {
+            HashSet<IChemicalFormula> set = new();
+
+            var a = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
+            var b = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
+
+            set.Add(a);
+            set.Add(b);
+
+            Assert.AreEqual(1, set.Count);
+        }
+
         private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
         {
             bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
@@ -369,6 +423,13 @@ namespace TopDownProteomics.Tests.Chemistry
             Assert.IsTrue(success);
             Assert.IsNotNull(chemicalFormula);
 
+            this.SimpleParseTest(chemicalFormula, elements);
+
+            return chemicalFormula;
+        }
+
+        private void SimpleParseTest(IChemicalFormula chemicalFormula, params Tuple<string, int>[] elements)
+        {
             IReadOnlyCollection<IEntityCardinality<IElement>> elementCollection = chemicalFormula.GetElements();
             Assert.AreEqual(elements.Length, elementCollection.Count, "Element Count");
 
@@ -378,8 +439,6 @@ namespace TopDownProteomics.Tests.Chemistry
                 Assert.IsNotNull(h, $"For element '{symbol}{count}'");
                 Assert.AreEqual(count, h.Count, $"For element '{symbol}{count}'");
             }
-
-            return chemicalFormula;
         }
     }
 }
