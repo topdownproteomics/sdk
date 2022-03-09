@@ -1,6 +1,8 @@
 # TopDown SDK
 The TopDown Software Development Kit (SDK) is the Consortium for Top-Down Proteomics' open-source software solution for common top-down proteomics tasks.
 
+[![codecov](https://codecov.io/gh/topdownproteomics/sdk/branch/master/graph/badge.svg?token=T8Kf00TGxl)](https://codecov.io/gh/topdownproteomics/sdk)
+
 ## Nuget Installation
 Install [topdown-sdk](https://www.nuget.org/packages/TopDownProteomics) from nuget.
 
