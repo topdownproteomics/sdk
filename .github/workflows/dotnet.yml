@@ -1,4 +1,4 @@
-name: .NET
+name: Build and Test
 
 on:
   push:
@@ -20,5 +20,15 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Add msbuild
+      run: dotnet add tests/TopDownProteomics.Tests/TopDownProteomics.Tests.csproj package coverlet.msbuild
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run:
+        dotnet test --no-build --verbosity normal
+          /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+          /p:CoverletOutput='../../coverage.xml'
+    - name: Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        verbose: true
+        files: ./coverage.xml
