@@ -714,6 +714,13 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaKey.Mass, desc1.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, desc1.EvidenceType);
             Assert.AreEqual("-15.9949", desc1.Value);
+
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Oxidation]EMEVT"));
+
+            term = _parser.ParseString("E[Oxidation]MEVT");
+            Assert.AreEqual(1, term.Tags.Count);
+            Assert.IsNull(term.NTerminalDescriptors);
+            Assert.IsNull(term.CTerminalDescriptors);
         }
 
         [Test]
@@ -954,7 +961,7 @@ namespace TopDownProteomics.Tests
             var term = _parser.ParseString("<13C>ATPEILTVNSIGQLK");
             Assert.IsNull(term.Tags);
             Assert.AreEqual(1, term.GlobalModifications.Count);
-            
+
             var globalMod = term.GlobalModifications.Single().Descriptors.Single();
             Assert.AreEqual(ProFormaKey.Name, globalMod.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, globalMod.EvidenceType);
@@ -1044,6 +1051,20 @@ namespace TopDownProteomics.Tests
 
             // Showing both the interpretation and measured mass:
             // ELVIS[U:Phospho|Obs:+79.978]K
+        }
+
+        [Test]
+        [TestCase("EM[Unimod:15]EVEESPEK", ProFormaEvidenceType.Unimod)]
+        public void UnimodCappedTest(string proFormaString, ProFormaEvidenceType modType)
+        {
+            var term = _parser.ParseString(proFormaString);
+
+            Assert.AreEqual("EMEVEESPEK", term.Sequence);
+            Assert.AreEqual(1, term.Tags.Count);
+
+            var desc1 = term.Tags[0].Descriptors.Single();
+
+            Assert.AreEqual("UNIMOD:15", desc1.Value);
         }
         #endregion
     }

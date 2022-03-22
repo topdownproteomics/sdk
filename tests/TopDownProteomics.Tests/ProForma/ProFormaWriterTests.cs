@@ -245,11 +245,12 @@ namespace TopDownProteomics.Tests.ProForma
             term = new ProFormaTerm("SEQUENCE", tags: new[]
             {
                 new ProFormaTag(2, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, "UNIMOD:15") }),
+                new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, "Unimod:15") }),
                 new ProFormaTag(4, new[] { new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Test") }),
             });
             result = _writer.WriteString(term);
 
-            Assert.AreEqual("SEQ[UNIMOD:15]UE[U:Test]NCE", result);
+            Assert.AreEqual("SEQ[UNIMOD:15]U[UNIMOD:15]E[U:Test]NCE", result);
         }
 
         [Test]
@@ -301,13 +302,13 @@ namespace TopDownProteomics.Tests.ProForma
             var term = new ProFormaTerm("SEQUENCE", labileDescriptors: new[]
             {
                 new ProFormaDescriptor( ProFormaKey.Glycan, "Hex")
-            }, 
-            tags: new[] 
-            { 
+            },
+            tags: new[]
+            {
                 new ProFormaTag(2, new[]
                 {
-                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation") 
-                }) 
+                    new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Unimod, "Hydroxylation")
+                })
             });
             var result = _writer.WriteString(term);
 
