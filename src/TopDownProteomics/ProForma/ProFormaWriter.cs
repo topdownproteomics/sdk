@@ -166,6 +166,7 @@ namespace TopDownProteomics.ProForma
                 {
                     ProFormaEvidenceType.Observed => $"Obs:{descriptor.Value}",
                     ProFormaEvidenceType.Resid => $"RESID:{descriptor.Value}",
+                    ProFormaEvidenceType.Unimod => $"{descriptor.Value.ToUpper()}",
                     _ => descriptor.Value
                 },
                 _ => descriptor.Value

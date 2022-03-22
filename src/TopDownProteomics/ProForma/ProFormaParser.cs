@@ -156,6 +156,10 @@ namespace TopDownProteomics.ProForma
 
                         //i++; // skip the ? character
                     }
+                    else if (sequence.Length == 0)
+                    {
+                        throw new ProFormaParseException($"Invalid n terminal descriptor.");
+                    }
                     else
                     {
                         this.ProcessTag(tagText, endRange.HasValue ? startRange : null, sequence.Length - 1, ref tags, ref tagGroups);
@@ -204,8 +208,8 @@ namespace TopDownProteomics.ProForma
                 unlocalizedTags, tagGroups?.Values, globalModifications);
         }
 
-        private void HandleGlobalModification(ref IDictionary<string, ProFormaTagGroup>? tagGroups, 
-            ref IList<ProFormaGlobalModification>? globalModifications, StringBuilder sequence, 
+        private void HandleGlobalModification(ref IDictionary<string, ProFormaTagGroup>? tagGroups,
+            ref IList<ProFormaGlobalModification>? globalModifications, StringBuilder sequence,
             int? startRange, int? endRange, string tagText)
         {
             // Check for '@' to specify targets
@@ -424,7 +428,7 @@ namespace TopDownProteomics.ProForma
                 "info" => Tuple.Create(ProFormaKey.Info, ProFormaEvidenceType.None, text.Substring(colon + 1), groupName, weight),
 
                 "mod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, text, groupName, weight),
-                "unimod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, text, groupName, weight),
+                "unimod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, text.ToUpper(), groupName, weight),
                 "xlmod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.XlMod, text, groupName, weight),
                 "gno" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Gno, text, groupName, weight),
 
