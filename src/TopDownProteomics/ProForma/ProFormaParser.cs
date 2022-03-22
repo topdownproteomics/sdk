@@ -156,9 +156,9 @@ namespace TopDownProteomics.ProForma
 
                         //i++; // skip the ? character
                     }
-                    else if (sequence.Length == 0 && proFormaString[i + 1] != '-')
+                    else if (sequence.Length == 0)
                     {
-                        throw new ProFormaParseException($"- must follow n terminal descriptor. - at index {i} is required.");
+                        throw new ProFormaParseException($"Tnvalid n terminal descriptor.");
                     }
                     else
                     {
