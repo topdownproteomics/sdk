@@ -158,7 +158,7 @@ namespace TopDownProteomics.ProForma
                     }
                     else if (sequence.Length == 0)
                     {
-                        throw new ProFormaParseException($"Tnvalid n terminal descriptor.");
+                        throw new ProFormaParseException($"Invalid n terminal descriptor.");
                     }
                     else
                     {
