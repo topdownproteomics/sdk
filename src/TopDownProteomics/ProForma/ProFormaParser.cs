@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace TopDownProteomics.ProForma
@@ -14,6 +13,19 @@ namespace TopDownProteomics.ProForma
         /// Initializes a new instance of the <see cref="ProFormaParser"/> class.
         /// </summary>
         public ProFormaParser() { }
+
+#if !NETSTANDARD2_1
+        /// <summary>
+        /// Parses the ProForma string.
+        /// </summary>
+        /// <param name="proFormaString">The pro forma string.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">proFormaString</exception>
+        /// <exception cref="ProFormaParseException">
+        /// X is not allowed.
+        /// </exception>
+        public ProFormaTerm ParseString(string proFormaString) => this.ParseString(proFormaString.AsSpan());
+#endif
 
         /// <summary>
         /// Parses the ProForma string.
@@ -142,7 +154,11 @@ namespace TopDownProteomics.ProForma
                                 while (char.IsDigit(proFormaString[j]))
                                     j++;
 
+#if NETSTANDARD2_1
                                 if (!int.TryParse(proFormaString.Slice(i + 2, j - i - 2), out count))
+#else
+                                if (!int.TryParse(proFormaString.Slice(i + 2, j - i - 2).ToString(), out count))
+#endif
                                     throw new ProFormaParseException("Can't process number after '^' character.");
 
                                 i = j - 1; // Point i at the last digit
@@ -385,7 +401,13 @@ namespace TopDownProteomics.ProForma
                     if (text[text.Length - 1] != ')')
                         throw new ProFormaParseException("Descriptor with weight must end in ')'.");
 
-                    if (!double.TryParse(text.AsSpan().Slice(weightIndex + 1, text.Length - weightIndex - 2), out weight))
+                    int length = text.Length - weightIndex - 2;
+
+#if NETSTANDARD2_1
+                    if (!double.TryParse(text.AsSpan().Slice(weightIndex + 1, length), out weight))
+#else
+                    if (!double.TryParse(text.AsSpan().Slice(weightIndex + 1, length).ToString(), out weight))
+#endif
                         throw new ProFormaParseException($"Could not parse weight: {text.Substring(weightIndex + 1, text.Length - weightIndex - 2)}");
 
                     groupName = text.Substring(groupIndex + 1, weightIndex - groupIndex - 1);

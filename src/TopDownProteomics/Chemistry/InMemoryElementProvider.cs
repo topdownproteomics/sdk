@@ -11,8 +11,8 @@ namespace TopDownProteomics.Chemistry
     /// <seealso cref="IElementProvider" />
     public class InMemoryElementProvider : IElementProvider
     {
-        private IElement[] _by_atomic_number;
-        private Dictionary<string, IElement> _by_symbol;
+        private readonly IElement[] _by_atomic_number;
+        private readonly Dictionary<string, IElement> _by_symbol;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InMemoryElementProvider"/> class.
@@ -87,5 +87,18 @@ namespace TopDownProteomics.Chemistry
         {
             return _by_atomic_number.Where(x => x != null);
         }
+
+#if !NETSTANDARD2_1
+        /// <summary>
+        /// Gets the element by symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol.</param>
+        /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
+        /// <returns></returns>
+        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        {
+            return this.GetElement(symbol.AsSpan(), fixedIsotopeNumber);
+        }
+#endif
     }
 }

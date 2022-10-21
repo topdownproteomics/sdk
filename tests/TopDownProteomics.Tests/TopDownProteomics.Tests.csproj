@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <RootNamespace>TopDownProteomics.Tests</RootNamespace>
     <Authors>Consortium for Top-Down Proteomics</Authors>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

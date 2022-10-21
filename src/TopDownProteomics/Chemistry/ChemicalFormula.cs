@@ -230,6 +230,18 @@ namespace TopDownProteomics.Chemistry
             throw new InvalidChemicalFormula($"Could not parse '{formula.ToString()}' into a chemical formula.");
         }
 
+#if !NETSTANDARD2_1
+        /// <summary>Attempts to parse the string into a ChemicalFormula.</summary>
+        /// <param name="formula">The chemical formula as a string.</param>
+        /// <param name="elementProvider">The element provider.</param>
+        /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        public static bool TryParseString(string formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
+        {
+            return TryParseString(formula.AsSpan(), elementProvider, out chemicalFormula);
+        }
+#endif
+
         /// <summary>Attempts to parse the string into a ChemicalFormula.</summary>
         /// <param name="formula">The chemical formula as a string.</param>
         /// <param name="elementProvider">The element provider.</param>
@@ -340,9 +352,12 @@ namespace TopDownProteomics.Chemistry
             if (digitStart != 0)
             {
                 var digitSpan = formula.Slice(digitStart, digitEnd - digitStart + 1);
-                if (!int.TryParse(digitSpan, out count))
-                    //throw new Exception($"Can't convert {digitSpan.ToString()} to an integer.");
-                    return false;
+
+#if NETSTANDARD2_1
+                if (!int.TryParse(digitSpan, out count))return false;
+#else
+                if (!int.TryParse(digitSpan.ToString(), out count)) return false;
+#endif
 
                 if (count == 0)
                     return true; // A valid cardinality, but nothing should be added to the formula
@@ -353,10 +368,12 @@ namespace TopDownProteomics.Chemistry
             if (isotopeStart != 0)
             {
                 var isotopeSpan = formula.Slice(isotopeStart, isotopeEnd - isotopeStart + 1);
-                int isotopeOut;
-                if (!int.TryParse(isotopeSpan, out isotopeOut))
-                    //throw new Exception($"Can't convert {digitSpan.ToString()} to an integer.");
-                    return false;
+
+#if NETSTANDARD2_1
+                if (!int.TryParse(isotopeSpan, out int isotopeOut)) return false;
+#else
+                if (!int.TryParse(isotopeSpan.ToString(), out int isotopeOut)) return false;
+#endif
 
                 isotope = isotopeOut;
             }
@@ -365,7 +382,7 @@ namespace TopDownProteomics.Chemistry
             {
                 string symbol = formula.Slice(symbolStart, symbolEnd - symbolStart + 1).ToString();
 
-                var element = GetElement(symbol, isotope, count, elementProvider);
+                var element = new EntityCardinality<IElement>(elementProvider.GetElement(symbol, isotope), count);
 
                 if (elementList.ContainsKey(element.Entity.Symbol))
                 {
@@ -383,11 +400,6 @@ namespace TopDownProteomics.Chemistry
             {
                 return false;
             }
-        }
-
-        private static IEntityCardinality<IElement> GetElement(ReadOnlySpan<char> symbol, int? isotope, int count, IElementProvider elementProvider)
-        {
-            return new EntityCardinality<IElement>(elementProvider.GetElement(symbol, isotope), count);
         }
 
         /// <summary>

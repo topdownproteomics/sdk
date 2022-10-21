@@ -146,5 +146,31 @@ namespace TopDownProteomics
 
             return mass / charge - Proton;
         }
+
+#if !NETSTANDARD2_1
+        /// <summary>
+        /// Split implementation that takes a single char.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="separator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static string[] Split(this string input, char separator, StringSplitOptions options)
+        {
+            return input.Split(new[] { separator }, options);
+        }
+
+        /// <summary>
+        /// Split implementation that takes a single string.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="separator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static string[] Split(this string input, string separator, StringSplitOptions options)
+        {
+            return input.Split(new[] { separator }, options);
+        }
+#endif
     }
 }

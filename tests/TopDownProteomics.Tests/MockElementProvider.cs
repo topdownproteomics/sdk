@@ -41,7 +41,7 @@ namespace TopDownProteomics.Tests
                 new Isotope(16.9991312, 9, 0.00038),
                 new Isotope(17.9991603, 10, 0.00205)
             });
-            _elements[15] = new Element(15, "P", new[] 
+            _elements[15] = new Element(15, "P", new[]
             {
                 new Isotope(30.97376163, 16, 1.0000)
             });
@@ -115,6 +115,11 @@ namespace TopDownProteomics.Tests
         public IEnumerable<IElement> GetElements()
         {
             return _elements.Where(x => x != null);
+        }
+
+        public IElement GetElement(string symbol, int? fixedIsotopeNumber = null)
+        {
+            return this.GetElement(symbol.AsSpan(), fixedIsotopeNumber);
         }
     }
 }

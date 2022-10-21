@@ -29,5 +29,15 @@ namespace TopDownProteomics.Chemistry
         /// </summary>
         /// <returns></returns>
         IEnumerable<IElement> GetElements();
+
+#if !NETSTANDARD2_1
+        /// <summary>
+        /// Gets the element by symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol.</param>
+        /// <param name="fixedIsotopeNumber">Get a fixed isotope element with the given number of subatomic particles in the nucleus.</param>
+        /// <returns></returns>
+        IElement GetElement(string symbol, int? fixedIsotopeNumber = null);
+#endif
     }
 }

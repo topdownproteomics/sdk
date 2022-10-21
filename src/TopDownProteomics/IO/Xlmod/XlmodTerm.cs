@@ -30,7 +30,7 @@ namespace TopDownProteomics.IO.Xlmod
         /// <param name="synonyms">The synonyms.</param>
         /// <param name="propertyValues">The property values.</param>
         public XlmodTerm(string id, string name, string definition, ICollection<XlmodExternalReference>? externalReferences,
-            ICollection<string>? isA, ICollection<XlmodRelationship>? relationships, ICollection<XlmodSynonym>? synonyms, ICollection<XlmodProperty>? propertyValues) 
+            ICollection<string>? isA, ICollection<XlmodRelationship>? relationships, ICollection<XlmodSynonym>? synonyms, ICollection<XlmodProperty>? propertyValues)
             : this(id, name, definition)
         {
             ExternalReferences = externalReferences;
@@ -107,7 +107,11 @@ namespace TopDownProteomics.IO.Xlmod
                             else
                                 element = elementProvider.GetElement(elementSymbol);
 
+#if NETSTANDARD2_1
                             int count = int.Parse(cell[j..]);
+#else
+                            int count = int.Parse(cell[j..].ToString());
+#endif
 
                             if (cell[j] == '-')
                                 count *= -1;
@@ -122,7 +126,13 @@ namespace TopDownProteomics.IO.Xlmod
                                 j++;
 
                             index = j;
+
+#if NETSTANDARD2_1
                             isotope = int.Parse(cell[start..j]);
+#else
+                            isotope = int.Parse(cell[start..j].ToString());
+#endif
+
                             alreadySeenCharacters = true;
                         }
                     }
