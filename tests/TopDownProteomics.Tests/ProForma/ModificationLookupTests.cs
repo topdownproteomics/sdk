@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System.IO;
 using System.Linq;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.Chemistry.Unimod;
 using TopDownProteomics.IO.PsiMod;
@@ -10,7 +11,6 @@ using TopDownProteomics.IO.UniProt;
 using TopDownProteomics.IO.Xlmod;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
-using TopDownProteomics.Proteomics;
 using TopDownProteomics.Tests.IO;
 
 namespace TopDownProteomics.Tests.ProForma
@@ -19,6 +19,7 @@ namespace TopDownProteomics.Tests.ProForma
     public class ModificationLookupTests
     {
         private IElementProvider _elementProvider;
+        private IGlycanResidueProvider _glycanResidueProvider;
         private IProteoformModificationLookup _unimodLookup;
         private UnimodModification _unimod37;
         private IProteoformModificationLookup _residLookup;
@@ -30,21 +31,22 @@ namespace TopDownProteomics.Tests.ProForma
         private IProteoformModificationLookup _xlmodLookup;
         private XlmodTerm _xlMod2009;
         private IProteoformModificationLookup _formulaLookup;
+        private IProteoformModificationLookup _glycanLookup;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            //_elementProvider = new MockElementProvider();
-            NistElementParser parser = new NistElementParser();
+            NistElementParser parser = new();
             IElement[] elements = parser.ParseFile(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", "elements.dat")).ToArray();
             _elementProvider = new InMemoryElementProvider(elements);
+            _glycanResidueProvider = new HardCodedGlycanResidueProvider(_elementProvider);
 
             this.SetupUnimod();
             this.SetupResid();
             this.SetupPsiMod();
             this.SetupUniProt();
             this.SetupXlMod();
-            this.SetupFormula();
+            this.SetupFormulaAndGlycan();
         }
 
         private void SetupUnimod()
@@ -100,9 +102,10 @@ namespace TopDownProteomics.Tests.ProForma
             _xlmodLookup = XlModModificationLookup.CreateFromModifications(modifications,
                 _elementProvider);
         }
-        private void SetupFormula()
+        private void SetupFormulaAndGlycan()
         {
             _formulaLookup = new FormulaLookup(_elementProvider);
+            _glycanLookup = new GlycanCompositionLookup(_glycanResidueProvider);
         }
 
         [Test]
@@ -216,8 +219,8 @@ namespace TopDownProteomics.Tests.ProForma
         public void FormulaLookup()
         {
             string formulaString = "C2H2O";
-            ProFormaDescriptor proFormaDescriptor = new ProFormaDescriptor(ProFormaKey.Formula, formulaString);
-            ChemicalFormula chemicalFormula = new ChemicalFormula(new IEntityCardinality<IElement>[]
+            ProFormaDescriptor proFormaDescriptor = new(ProFormaKey.Formula, formulaString);
+            ChemicalFormula chemicalFormula = new(new IEntityCardinality<IElement>[]
             {
                 new EntityCardinality<IElement>(_elementProvider.GetElement("C"), 2),
                 new EntityCardinality<IElement>(_elementProvider.GetElement("H"), 2),
@@ -227,6 +230,36 @@ namespace TopDownProteomics.Tests.ProForma
             var proteoformModification = _formulaLookup.GetModification(proFormaDescriptor);
             Assert.IsInstanceOf(typeof(IHasChemicalFormula), proteoformModification);
             var formulaMod = (IHasChemicalFormula)proteoformModification;
+            Assert.AreEqual(chemicalFormula, formulaMod.GetChemicalFormula());
+        }
+
+        [Test]
+        public void GlycanCompositionLookup()
+        {
+            string formulaString = "Hex2HexNAc";
+            ProFormaDescriptor proFormaDescriptor = new(ProFormaKey.Glycan, formulaString);
+
+            var proteoformModification = _glycanLookup.GetModification(proFormaDescriptor);
+
+            // Retrieve the composition
+            Assert.IsInstanceOf(typeof(IHasGlycanComposition), proteoformModification);
+            var glycanMod = (IHasGlycanComposition)proteoformModification;
+
+            var residues = glycanMod.GetGlycanComposition().GetResidues();
+            Assert.IsTrue(residues.Any(x => x.Entity.Symbol == "Hex" && x.Count == 2));
+            Assert.IsTrue(residues.Any(x => x.Entity.Symbol == "HexNAc" && x.Count == 1));
+
+            // Check directly pulling chemical formula
+            Assert.IsInstanceOf(typeof(IHasChemicalFormula), proteoformModification);
+            var formulaMod = (IHasChemicalFormula)proteoformModification;
+
+            ChemicalFormula chemicalFormula = new(new IEntityCardinality<IElement>[]
+            {
+                new EntityCardinality<IElement>(_elementProvider.GetElement("C"), 20), // 6 + 6 + 8
+                new EntityCardinality<IElement>(_elementProvider.GetElement("H"), 33), // 10 + 10 + 13
+                new EntityCardinality<IElement>(_elementProvider.GetElement("O"), 15), // 5 + 5 + 5
+                new EntityCardinality<IElement>(_elementProvider.GetElement("N"), 1),
+            });
             Assert.AreEqual(chemicalFormula, formulaMod.GetChemicalFormula());
         }
 

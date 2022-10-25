@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.ProForma;
 using TopDownProteomics.ProForma.Validation;
@@ -175,6 +177,7 @@ namespace TopDownProteomics.ProteoformHash
             {
                 null => null,
                 IProteoformOntologyDelta ontologyMod => this.GetOntologyDescriptor(ontologyMod),
+                IProteoformGlycanCompositionDelta glycanComp => this.GetGlycanCompDescriptor(glycanComp),
                 IProteoformFormulaProteoformDelta formulaMod => this.GetFormulaDescriptor(formulaMod),
                 _ => new ProFormaDescriptor(ProFormaKey.Mass, this.GetMassString(proteoformModification.GetMass(MassType.Monoisotopic)))
             };
@@ -185,6 +188,17 @@ namespace TopDownProteomics.ProteoformHash
             var (evidence, accession) = _mapper.MapAccession(ontologyMod.Id);
 
             return new ProFormaDescriptor(ProFormaKey.Identifier, evidence, accession);
+        }
+        private ProFormaDescriptor GetGlycanCompDescriptor(IHasGlycanComposition hasComposition)
+        {
+            var composition = hasComposition.GetGlycanComposition();
+
+            StringBuilder sb = new();
+
+            foreach (var residue in composition.GetResidues().OrderBy(x => x.Entity.Symbol))
+                sb.Append($"{residue.Entity.Symbol}{(residue.Count > 1 ? residue.Count : string.Empty)}");
+
+            return new ProFormaDescriptor(ProFormaKey.Glycan, sb.ToString());
         }
         private ProFormaDescriptor GetFormulaDescriptor(IHasChemicalFormula formulaMod)
         {
