@@ -25,7 +25,7 @@ namespace TopDownProteomics.ProForma
                 foreach (var globalMod in term.GlobalModifications)
                 {
                     if (globalMod.TargetAminoAcids != null)
-                        sb.Append($"<[{this.CreateDescriptorsText(globalMod.Descriptors)}]@{string.Join(',', globalMod.TargetAminoAcids)}>");
+                        sb.Append($"<[{this.CreateDescriptorsText(globalMod.Descriptors)}]@{string.Join(",", globalMod.TargetAminoAcids)}>");
                     else
                         sb.Append($"<{this.CreateDescriptorsText(globalMod.Descriptors)}>");
                 }

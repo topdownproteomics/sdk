@@ -13,7 +13,7 @@ namespace TopDownProteomics.Tests
         [Test]
         public void InvalidProFormaStrings()
         {
-            Assert.Throws<ArgumentNullException>(() => _parser.ParseString(null));
+            Assert.Throws<ArgumentNullException>(() => _parser.ParseString((Span<char>)null));
             Assert.Throws<ArgumentNullException>(() => _parser.ParseString(string.Empty));
         }
 

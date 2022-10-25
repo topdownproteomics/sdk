@@ -366,11 +366,11 @@ namespace TopDownProteomics.Tests.Chemistry
         public void ZeroOutTest()
         {
             const string metLossFormula = "C-5H-9N-1O-1S-1";
-            var metLoss = ChemicalFormula.ParseString(metLossFormula, _elementProvider);
+            var metLoss = ChemicalFormula.ParseString(metLossFormula.AsSpan(), _elementProvider);
             Assert.AreEqual(-131.040485, metLoss.GetMass(MassType.Monoisotopic), 0.01);
 
             const string arginineFormula = "C6H12N4O";
-            var arginine = ChemicalFormula.ParseString(arginineFormula, _elementProvider);
+            var arginine = ChemicalFormula.ParseString(arginineFormula.AsSpan(), _elementProvider);
 
             var diff = arginine.Add(metLoss);
 
@@ -387,8 +387,8 @@ namespace TopDownProteomics.Tests.Chemistry
         [Test]
         public void SubtractTest()
         {
-            var a = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
-            var b = ChemicalFormula.ParseString("C7H14N2O2S2", _elementProvider);
+            var a = ChemicalFormula.ParseString("C6H12N4O".AsSpan(), _elementProvider);
+            var b = ChemicalFormula.ParseString("C7H14N2O2S2".AsSpan(), _elementProvider);
 
             var diff = a.Subtract(b);
 
@@ -407,8 +407,8 @@ namespace TopDownProteomics.Tests.Chemistry
         {
             HashSet<IChemicalFormula> set = new();
 
-            var a = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
-            var b = ChemicalFormula.ParseString("C6H12N4O", _elementProvider);
+            var a = ChemicalFormula.ParseString("C6H12N4O".AsSpan(), _elementProvider);
+            var b = ChemicalFormula.ParseString("C6H12N4O".AsSpan(), _elementProvider);
 
             set.Add(a);
             set.Add(b);

@@ -1,4 +1,5 @@
-﻿using TopDownProteomics.Chemistry;
+﻿using System;
+using TopDownProteomics.Chemistry;
 using TopDownProteomics.Proteomics;
 
 namespace TopDownProteomics.ProForma.Validation
@@ -30,7 +31,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// <returns></returns>
         public IProteoformMassDelta? GetModification(IProFormaDescriptor descriptor)
         {
-            if (ChemicalFormula.TryParseString(descriptor.Value, this._elementProvider, out IChemicalFormula chemicalFormula))
+            if (ChemicalFormula.TryParseString(descriptor.Value.AsSpan(), this._elementProvider, out IChemicalFormula chemicalFormula))
             {
                 return new FormulaModification(chemicalFormula);
             }
