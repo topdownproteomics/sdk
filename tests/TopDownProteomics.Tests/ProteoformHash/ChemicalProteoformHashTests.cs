@@ -40,6 +40,7 @@ namespace TopDownProteomics.Tests.ProteoformHash
                 {
                     UnimodModificationLookup.CreateFromModifications(modifications, atomProvider),
                     new FormulaLookup(_elementProvider),
+                    new GlycanCompositionLookup(new HardCodedGlycanResidueProvider(_elementProvider)),
                     new MassLookup(),
                     new BrnoModificationLookup(_elementProvider),
                     new IgnoreKeyModificationLookup(ProFormaKey.Info),
@@ -73,6 +74,7 @@ namespace TopDownProteomics.Tests.ProteoformHash
         [TestCase("SEQUENCE-[Formula:C2H2O]")]
         [TestCase("SEQ[Formula:C2H2O]UENCE")]
         [TestCase("[Formula:C2H2O]-SEQ[Formula:C2H2O]UENCE-[Formula:C2H2O]")]
+        [TestCase("[Glycan:Hex2HexNAc]-SEQ[Glycan:Hex2HexNAc]UENCE-[Glycan:Hex2HexNAc]")]
         public void HashSameAsProForma(string proForma) => this.TestHash(proForma, proForma);
 
         [Test]
@@ -109,6 +111,16 @@ namespace TopDownProteomics.Tests.ProteoformHash
         {
             // Merge duplicate elements
             this.TestHash("SEQUE[Formula:CHCHO]NCE", "SEQUE[Formula:C2H2O]NCE");
+        }
+
+        [Test]
+        public void ConsistentCompositions()
+        {
+            // Merge duplicate elements
+            this.TestHash("SEQUE[Glycan:HexHexNAcHex]NCE", "SEQUE[Glycan:Hex2HexNAc]NCE");
+
+            // Check order of elements (should be alpha)
+            this.TestHash("SEQUE[Glycan:HexdHex3]NCE", "SEQUE[Glycan:dHex3Hex]NCE");
         }
 
         [Test]
