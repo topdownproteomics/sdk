@@ -196,7 +196,7 @@ namespace TopDownProteomics.ProteoformHash
             StringBuilder sb = new();
 
             foreach (var residue in composition.GetResidues().OrderBy(x => x.Entity.Symbol))
-                sb.Append($"{residue.Entity.Symbol}{(residue.Count > 1 ? residue.Count : string.Empty)}");
+                sb.Append($"{residue.Entity.Symbol}{(residue.Count > 1 || residue.Count < 0 ? residue.Count : string.Empty)}");
 
             return new ProFormaDescriptor(ProFormaKey.Glycan, sb.ToString());
         }

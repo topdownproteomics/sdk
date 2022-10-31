@@ -416,6 +416,23 @@ namespace TopDownProteomics.Tests.Chemistry
             Assert.AreEqual(1, set.Count);
         }
 
+        [Test]
+        [TestCase("H20")]
+        [TestCase("BHC", "CHB")] // Hill notation
+        [TestCase("BH-2C-3", "C-3H-2B")] // Hill notation
+        [TestCase("CH3N3S-1")]
+        [TestCase("CH-1")]
+        [TestCase("S-10N-9", "N-9S-10")] // Hill notation, alpha
+        public void TestWritingString(string formula, string? expected = null)
+        {
+            if (expected is null)
+                expected = formula;
+
+            var result = ChemicalFormula.ParseString(formula.AsSpan(), _elementProvider);
+
+            Assert.AreEqual(expected, result.GetChemicalFormulaString());
+        }
+
         private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
         {
             bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);

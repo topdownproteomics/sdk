@@ -4,24 +4,21 @@ using System.Linq;
 namespace TopDownProteomics.Chemistry
 {
     /// <summary>A class containing chemistry utility functions.</summary>
-    public class ChemistryUtility
+    public static class ChemistryUtility
     {
         /// <summary>Gets the chemical formula as a string in Hill notation.</summary>
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        public static string GetChemicalFormulaString(IChemicalFormula chemicalFormula)
+        public static string GetChemicalFormulaString(this IChemicalFormula chemicalFormula)
         {
             // Local function for converting a single element to a string.
             string GetElementString(IEntityCardinality<IElement> element)
             {
                 if (element.Count == 0) // Don't write zero.
-                {
                     return string.Empty;
-                }
-                if (element.Count == 1) // If the count is 1, just use the symbol.
-                {
+
+                if (element.Count == 1)
                     return element.Entity.Symbol;
-                }
 
                 // In all other cases need to write out count too.
                 return $"{element.Entity.Symbol}{element.Count}";
@@ -33,12 +30,13 @@ namespace TopDownProteomics.Chemistry
 
             // Look for carbon first.  If it exists, write it and then hydrogen.
             IEntityCardinality<IElement> carbon = elements.SingleOrDefault(e => e.Entity.AtomicNumber == 6);
-            if (carbon != null && carbon.Count > 0)
+            if (carbon is not null && carbon.Count != 0)
             {
                 elementStrings.Add(GetElementString(carbon));
                 elements.Remove(carbon);
+
                 IEntityCardinality<IElement> hydrogen = elements.SingleOrDefault(e => e.Entity.AtomicNumber == 1);
-                if (hydrogen != null && hydrogen.Count > 0)
+                if (hydrogen is not null && hydrogen.Count != 0)
                 {
                     elementStrings.Add(GetElementString(hydrogen));
                     elements.Remove(hydrogen);
@@ -48,7 +46,7 @@ namespace TopDownProteomics.Chemistry
             // Write out the rest in alphabetical order.
             foreach (IEntityCardinality<IElement> element in elements.OrderBy(e => e.Entity.Symbol))
             {
-                if (element.Count > 0)
+                if (element.Count != 0)
                 {
                     elementStrings.Add(GetElementString(element));
                 }

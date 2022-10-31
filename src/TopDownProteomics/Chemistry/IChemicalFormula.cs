@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TopDownProteomics.Chemistry
 {
@@ -47,24 +46,10 @@ namespace TopDownProteomics.Chemistry
         /// </summary>
         /// <param name="formula"></param>
         /// <returns></returns>
+        [Obsolete("Duplicated, please use extension method ChemistryUtility.GetChemicalFormulaString().")]
         public static string GetTextFormat(this IChemicalFormula formula)
         {
-            var chemicalFormula = new StringBuilder();
-
-            foreach (var element in formula.GetElements())
-            {
-                if (element.Count != 0)
-                {
-                    chemicalFormula.Append(element.Entity.Symbol);
-
-                    if (element.Count != 1)
-                    {
-                        chemicalFormula.Append(element.Count.ToString());
-                    }
-                }
-            }
-
-            return chemicalFormula.ToString();
+            return formula.GetChemicalFormulaString();
         }
     }
 }
