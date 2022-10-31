@@ -20,10 +20,15 @@ namespace TopDownProteomics.Tests
                 new Isotope(1.007825032, 0, 0.999885),
                 new Isotope(2.014101778, 1, 0.000115)
             });
-            _elements[2] = new Element(1, "He", new[]
-{
-                new Isotope(3.0160293191, 0, 1.34e-06),
-                new Isotope(4.00260325415, 1, 0.99999866)
+            _elements[2] = new Element(2, "He", new[]
+            {
+                new Isotope(3.0160293191, 1, 1.34e-06),
+                new Isotope(4.00260325415, 2, 0.99999866)
+            });
+            _elements[5] = new Element(5, "B", new[]
+            {
+                new Isotope(10.01293695, 5, 0.199),
+                new Isotope(11.00930536, 6, 0.801)
             });
             _elements[6] = new Element(6, "C", new[]
             {

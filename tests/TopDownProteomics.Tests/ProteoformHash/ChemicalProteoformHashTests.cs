@@ -111,6 +111,9 @@ namespace TopDownProteomics.Tests.ProteoformHash
         {
             // Merge duplicate elements
             this.TestHash("SEQUE[Formula:CHCHO]NCE", "SEQUE[Formula:C2H2O]NCE");
+
+            // Handle negatives
+            this.TestHash("SEQUE[Formula:CH-1]NCE", "SEQUE[Formula:CH-1]NCE");
         }
 
         [Test]
@@ -121,6 +124,9 @@ namespace TopDownProteomics.Tests.ProteoformHash
 
             // Check order of elements (should be alpha)
             this.TestHash("SEQUE[Glycan:HexdHex3]NCE", "SEQUE[Glycan:dHex3Hex]NCE");
+
+            // Handle negatives
+            this.TestHash("SEQUE[Glycan:HexdHex-2]NCE", "SEQUE[Glycan:dHex-2Hex]NCE");
         }
 
         [Test]

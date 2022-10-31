@@ -59,7 +59,7 @@ public class GlycanCompositionLookup : IProteoformModificationLookup
             // Check for cardinality
             int numberEndIndex = currentPosition;
 
-            while (numberEndIndex < input.Length && char.IsDigit(input[numberEndIndex]))
+            while (numberEndIndex < input.Length && (char.IsDigit(input[numberEndIndex]) || input[numberEndIndex] == '-'))
                 numberEndIndex++;
 
             int cardinality = 1;
