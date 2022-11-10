@@ -28,7 +28,7 @@ jobs:
           /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
           /p:CoverletOutput='../../coverage.xml'
     - name: Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         verbose: true
         files: ./coverage.xml
