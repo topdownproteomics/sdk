@@ -28,14 +28,17 @@ namespace TopDownProteomics.Chemistry
 
         private Tuple<IElement[], Dictionary<string, IElement>> IndexElements(IElement[] elements)
         {
-            int capacity = elements.Max(x => x.AtomicNumber);
+            int capacity = elements.Max(x => x?.AtomicNumber ?? 0);
             var by_atomic_number = new IElement[capacity + 1];
             var by_symbol = new Dictionary<string, IElement>(elements.Length);
 
             for (int i = 0; i < elements.Length; i++)
             {
-                by_atomic_number[elements[i].AtomicNumber] = elements[i];
-                by_symbol[elements[i].Symbol] = elements[i];
+                if (elements[i] is not null)
+                {
+                    by_atomic_number[elements[i].AtomicNumber] = elements[i];
+                    by_symbol[elements[i].Symbol] = elements[i];
+                }
             }
 
             return Tuple.Create(by_atomic_number, by_symbol);
@@ -75,7 +78,7 @@ namespace TopDownProteomics.Chemistry
                 .Single(x => x.NeutronCount == fixedIsotopeNumber - element.AtomicNumber);
             IIsotope newIsotope = new Isotope(element.AtomicNumber, oldIsotope.NeutronCount, 1.0);
 
-            return new Element(element.AtomicNumber, element.Symbol,
+            return new Element(element.AtomicNumber, $"{fixedIsotopeNumber}{element.Symbol}",
                 new ReadOnlyCollection<IIsotope>(new[] { newIsotope }));
         }
 
