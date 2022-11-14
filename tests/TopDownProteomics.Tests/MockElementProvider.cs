@@ -4,9 +4,9 @@ namespace TopDownProteomics.Tests
 {
     public class MockElementProvider : InMemoryElementProvider
     {
-        public MockElementProvider() : base(GetElements()) { }
+        public MockElementProvider() : base(GetMockElements()) { }
 
-        private static IElement[] GetElements()
+        private static IElement[] GetMockElements()
         {
             var elements = new IElement[128];
             elements[1] = new Element(1, "H", new[]
