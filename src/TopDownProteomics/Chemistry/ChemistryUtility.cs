@@ -17,11 +17,10 @@ namespace TopDownProteomics.Chemistry
                 if (element.Count == 0) // Don't write zero.
                     return string.Empty;
 
-                if (element.Count == 1)
-                    return element.Entity.Symbol;
+                // Check if this is an isotope
+                bool isIsotope = char.IsDigit(element.Entity.Symbol[0]);
 
-                // In all other cases need to write out count too.
-                return $"{element.Entity.Symbol}{element.Count}";
+                return $"{(isIsotope ? '[' : string.Empty)}{element.Entity.Symbol}{(element.Count != 1 ? element.Count : string.Empty)}{(isIsotope ? ']' : string.Empty)}";
             }
 
             // Main function.
@@ -29,13 +28,13 @@ namespace TopDownProteomics.Chemistry
             IList<string> elementStrings = new List<string>();
 
             // Look for carbon first.  If it exists, write it and then hydrogen.
-            IEntityCardinality<IElement> carbon = elements.SingleOrDefault(e => e.Entity.AtomicNumber == 6);
+            IEntityCardinality<IElement> carbon = elements.SingleOrDefault(e => e.Entity.Symbol == "C");
             if (carbon is not null && carbon.Count != 0)
             {
                 elementStrings.Add(GetElementString(carbon));
                 elements.Remove(carbon);
 
-                IEntityCardinality<IElement> hydrogen = elements.SingleOrDefault(e => e.Entity.AtomicNumber == 1);
+                IEntityCardinality<IElement> hydrogen = elements.SingleOrDefault(e => e.Entity.Symbol == "H");
                 if (hydrogen is not null && hydrogen.Count != 0)
                 {
                     elementStrings.Add(GetElementString(hydrogen));

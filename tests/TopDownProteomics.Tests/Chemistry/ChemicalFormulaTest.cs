@@ -104,6 +104,16 @@ namespace TopDownProteomics.Tests.Chemistry
                 Tuple.Create("H", 2),
                 Tuple.Create("N", 1)
             });
+
+            formulaString = "C5[1H2][2H-2]N";
+
+            this.SimpleParseTest(formulaString, new[]
+            {
+                Tuple.Create("C", 5),
+                Tuple.Create("1H", 2),
+                Tuple.Create("2H", -2),
+                Tuple.Create("N", 1)
+            });
         }
 
         [Test]
@@ -190,15 +200,17 @@ namespace TopDownProteomics.Tests.Chemistry
         public void MassTest()
         {
             // Using simple 100% abundances
-            var provider = new MockElementProvider();
-            provider.OverwriteElement(new Element(1, "H", new[]
+            var provider = new InMemoryElementProvider(new[]
             {
-                new Isotope(1, 0, 1.0)
-            }));
-            provider.OverwriteElement(new Element(8, "O", new[]
-            {
-                new Isotope(16, 8, 1.0)
-            }));
+                new Element(1, "H", new[]
+                {
+                    new Isotope(1, 0, 1.0)
+                }),
+                new Element(8, "O", new[]
+                {
+                    new Isotope(16, 8, 1.0)
+                })
+            });
 
             var formula = ChemicalFormula.Water(provider);
             var elements = formula.GetElements();
@@ -207,11 +219,18 @@ namespace TopDownProteomics.Tests.Chemistry
             Assert.AreEqual(18, formula.GetMass(MassType.Average));
 
             // Switch to 75/25
-            provider.OverwriteElement(new Element(8, "O", new[]
+            provider = new InMemoryElementProvider(new[]
             {
-                new Isotope(16, 8, 0.75),
-                new Isotope(17, 9, 0.25)
-            }));
+                new Element(1, "H", new[]
+                {
+                    new Isotope(1, 0, 1.0)
+                }),
+                new Element(8, "O", new[]
+                {
+                    new Isotope(16, 8, 0.75),
+                    new Isotope(17, 9, 0.25)
+                })
+            });
 
             formula = ChemicalFormula.Water(provider);
             elements = formula.GetElements();
@@ -423,6 +442,8 @@ namespace TopDownProteomics.Tests.Chemistry
         [TestCase("CH3N3S-1")]
         [TestCase("CH-1")]
         [TestCase("S-10N-9", "N-9S-10")] // Hill notation, alpha
+        [TestCase("[13C2][12C-2]H2N", "[12C-2][13C2]H2N")] // Hill notation, alpha
+        [TestCase("C25[1H35][2H8]N5O7S2")] // MOD:00402
         public void TestWritingString(string formula, string? expected = null)
         {
             if (expected is null)

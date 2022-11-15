@@ -4,6 +4,7 @@
     <RootNamespace>TopDownProteomics.Tests</RootNamespace>
     <Authors>Consortium for Top-Down Proteomics</Authors>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>

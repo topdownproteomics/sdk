@@ -249,7 +249,7 @@ namespace TopDownProteomics.Chemistry
         /// <returns>True if successful, otherwise false.</returns>
         public static bool TryParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
         {
-            chemicalFormula = ChemicalFormula.Empty; // Set to null in case of failure.
+            chemicalFormula = Empty; // Set to null in case of failure.
 
             IDictionary<string, IEntityCardinality<IElement>> elementList = new Dictionary<string, IEntityCardinality<IElement>>();
 
