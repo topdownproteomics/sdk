@@ -28,10 +28,10 @@ jobs:
       run:
         dotnet test --no-build --verbosity normal
           /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-          /p:CoverletOutput='../../coverage.xml'
+          /p:CoverletOutput='../../coverage*.xml'
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
         verbose: true
-        files: ./coverage.xml
+        files: ./coverage.net472.xml
         fail_ci_if_error: true
