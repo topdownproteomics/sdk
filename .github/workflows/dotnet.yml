@@ -28,10 +28,7 @@ jobs:
       run:
         dotnet test --no-build --verbosity normal
           /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-          /p:CoverletOutput='../../coverage.xml'
-        cd ../..
-        pwd
-        ls
+          /p:CoverletOutput='../../coverage.xml'; cd ../..; pwd; ls
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
