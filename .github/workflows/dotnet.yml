@@ -29,9 +29,12 @@ jobs:
         dotnet test --no-build --verbosity normal
           /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
           /p:CoverletOutput='../../coverage.xml'
+        cd ../..
+        pwd
+        ls
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
         verbose: true
-        files: ./coverage*.xml
+        files: ./coverage.net6.0.xml
         fail_ci_if_error: true
