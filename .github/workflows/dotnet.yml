@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 15
     steps:
     - uses: actions/checkout@v2
+      with: 
+        fetch-depth: 10
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -28,7 +30,8 @@ jobs:
           /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
           /p:CoverletOutput='../../coverage.xml'
     - name: Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         verbose: true
-        files: ./coverage.xml
+        files: ./coverage.net6.0.xml
+        fail_ci_if_error: true
