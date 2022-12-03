@@ -35,3 +35,4 @@ jobs:
         verbose: true
         files: ./coverage.net6.0.xml
         fail_ci_if_error: true
+
