@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.Tools;
 
@@ -11,15 +14,16 @@ namespace TopDownProteomics.Benchmarks
 
         private static void Main(string[] args)
         {
-            BenchmarkIsotopicEvelopeGeneration();
+            //BenchmarkIsotopicEnvelopeGeneration();
+            BenchmarkChemicalFormulaAsKey();
         }
 
-        private static void BenchmarkIsotopicEvelopeGeneration()
+        private static void BenchmarkIsotopicEnvelopeGeneration()
         {
             // Generate the formulas
             var random = new Random(1);
 
-            var chemicalFormulas = new IChemicalFormula[MaxRunValue];
+            var chemicalFormulas = new ChemicalFormula[MaxRunValue];
             IElementProvider elementProvider = new MockElementProvider();
 
             for (int i = 2; i < MaxRunValue; i++)
@@ -61,6 +65,31 @@ namespace TopDownProteomics.Benchmarks
             stopwatch.Stop();
 
             Console.WriteLine("Elapsed time for Northwestern Port: " + stopwatch.Elapsed);
+        }
+
+        private static void BenchmarkChemicalFormulaAsKey()
+        {
+            IElementProvider elementProvider = new MockElementProvider();
+            IResidueProvider residueProvider = new IupacAminoAcidProvider(elementProvider);
+
+            string sequence = "MLTELEKALNSIIDVYHKYSLIKGNFHAVYRDDLKKLLETECPQYIRKKGADVWFKELDINTDGAVNFQEFLILVIKMGVAAHKKSHEESHKE";
+            var residues = sequence.Select(x => residueProvider.GetResidue(x));
+            ChemicalFormula[] formulas = residues.Select(x => x.GetChemicalFormula()).ToArray();
+
+            Dictionary<ChemicalFormula, bool> dictionary = new();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < 9_000; i++)
+            {
+                for (int j = 0; j < formulas.Length; j++)
+                {
+                    if (!dictionary.ContainsKey(formulas[j]))
+                        dictionary.Add(formulas[j], true);
+                }
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
         }
     }
 }

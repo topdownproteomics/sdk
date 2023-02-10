@@ -65,7 +65,7 @@ namespace TopDownProteomics.IO.Xlmod
         public ICollection<XlmodProperty>? PropertyValues { get; set; }
 
         /// <summary>Gets the chemical formula.</summary>
-        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        public ChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
         {
             string? formula = this.PropertyValues?.SingleOrDefault(x => x.Name == "bridgeFormula")?.Value;
 

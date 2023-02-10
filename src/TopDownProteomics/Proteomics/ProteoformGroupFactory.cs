@@ -15,7 +15,7 @@ namespace TopDownProteomics.Proteomics
     {
         IElementProvider _elementProvider;
         IResidueProvider _residueProvider;
-        IChemicalFormula _water;
+        ChemicalFormula _water;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProteoformGroupFactory"/> class.
@@ -285,7 +285,7 @@ namespace TopDownProteomics.Proteomics
                 IReadOnlyCollection<IProteoformUnlocalizedModification>? unlocalizedModifications, 
                 IReadOnlyCollection<IProteoformModificationGroup>? modificationGroups, 
                 IReadOnlyCollection<IProteoformGlobalModification>? globalModifications, 
-                IChemicalFormula water)
+                ChemicalFormula water)
             {
                 Residues = residues;
                 NTerminalModification = nTerminalModification;
@@ -300,7 +300,7 @@ namespace TopDownProteomics.Proteomics
             public IReadOnlyList<IResidue> Residues { get; }
             public IProteoformMassDelta? NTerminalModification { get; }
             public IProteoformMassDelta? CTerminalModification { get; }
-            public IChemicalFormula Water { get; }
+            public ChemicalFormula Water { get; }
 
             public IReadOnlyCollection<IProteoformLocalizedModification>? LocalizedModifications { get; }
             public IReadOnlyCollection<IProteoformUnlocalizedModification>? UnlocalizedModifications { get; }

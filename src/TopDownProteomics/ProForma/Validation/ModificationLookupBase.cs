@@ -31,7 +31,7 @@ namespace TopDownProteomics.ProForma.Validation
             int maxId = -1;
             foreach (T modification in modifications)
             {
-                IChemicalFormula? chemicalFormula = this.GetChemicalFormula(modification);
+                ChemicalFormula? chemicalFormula = this.GetChemicalFormula(modification);
 
                 int id = Convert.ToInt32(this.RemovePrefix(modification.Id));
 
@@ -60,7 +60,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected abstract IChemicalFormula? GetChemicalFormula(T modification);
+        protected abstract ChemicalFormula? GetChemicalFormula(T modification);
 
         /// <summary>
         /// Determines whether this instance [can handle descriptor] the specified descriptor.
@@ -144,9 +144,9 @@ namespace TopDownProteomics.ProForma.Validation
 
         private class ModificationWrapper : IProteoformOntologyDelta
         {
-            private IChemicalFormula _chemicalFormula;
+            private ChemicalFormula _chemicalFormula;
 
-            public ModificationWrapper(T modification, IChemicalFormula chemicalFormula)
+            public ModificationWrapper(T modification, ChemicalFormula chemicalFormula)
             {
                 this.Modification = modification;
                 _chemicalFormula = chemicalFormula;
@@ -158,7 +158,7 @@ namespace TopDownProteomics.ProForma.Validation
 
             public string Name => this.Modification.Name;
 
-            public IChemicalFormula GetChemicalFormula() => _chemicalFormula;
+            public ChemicalFormula GetChemicalFormula() => _chemicalFormula;
 
             public ProFormaDescriptor GetProFormaDescriptor()
             {

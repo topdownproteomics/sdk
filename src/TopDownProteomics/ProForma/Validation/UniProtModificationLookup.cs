@@ -43,7 +43,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula? GetChemicalFormula(UniprotModification modification)
+        protected override ChemicalFormula? GetChemicalFormula(UniprotModification modification)
         {
             return modification.GetChemicalFormula(_elementProvider);
         }

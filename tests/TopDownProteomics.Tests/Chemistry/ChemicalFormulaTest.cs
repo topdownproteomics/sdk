@@ -213,7 +213,6 @@ namespace TopDownProteomics.Tests.Chemistry
             });
 
             var formula = ChemicalFormula.Water(provider);
-            var elements = formula.GetElements();
 
             Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
             Assert.AreEqual(18, formula.GetMass(MassType.Average));
@@ -233,7 +232,6 @@ namespace TopDownProteomics.Tests.Chemistry
             });
 
             formula = ChemicalFormula.Water(provider);
-            elements = formula.GetElements();
 
             Assert.AreEqual(18, formula.GetMass(MassType.Monoisotopic));
             Assert.AreEqual(18.25, formula.GetMass(MassType.Average));
@@ -424,7 +422,7 @@ namespace TopDownProteomics.Tests.Chemistry
         [Test]
         public void HashCodeTest()
         {
-            HashSet<IChemicalFormula> set = new();
+            HashSet<ChemicalFormula> set = new();
 
             var a = ChemicalFormula.ParseString("C6H12N4O".AsSpan(), _elementProvider);
             var b = ChemicalFormula.ParseString("C6H12N4O".AsSpan(), _elementProvider);
@@ -454,9 +452,9 @@ namespace TopDownProteomics.Tests.Chemistry
             Assert.AreEqual(expected, result.GetChemicalFormulaString());
         }
 
-        private IChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
+        private ChemicalFormula SimpleParseTest(string formulaString, params Tuple<string, int>[] elements)
         {
-            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out IChemicalFormula chemicalFormula);
+            bool success = ChemicalFormula.TryParseString(formulaString, _elementProvider, out ChemicalFormula chemicalFormula);
 
             Assert.IsTrue(success);
             Assert.IsNotNull(chemicalFormula);
@@ -466,7 +464,7 @@ namespace TopDownProteomics.Tests.Chemistry
             return chemicalFormula;
         }
 
-        private void SimpleParseTest(IChemicalFormula chemicalFormula, params Tuple<string, int>[] elements)
+        private void SimpleParseTest(ChemicalFormula chemicalFormula, params Tuple<string, int>[] elements)
         {
             IReadOnlyCollection<IEntityCardinality<IElement>> elementCollection = chemicalFormula.GetElements();
             Assert.AreEqual(elements.Length, elementCollection.Count, "Element Count");

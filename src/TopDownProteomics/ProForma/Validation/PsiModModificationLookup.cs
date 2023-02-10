@@ -51,7 +51,7 @@ namespace TopDownProteomics.ProForma.Validation
         /// </summary>
         /// <param name="modification">The modification.</param>
         /// <returns></returns>
-        protected override IChemicalFormula? GetChemicalFormula(PsiModTerm modification)
+        protected override ChemicalFormula? GetChemicalFormula(PsiModTerm modification)
         {
             return modification.GetChemicalFormula(_elementProvider);
         }

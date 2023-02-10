@@ -36,7 +36,7 @@ namespace TopDownProteomics.Tools
         /// </summary>
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        public IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula)
+        public IIsotopicDistribution GenerateIsotopicDistribution(ChemicalFormula chemicalFormula)
         {
             return this.Mercury(chemicalFormula, this._limit);
         }
@@ -47,7 +47,7 @@ namespace TopDownProteomics.Tools
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <param name="charge">The charge.</param>
         /// <returns></returns>
-        public IChargedIsotopicDistribution GenerateChargedIsotopicDistribution(IChemicalFormula chemicalFormula, int charge)
+        public IChargedIsotopicDistribution GenerateChargedIsotopicDistribution(ChemicalFormula chemicalFormula, int charge)
         {
             return this.Mercury(chemicalFormula, charge, this._limit);
         }
@@ -59,16 +59,16 @@ namespace TopDownProteomics.Tools
         /// <param name="firstCharge">The first charge.</param>
         /// <param name="lastCharge">The last charge.</param>
         /// <returns></returns>
-        public IList<IChargedIsotopicDistribution> GenerateChargedIsotopicDistributions(IChemicalFormula chemicalFormula, int firstCharge, int lastCharge)
+        public IList<IChargedIsotopicDistribution> GenerateChargedIsotopicDistributions(ChemicalFormula chemicalFormula, int firstCharge, int lastCharge)
         {
             return this.Mercury(chemicalFormula, firstCharge, lastCharge, this._limit);
         }
 
-        private IChargedIsotopicDistribution Mercury(IChemicalFormula cf, int charge, double limit)
+        private IChargedIsotopicDistribution Mercury(ChemicalFormula cf, int charge, double limit)
         {
             return this.Mercury(cf, charge, charge, limit).Single();
         }
-        private List<IChargedIsotopicDistribution> Mercury(IChemicalFormula cf, int firstcharge, int lastcharge, double limit)
+        private List<IChargedIsotopicDistribution> Mercury(ChemicalFormula cf, int firstcharge, int lastcharge, double limit)
         {
             IIsotopicDistribution dist = this.Mercury(cf, limit);
             var mercury7ResultList = new List<IChargedIsotopicDistribution>();
@@ -90,7 +90,7 @@ namespace TopDownProteomics.Tools
 
             return mercury7ResultList;
         }
-        private IIsotopicDistribution Mercury(IChemicalFormula cf, double limit)
+        private IIsotopicDistribution Mercury(ChemicalFormula cf, double limit)
         {
             // Build up the molecular super atom (MSA) until it is the entire molecule
             // A "molecular super atom" refers to a fictitious chemical compound whose 

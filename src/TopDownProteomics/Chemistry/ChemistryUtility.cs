@@ -9,7 +9,7 @@ namespace TopDownProteomics.Chemistry
         /// <summary>Gets the chemical formula as a string in Hill notation.</summary>
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        public static string GetChemicalFormulaString(this IChemicalFormula chemicalFormula)
+        public static string GetChemicalFormulaString(this ChemicalFormula chemicalFormula)
         {
             // Local function for converting a single element to a string.
             string GetElementString(IEntityCardinality<IElement> element)

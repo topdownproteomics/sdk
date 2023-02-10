@@ -98,9 +98,9 @@ public class GlycanCompositionLookup : IProteoformModificationLookup
             _residues = residues;
         }
 
-        public IChemicalFormula GetChemicalFormula()
+        public ChemicalFormula GetChemicalFormula()
         {
-            IChemicalFormula total = ChemicalFormula.Empty;
+            ChemicalFormula total = ChemicalFormula.Empty;
 
             foreach (var residue in _residues)
             {
@@ -124,7 +124,7 @@ public class GlycanCompositionLookup : IProteoformModificationLookup
             _composition = composition;
         }
 
-        public IChemicalFormula GetChemicalFormula() => _composition.GetChemicalFormula();
+        public ChemicalFormula GetChemicalFormula() => _composition.GetChemicalFormula();
 
         public IGlycanComposition GetGlycanComposition() => _composition;
 

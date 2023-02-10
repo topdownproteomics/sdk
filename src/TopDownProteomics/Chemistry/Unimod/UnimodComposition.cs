@@ -55,13 +55,13 @@ namespace TopDownProteomics.Chemistry.Unimod
 
         /// <summary>Gets the chemical formula.</summary>
         /// <returns></returns>
-        public IChemicalFormula GetChemicalFormula()
+        public ChemicalFormula GetChemicalFormula()
         {
-            IChemicalFormula formula = ChemicalFormula.Empty;
+            ChemicalFormula formula = ChemicalFormula.Empty;
 
             foreach (UnimodCompositionAtomCardinality atom in _atomCardinalities)
             {
-                IChemicalFormula atomFormula = atom.Atom.GetChemicalFormula().Multiply(atom.Count);
+                ChemicalFormula atomFormula = atom.Atom.GetChemicalFormula().Multiply(atom.Count);
 
                 if (formula == null)
                     formula = atomFormula;

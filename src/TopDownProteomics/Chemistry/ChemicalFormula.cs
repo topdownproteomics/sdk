@@ -7,21 +7,24 @@ namespace TopDownProteomics.Chemistry
     /// <summary>
     /// Default implementation of a chemical formula.
     /// </summary>
-    /// <seealso cref="IChemicalFormula" />
-    public class ChemicalFormula : IChemicalFormula
+    /// <seealso cref="ChemicalFormula" />
+    public class ChemicalFormula : IHasMass, IEquatable<ChemicalFormula>
     {
         /// <summary>The static empty chemical formula.</summary>
-        public static IChemicalFormula Empty = new ChemicalFormula();
+        public static ChemicalFormula Empty = new();
 
-        private List<IEntityCardinality<IElement>> _elements;
+        private const int CommonElementLength = 6;
+
+        // This is a fixed set of common things in this order: CHNOSP
+        private ReadOnlyMemory<int>? _commonElements;
+        private ReadOnlyMemory<IElement>? _commonElementEntities;
+
+        private IReadOnlyList<IEntityCardinality<IElement>>? _uncommonElements;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChemicalFormula"/> class.
         /// </summary>
-        private ChemicalFormula()
-        {
-            _elements = new List<IEntityCardinality<IElement>>();
-        }
+        private ChemicalFormula() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChemicalFormula" /> class.
@@ -29,18 +32,40 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elements">The elements.</param>
         public ChemicalFormula(IEnumerable<IEntityCardinality<IElement>> elements)
         {
-            _elements = elements.ToList();
-        }
+            int[]? common = null;
+            IElement[]? entities = null;
 
-        ///// <summary>
-        ///// Adds the element.
-        ///// </summary>
-        ///// <param name="element">The element.</param>
-        ///// <param name="count">The count.</param>
-        //public void AddElement(IElement element, int count)
-        //{
-        //    _elements.Add(new EntityCardinality<IElement>(element, count));
-        //}
+            static void PopulateCommonElement(ref int[]? common, ref IElement[]? entities, int index, IEntityCardinality<IElement> cardinality)
+            {
+                common ??= new int[CommonElementLength];
+                entities ??= new IElement[CommonElementLength];
+
+                common[index] = cardinality.Count;
+                entities[index] = cardinality.Entity;
+            };
+
+            foreach (var element in elements)
+            {
+                if (element.Entity.Symbol == "C") PopulateCommonElement(ref common, ref entities, 0, element);
+                else if (element.Entity.Symbol == "H") PopulateCommonElement(ref common, ref entities, 1, element);
+                else if (element.Entity.Symbol == "N") PopulateCommonElement(ref common, ref entities, 2, element);
+                else if (element.Entity.Symbol == "O") PopulateCommonElement(ref common, ref entities, 3, element);
+                else if (element.Entity.Symbol == "S") PopulateCommonElement(ref common, ref entities, 4, element);
+                else if (element.Entity.Symbol == "P") PopulateCommonElement(ref common, ref entities, 5, element);
+                else
+                {
+                    // Some type gymnastics here because I want the type to be read-only generally
+                    _uncommonElements ??= new List<IEntityCardinality<IElement>>();
+                    ((List<IEntityCardinality<IElement>>)_uncommonElements).Add(element);
+                }
+            }
+
+            if (common is not null && entities is not null)
+            {
+                _commonElements = common;
+                _commonElementEntities = entities;
+            }
+        }
 
         /// <summary>
         /// Waters the specified element provider.
@@ -60,7 +85,33 @@ namespace TopDownProteomics.Chemistry
         /// Gets the elements.
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyCollection<IEntityCardinality<IElement>> GetElements() => _elements;
+        public IReadOnlyCollection<IEntityCardinality<IElement>> GetElements()
+        {
+            if (!_commonElements.HasValue && _uncommonElements is null)
+                return Array.Empty<IEntityCardinality<IElement>>();
+
+            var cardinalities = new List<IEntityCardinality<IElement>>(_commonElements?.Length + _uncommonElements?.Count ?? 0);
+
+            if (_commonElements.HasValue && _commonElementEntities.HasValue)
+            {
+                ReadOnlySpan<int> thisCommonElements = _commonElements.Value.Span;
+                ReadOnlySpan<IElement> thisCommonElementEntities = _commonElementEntities.Value.Span;
+
+                for (int i = 0; i < CommonElementLength; i++)
+                {
+                    if (thisCommonElements[i] != 0)
+                        cardinalities.Add(new EntityCardinality<IElement>(thisCommonElementEntities[i], thisCommonElements[i]));
+                }
+            }
+
+            if (_uncommonElements is not null)
+            {
+                foreach (var cardinality in _uncommonElements)
+                    cardinalities.Add(new EntityCardinality<IElement>(cardinality.Entity, cardinality.Count));
+            }
+
+            return cardinalities;
+        }
 
         /// <summary>
         /// Gets the mass.
@@ -69,7 +120,22 @@ namespace TopDownProteomics.Chemistry
         /// <returns></returns>
         public double GetMass(MassType massType)
         {
-            return _elements.Sum(x => x.Count * x.Entity.GetMass(massType));
+            double mass = 0;
+
+            if (_commonElements.HasValue && _commonElementEntities.HasValue)
+            {
+                ReadOnlySpan<int> thisCommonElements = _commonElements.Value.Span;
+                ReadOnlySpan<IElement> thisCommonElementEntities = _commonElementEntities.Value.Span;
+
+                for (int i = 0; i < CommonElementLength; i++)
+                    if (thisCommonElements[i] != 0)
+                        mass += thisCommonElements[i] * thisCommonElementEntities[i].GetMass(massType);
+            }
+
+            if (_uncommonElements is not null)
+                mass += _uncommonElements.Sum(x => x.Count * x.Entity.GetMass(massType));
+
+            return mass;
         }
 
         /// <summary>
@@ -79,33 +145,51 @@ namespace TopDownProteomics.Chemistry
         /// <returns>
         /// true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.
         /// </returns>
-        public bool Equals(IChemicalFormula other)
+        public bool Equals(ChemicalFormula other)
         {
-            if (other == null)
+            if (other is null)
                 return false;
 
             if (this == other)
                 return true;
 
-            IReadOnlyCollection<IEntityCardinality<IElement>> otherElements = other.GetElements();
-
-            if (_elements.Count != otherElements.Count)
+            if (!_commonElements.HasValue && other._commonElements.HasValue)
                 return false;
 
-            if (_elements.Sum(x => x.Count) != otherElements.Sum(x => x.Count))
+            if (_commonElements.HasValue && !other._commonElements.HasValue)
                 return false;
 
-            foreach (IEntityCardinality<IElement> element in _elements)
+            bool commonResult = _commonElements.HasValue && other._commonElements.HasValue &&
+                _commonElements.Value.Span.SequenceEqual(other._commonElements.Value.Span);
+
+            if (!commonResult)
+                return false;
+
+            // This will usually be true if both are null
+            if (_uncommonElements == other._uncommonElements)
+                return true;
+
+            if (_uncommonElements?.Count != other._uncommonElements?.Count)
+                return false;
+
+            if (_uncommonElements.Sum(x => x.Count) != other._uncommonElements.Sum(x => x.Count))
+                return false;
+
+            // This if() block should never fail, but the compiler can't figure that out easily
+            if (_uncommonElements is not null && other._uncommonElements is not null)
             {
-                var otherElement = otherElements.SingleOrDefault(x => x.Entity.Equals(element.Entity));
+                foreach (IEntityCardinality<IElement> element in _uncommonElements)
+                {
+                    var otherElement = other._uncommonElements.SingleOrDefault(x => x.Entity.Equals(element.Entity));
 
-                // Check that the other chemical formula has this element.
-                if (otherElement == null)
-                    return false;
+                    // Check that the other chemical formula has this element.
+                    if (otherElement == null)
+                        return false;
 
-                // Check the counts.
-                if (element.Count != otherElement.Count)
-                    return false;
+                    // Check the counts.
+                    if (element.Count != otherElement.Count)
+                        return false;
+                }
             }
 
             return true;
@@ -120,7 +204,7 @@ namespace TopDownProteomics.Chemistry
         /// </returns>
         public override bool Equals(object obj)
         {
-            if (obj is IChemicalFormula other)
+            if (obj is ChemicalFormula other)
                 return this.Equals(other);
 
             return false;
@@ -134,18 +218,32 @@ namespace TopDownProteomics.Chemistry
         /// </returns>
         public override int GetHashCode()
         {
-            // RTF: TODO: This is a terrible hash code, but at least it favors a correct result.
+            if (!_commonElements.HasValue)
+                return _uncommonElements?.Count ?? 0; // Not a good hash code, but fast and this should be an uncommon case
 
-            //return _elements.GetHashCode();
-            return _elements.Count;
+            int value = 0;
+
+            for (int i = 0; i < CommonElementLength; i++)
+                value = HashCode.Combine(_commonElements.Value.Span[i], value);
+
+            if (_uncommonElements is not null)
+                value = HashCode.Combine(_uncommonElements.Count, value);
+
+            return value;
         }
+
+        /// <summary>Converts to string.</summary>
+        /// <returns>
+        /// A <see cref="string" /> that represents this instance.
+        /// </returns>
+        public override string ToString() => this.GetChemicalFormulaString();
 
         /// <summary>
         /// Adds the specified formula.
         /// </summary>
         /// <param name="otherFormula">The formula.</param>
         /// <returns></returns>
-        public IChemicalFormula Add(IChemicalFormula otherFormula)
+        public ChemicalFormula Add(ChemicalFormula otherFormula)
         {
             return this.Merge(otherFormula, true);
         }
@@ -155,48 +253,121 @@ namespace TopDownProteomics.Chemistry
         /// </summary>
         /// <param name="otherFormula"></param>
         /// <returns></returns>
-        public IChemicalFormula Subtract(IChemicalFormula otherFormula)
+        public ChemicalFormula Subtract(ChemicalFormula otherFormula)
         {
             return this.Merge(otherFormula, false);
         }
 
-        private IChemicalFormula Merge(IChemicalFormula otherFormula, bool add)
+        private ChemicalFormula Merge(ChemicalFormula otherFormula, bool add)
         {
-            if (otherFormula == null)
+            if (otherFormula is null)
                 return this;
 
-            var otherElements = otherFormula.GetElements().ToList();
-
-            if (otherElements.Count == 0)
+            if (!otherFormula._commonElements.HasValue && otherFormula._uncommonElements is null)
                 return this;
 
             var formula = new ChemicalFormula();
 
-            // Add everything from this formula
-            foreach (var element in _elements)
+            // Handle common elements
+            if (_commonElements.HasValue && _commonElementEntities.HasValue && otherFormula._commonElements.HasValue && otherFormula._commonElementEntities.HasValue)
             {
-                var otherElement = otherElements.SingleOrDefault(x => x.Entity.Equals(element.Entity));
+                int[]? newCommonElements = new int[CommonElementLength];
+                IElement[]? newCommonElementEntities = new IElement[CommonElementLength];
 
-                if (otherElement == null)
-                    formula._elements.Add(element);
-                else
+                ReadOnlySpan<int> thisCommonElements = _commonElements.Value.Span;
+                ReadOnlySpan<IElement> thisCommonElementEntities = _commonElementEntities.Value.Span;
+                ReadOnlySpan<int> otherCommonElements = otherFormula._commonElements.Value.Span;
+                ReadOnlySpan<IElement> otherCommonElementEntities = otherFormula._commonElementEntities.Value.Span;
+
+                for (int i = 0; i < newCommonElements.Length; i++)
                 {
-                    int newCount = add ? element.Count + otherElement.Count : element.Count - otherElement.Count;
+                    if (add)
+                        newCommonElements[i] = thisCommonElements[i] + otherCommonElements[i];
+                    else
+                        newCommonElements[i] = thisCommonElements[i] - otherCommonElements[i];
 
-                    if (newCount != 0)
-                        formula._elements.Add(new EntityCardinality<IElement>(element.Entity, newCount));
-
-                    otherElements.Remove(otherElement);
+                    // RTF: This is a bit of a code smell. I'm taking the first entity 
+                    newCommonElementEntities[i] = thisCommonElementEntities[i] is not null
+                        ? thisCommonElementEntities[i]
+                        : otherCommonElementEntities[i];
                 }
+
+                formula._commonElements = newCommonElements;
+                formula._commonElementEntities = newCommonElementEntities;
+            }
+            else if (_commonElements.HasValue && !otherFormula._commonElements.HasValue)
+            {
+                formula._commonElements = _commonElements;
+                formula._commonElementEntities = _commonElementEntities;
+            }
+            else if (!_commonElements.HasValue && otherFormula._commonElements.HasValue)
+            {
+                if (add) // If add, you are safe to use existing collection
+                {
+                    formula._commonElements = otherFormula._commonElements;
+                }
+                else // If subtract, you must make a new collection with negative values
+                {
+                    int[]? newCommonElements = new int[CommonElementLength];
+
+                    ReadOnlySpan<int> otherCommonElements = otherFormula._commonElements.Value.Span;
+
+                    for (int i = 0; i < newCommonElements.Length; i++)
+                        newCommonElements[i] = -otherCommonElements[i];
+                }
+
+                formula._commonElementEntities = otherFormula._commonElementEntities;
             }
 
-            // Add unique things from other formula
-            foreach (var otherElement in otherElements)
+            // Handle uncommon elements
+            if (_uncommonElements is not null && otherFormula._uncommonElements is not null)
             {
-                if (add)
-                    formula._elements.Add(otherElement);
-                else
-                    formula._elements.Add(new EntityCardinality<IElement>(otherElement.Entity, -otherElement.Count));
+                Dictionary<IElement, int> combinedElements = new(_uncommonElements.Count + otherFormula._uncommonElements.Count);
+
+                foreach (var element in _uncommonElements)
+                    combinedElements.Add(element.Entity, element.Count);
+
+                foreach (var element in otherFormula._uncommonElements)
+                {
+                    if (combinedElements.ContainsKey(element.Entity))
+                    {
+                        if (add)
+                            combinedElements[element.Entity] += element.Count;
+                        else
+                            combinedElements[element.Entity] -= element.Count;
+                    }
+                    else
+                    {
+                        combinedElements.Add(element.Entity, element.Count);
+                    }
+                }
+
+                var newUncommon = new List<IEntityCardinality<IElement>>(combinedElements.Count);
+
+                foreach (var pair in combinedElements)
+                    newUncommon.Add(new EntityCardinality<IElement>(pair.Key, pair.Value));
+
+                formula._uncommonElements = newUncommon;
+            }
+            else if (_uncommonElements is not null && otherFormula._uncommonElements is null)
+            {
+                formula._uncommonElements = _uncommonElements;
+            }
+            else if (_uncommonElements is null && otherFormula._uncommonElements is not null)
+            {
+                if (add) // If add, you are safe to use existing collection
+                {
+                    formula._uncommonElements = otherFormula._uncommonElements;
+                }
+                else // If subtract, you must make a new collection with negative values
+                {
+                    var newUncommon = new List<IEntityCardinality<IElement>>(otherFormula._uncommonElements.Count);
+
+                    foreach (var cardinality in otherFormula._uncommonElements)
+                        newUncommon.Add(new EntityCardinality<IElement>(cardinality.Entity, -cardinality.Count));
+
+                    formula._uncommonElements = newUncommon;
+                }
             }
 
             return formula;
@@ -207,12 +378,37 @@ namespace TopDownProteomics.Chemistry
         /// </summary>
         /// <param name="multiplier">The multiplier.</param>
         /// <returns></returns>
-        public IChemicalFormula Multiply(int multiplier)
+        public ChemicalFormula Multiply(int multiplier)
         {
+            if (multiplier == 0)
+                return Empty;
+
+            if (multiplier == 1)
+                return this;
+
             var formula = new ChemicalFormula();
 
-            foreach (var element in _elements)
-                formula._elements.Add(new EntityCardinality<IElement>(element.Entity, element.Count * multiplier));
+            if (_commonElements.HasValue)
+            {
+                var oldCommonElements = _commonElements.Value.Span;
+                int[] newCommonElements = new int[CommonElementLength];
+
+                for (int i = 0; i < CommonElementLength; i++)
+                    newCommonElements[i] = oldCommonElements[i] * multiplier;
+
+                formula._commonElements = new ReadOnlyMemory<int>(newCommonElements);
+                formula._commonElementEntities = _commonElementEntities;
+            }
+
+            if (_uncommonElements is not null)
+            {
+                var newUncommon = new List<IEntityCardinality<IElement>>(_uncommonElements.Count);
+
+                foreach (var cardinality in _uncommonElements)
+                    newUncommon.Add(new EntityCardinality<IElement>(cardinality.Entity, cardinality.Count * multiplier));
+
+                formula._uncommonElements = newUncommon;
+            }
 
             return formula;
         }
@@ -222,9 +418,9 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elementProvider">The element provider.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Could not parse '{formula.ToString()}' into a chemical formula.</exception>
-        public static IChemicalFormula ParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider)
+        public static ChemicalFormula ParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider)
         {
-            if (TryParseString(formula, elementProvider, out IChemicalFormula result))
+            if (TryParseString(formula, elementProvider, out ChemicalFormula result))
                 return result;
 
             throw new InvalidChemicalFormula($"Could not parse '{formula.ToString()}' into a chemical formula.");
@@ -236,7 +432,7 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
         /// <returns>True if successful, otherwise false.</returns>
-        public static bool TryParseString(string formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
+        public static bool TryParseString(string formula, IElementProvider elementProvider, out ChemicalFormula chemicalFormula)
         {
             return TryParseString(formula.AsSpan(), elementProvider, out chemicalFormula);
         }
@@ -247,7 +443,7 @@ namespace TopDownProteomics.Chemistry
         /// <param name="elementProvider">The element provider.</param>
         /// <param name="chemicalFormula">The chemical formula or null if string was not formatted correctly.</param>
         /// <returns>True if successful, otherwise false.</returns>
-        public static bool TryParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider, out IChemicalFormula chemicalFormula)
+        public static bool TryParseString(ReadOnlySpan<char> formula, IElementProvider elementProvider, out ChemicalFormula chemicalFormula)
         {
             chemicalFormula = Empty; // Set to null in case of failure.
 
@@ -354,7 +550,7 @@ namespace TopDownProteomics.Chemistry
                 var digitSpan = formula.Slice(digitStart, digitEnd - digitStart + 1);
 
 #if NETSTANDARD2_1
-                if (!int.TryParse(digitSpan, out count))return false;
+                if (!int.TryParse(digitSpan, out count)) return false;
 #else
                 if (!int.TryParse(digitSpan.ToString(), out count)) return false;
 #endif

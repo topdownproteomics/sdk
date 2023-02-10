@@ -82,7 +82,7 @@ namespace TopDownProteomics.IO.Resid
         public string? SwissprotTerm { get; }
 
         /// <summary>Gets the chemical formula.</summary>
-        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        public ChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
         {
             string? formula = this.DiffFormula;
 

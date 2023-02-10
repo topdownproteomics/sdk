@@ -9,6 +9,6 @@
         /// Gets the chemical formula.
         /// </summary>
         /// <returns></returns>
-        IChemicalFormula GetChemicalFormula();
+        ChemicalFormula GetChemicalFormula();
     }
 }
