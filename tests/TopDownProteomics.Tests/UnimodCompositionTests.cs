@@ -111,7 +111,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(atomProvider.GetUnimodCompositionAtom("13C"), cardinalities[1].Atom);
             Assert.AreEqual(9, cardinalities[1].Count);
 
-            IChemicalFormula chemicalFormula = composition.GetChemicalFormula();
+            ChemicalFormula chemicalFormula = composition.GetChemicalFormula();
             var elements = chemicalFormula.GetElements();
 
             Assert.AreEqual(2, elements.Count);

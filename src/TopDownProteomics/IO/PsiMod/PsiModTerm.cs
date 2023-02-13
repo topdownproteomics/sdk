@@ -124,7 +124,7 @@ namespace TopDownProteomics.IO.PsiMod
         public ICollection<string>? IsA { get; set; }
 
         /// <summary>Gets the chemical formula.</summary>
-        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        public ChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
         {
             string? formula = this.DiffFormula;
 

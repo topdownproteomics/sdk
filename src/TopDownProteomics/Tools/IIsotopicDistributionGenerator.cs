@@ -14,7 +14,7 @@ namespace TopDownProteomics.Tools
         /// </summary>
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula);
+        IIsotopicDistribution GenerateIsotopicDistribution(ChemicalFormula chemicalFormula);
 
         /// <summary>
         /// Generates a charged isotopic distribution.
@@ -22,7 +22,7 @@ namespace TopDownProteomics.Tools
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <param name="charge">The charge.</param>
         /// <returns></returns>
-        IChargedIsotopicDistribution GenerateChargedIsotopicDistribution(IChemicalFormula chemicalFormula, int charge);
+        IChargedIsotopicDistribution GenerateChargedIsotopicDistribution(ChemicalFormula chemicalFormula, int charge);
 
         /// <summary>
         /// Generates a collection of charged isotopic distributions for a given charge range.
@@ -31,7 +31,7 @@ namespace TopDownProteomics.Tools
         /// <param name="firstCharge">The first charge.</param>
         /// <param name="lastCharge">The last charge.</param>
         /// <returns></returns>
-        IList<IChargedIsotopicDistribution> GenerateChargedIsotopicDistributions(IChemicalFormula chemicalFormula,
+        IList<IChargedIsotopicDistribution> GenerateChargedIsotopicDistributions(ChemicalFormula chemicalFormula,
             int firstCharge, int lastCharge);
     }
 }

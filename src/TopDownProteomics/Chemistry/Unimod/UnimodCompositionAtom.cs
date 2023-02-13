@@ -38,7 +38,7 @@ namespace TopDownProteomics.Chemistry.Unimod
         /// Gets the chemical formula.
         /// </summary>
         /// <returns></returns>
-        public IChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
+        public ChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
 
         /// <summary>
         /// Gets the elements.

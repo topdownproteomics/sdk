@@ -120,7 +120,7 @@ namespace TopDownProteomics.ProForma.Validation
 
             public string Name => this.Abbreviation;
 
-            public IChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
+            public ChemicalFormula GetChemicalFormula() => new ChemicalFormula(_elements);
 
             public ProFormaDescriptor GetProFormaDescriptor()
             {

@@ -69,7 +69,7 @@ namespace TopDownProteomics.IO.Unimod
         public ICollection<string> Classifications { get; }
 
         /// <summary>Gets the chemical formula.</summary>
-        public IChemicalFormula GetChemicalFormula(IUnimodCompositionAtomProvider atomProvider)
+        public ChemicalFormula GetChemicalFormula(IUnimodCompositionAtomProvider atomProvider)
         {
             var composition = UnimodComposition.CreateFromFormula(this.DeltaComposition, atomProvider);
 

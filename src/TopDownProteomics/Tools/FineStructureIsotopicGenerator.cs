@@ -42,7 +42,7 @@ namespace TopDownProteomics.Tools
         /// </summary>
         /// <param name="chemicalFormula">The chemical formula.</param>
         /// <returns></returns>
-        public IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula)
+        public IIsotopicDistribution GenerateIsotopicDistribution(ChemicalFormula chemicalFormula)
         {
             return this.GetDistribution(chemicalFormula, defaultFineResolution, defaultMinProbability, defaultMolecularWeightResolution);
         }
@@ -54,12 +54,12 @@ namespace TopDownProteomics.Tools
         /// <param name="fineResolution">The fine resolution.</param>
         /// <param name="minProbability">The minimum probability.</param>
         /// <returns></returns>
-        public IIsotopicDistribution GenerateIsotopicDistribution(IChemicalFormula chemicalFormula, double fineResolution, double minProbability)
+        public IIsotopicDistribution GenerateIsotopicDistribution(ChemicalFormula chemicalFormula, double fineResolution, double minProbability)
         {
             return this.GetDistribution(chemicalFormula, fineResolution, minProbability, defaultMolecularWeightResolution);
         }
 
-        private IsotopicDistribution GetDistribution(IChemicalFormula formula, double fineResolution, double minProbability, double molecularWeightResolution)
+        private IsotopicDistribution GetDistribution(ChemicalFormula formula, double fineResolution, double minProbability, double molecularWeightResolution)
         {
             var a = GetNewFineAndMergeResolutions(fineResolution);
             fineResolution = a.Item1;

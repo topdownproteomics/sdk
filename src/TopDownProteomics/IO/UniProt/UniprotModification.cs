@@ -100,7 +100,7 @@ namespace TopDownProteomics.IO.UniProt
         public string? Unimod { get; }
 
         /// <summary>Gets the chemical formula.</summary>
-        public IChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
+        public ChemicalFormula? GetChemicalFormula(IElementProvider elementProvider)
         {
             string? formula = this.CorrectionFormula;
 
