@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using TopDownProteomics.ProForma;
 
 namespace TopDownProteomics.Tests.ProForma
@@ -67,11 +68,11 @@ namespace TopDownProteomics.Tests.ProForma
                 {
                     new ProFormaMembershipDescriptor(2),
                     new ProFormaMembershipDescriptor(5),
-                }),
+                }, 1), // Set preferred location
             });
             var result = _writer.WriteString(term);
 
-            Assert.AreEqual("SEQ[+14.05#test]UEN[#test]CE", result);
+            Assert.AreEqual("SEQ[#test]UEN[+14.05#test]CE", result);
 
             // With weights
             term = new ProFormaTerm("SEQUENCE", tagGroups: new[]
@@ -204,6 +205,26 @@ namespace TopDownProteomics.Tests.ProForma
         }
 
         [Test]
+        public void WriteRangeWithModInside()
+        {
+            var term = new ProFormaTerm("SEQUENCE", tags: new[]
+            {
+                new ProFormaTag(2, 5, new[]
+                {
+                    new ProFormaDescriptor(ProFormaKey.Mass, "+14.05"),
+                }),
+                new ProFormaTag(3, 3, new[]
+                {
+                    new ProFormaDescriptor(ProFormaKey.Name, "Oxidation"),
+                })
+            });
+
+            var result = _writer.WriteString(term);
+
+            Assert.AreEqual("SE(QU[Oxidation]EN)[+14.05]CE", result);
+        }
+
+        [Test]
         public void WriteUnlocalizedAmbiguousTagsTerminalMod()
         {
             var term = new ProFormaTerm("SEQUENCE", unlocalizedTags: new[]
@@ -330,6 +351,19 @@ namespace TopDownProteomics.Tests.ProForma
             result = _writer.WriteString(term);
 
             Assert.AreEqual("{Glycan:Hex}[iTRAQ4plex]-SEQ[U:Hydroxylation]UENCE", result);
+        }
+
+        [Test]
+        public void WriteSequenceAmbiguities()
+        {
+            var term = new ProFormaTerm("SEQUENCE",
+            tags: new[]
+            {
+                new ProFormaTag(2, Array.Empty<ProFormaDescriptor>(), true)
+            });
+            var result = _writer.WriteString(term);
+
+            Assert.AreEqual("SE(?Q)UENCE", result);
         }
     }
 }

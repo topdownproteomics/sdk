@@ -33,6 +33,37 @@ namespace TopDownProteomics.ProForma
             this.Members = members;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProFormaTagGroup"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="members">The members.</param>
+        /// <param name="preferredLocation">The zero-based member index for which member is the preferred location.</param>
+        public ProFormaTagGroup(string name, ProFormaKey key, string value, IList<ProFormaMembershipDescriptor> members, int preferredLocation)
+            : this(name, key, ProFormaEvidenceType.None, value, members, preferredLocation) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProFormaTagGroup" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="evidenceType">Type of the evidence.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="members">The members.</param>
+        /// <param name="preferredLocation">The zero-based member index for which member is the preferred location.</param>
+        public ProFormaTagGroup(string name, ProFormaKey key, ProFormaEvidenceType evidenceType, string value,
+            IList<ProFormaMembershipDescriptor> members, int preferredLocation)
+        {
+            this.Name = name;
+            this.Key = key;
+            this.EvidenceType = evidenceType;
+            this.Value = value;
+            this.Members = members;
+            this.PreferredLocation = preferredLocation;
+        }
+
         /// <summary>The name of the group.</summary>
         public string Name { get; }
 
@@ -47,5 +78,8 @@ namespace TopDownProteomics.ProForma
 
         /// <summary>The members of the group.</summary>
         public IList<ProFormaMembershipDescriptor> Members { get; }
+
+        /// <summary>The preferred location for the modification description.</summary>
+        public int PreferredLocation { get; internal set; }
     }
 }
