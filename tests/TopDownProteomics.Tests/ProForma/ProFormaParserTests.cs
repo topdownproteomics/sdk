@@ -715,12 +715,6 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaEvidenceType.None, desc1.EvidenceType);
             Assert.AreEqual("-15.9949", desc1.Value);
 
-
-
-            // RTF: In this case, need to see that the sequence started and the ? wasn't seen ... throw!
-
-
-
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Oxidation]EMEVT"));
 
             term = _parser.ParseString("E[Oxidation]MEVT");
