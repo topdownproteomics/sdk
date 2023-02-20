@@ -20,7 +20,7 @@ namespace TopDownProteomics.Tests
         [TestCase("[Phospho]?EMEVTSESPEK", 1, "2A")]
         [TestCase("EMEVT[#g1]S[#g1]ES[Phospho#g1]PEK", 1, "2A")]
         [TestCase("EM[+15.9949]EVEES[-79.9663]PEK", 1, "2B")]
-        [TestCase("EMEVEESPEK[Acetyl|Trimethyl]", 1, "2B")] // RTF: Ask into this!
+        [TestCase("EMEVEESPEK[+42|Info:likely Acetyl or Trimethyl]", 1, "2B")]
         [TestCase("EMEVEE(?SP)EK", 1, "2C")]
         [TestCase("PROTEOSFORMSISK(?N)", 1, "2C")]
         [TestCase("EMEVEESPEKB", 1, "2C")]
@@ -33,7 +33,8 @@ namespace TopDownProteomics.Tests
         [TestCase("PROT(EOSFORMS)[+19.0523]ISK(?N)", 2, "5")]
         [TestCase("PROT(?EOSFORMS)[Oxidation]ISKN", 2, "4")]
         [TestCase("PROT(?EOSFORMS)[+19.0523]ISKN", 2, "5")]
-        [TestCase("PROT(?EOSFORMS[+19.0523])ISKN", 2, "5")] // RTF: Ask into this! .. incorrect syntax, but should be handled
+        [TestCase("PROT(?EOSFORMS[+19.0523])ISKN", 2, "5")]
+        [TestCase("PROT(?EOSFORMS)IS[+19.0523]KN", 2, "4")]
         [TestCase("PROT(?EOSFORMS)IS(KK)[Acetyl]", 1, "3")]
         public static void TestProForma_ProteoformClassification(string proFormaString, int numGenes, string expectedLevel, bool checkWriter = true)
         {

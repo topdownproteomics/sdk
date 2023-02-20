@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TopDownProteomics.Biochemistry;
 using TopDownProteomics.ProForma;
 
 namespace TopDownProteomics.Proteomics
@@ -53,9 +54,14 @@ namespace TopDownProteomics.Proteomics
                 {
                     foreach (ProFormaTag tag in proteoform.Tags)
                     {
-                        if (tag.ZeroBasedStartIndex != tag.ZeroBasedEndIndex && tag.Descriptors.Count > 0)
+                        if (tag.ZeroBasedStartIndex != tag.ZeroBasedEndIndex)
                         {
-                            return false;
+                            if (tag.Descriptors.Count > 0)
+                                return false;
+
+                            // Check for other tags with modifications inside of the ambiguous tag
+                            if (proteoform.Tags.Any(x => x != tag && x.ZeroBasedStartIndex >= tag.ZeroBasedStartIndex && x.ZeroBasedEndIndex <= tag.ZeroBasedEndIndex))
+                                return false;
                         }
                     }
                 }
@@ -152,7 +158,7 @@ namespace TopDownProteomics.Proteomics
         /// <returns></returns>
         private static bool AmbiguousPtmFromKey(ProFormaKey key)
         {
-            return (key.Equals(ProFormaKey.Mass) || key.Equals(ProFormaKey.None));
+            return key.Equals(ProFormaKey.Mass) || key.Equals(ProFormaKey.None);
         }
 
         /// <summary>
@@ -165,8 +171,7 @@ namespace TopDownProteomics.Proteomics
             //easier to check if the sequence is ambiguous and then reverse the bool to find if the sequence is not ambiguous.
             bool isAmbiguous = proteoform.Tags?.Any(x => x.HasAmbiguousSequence) ?? false;
 
-            bool containsAmbiguousCharacter = proteoform.Sequence.Contains('X') || proteoform.Sequence.Contains('J') ||
-                proteoform.Sequence.Contains('B') || proteoform.Sequence.Contains('Z');
+            bool containsAmbiguousCharacter = proteoform.Sequence.AsSpan().ContainsAmbiguousAminoAcidResidue();
 
             return !(isAmbiguous || containsAmbiguousCharacter);
         }

@@ -15,7 +15,8 @@ namespace TopDownProteomics.Benchmarks
         private static void Main(string[] args)
         {
             //BenchmarkIsotopicEnvelopeGeneration();
-            BenchmarkChemicalFormulaAsKey();
+            //BenchmarkChemicalFormulaAsKey();
+            BenchmarkChemicalFormulaAddition();
         }
 
         private static void BenchmarkIsotopicEnvelopeGeneration()
@@ -85,6 +86,32 @@ namespace TopDownProteomics.Benchmarks
                 {
                     if (!dictionary.ContainsKey(formulas[j]))
                         dictionary.Add(formulas[j], true);
+                }
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+        }
+
+        private static void BenchmarkChemicalFormulaAddition()
+        {
+            IElementProvider elementProvider = new MockElementProvider();
+            IResidueProvider residueProvider = new IupacAminoAcidProvider(elementProvider);
+
+            string sequence = "MLTELEKALNSIIDVYHKYSLIKGNFHAVYRDDLKKLLETECPQYIRKKGADVWFKELDINTDGAVNFQEFLILVIKMGVAAHKKSHEESHKE";
+            var residues = sequence.Select(x => residueProvider.GetResidue(x));
+            ChemicalFormula[] formulas = residues.Select(x => x.GetChemicalFormula()).ToArray();
+
+            Dictionary<ChemicalFormula, bool> dictionary = new();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < 300_000; i++)
+            {
+                var formula = ChemicalFormula.Empty;
+
+                for (int j = 0; j < formulas.Length; j++)
+                {
+                    formula = formula.Add(formulas[j]);
                 }
             }
 

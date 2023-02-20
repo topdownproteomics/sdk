@@ -844,6 +844,11 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(3, group.Members?.Count);
             CollectionAssert.AreEquivalent(new[] { 4, 5, 7 }, group.Members.Select(x => x.ZeroBasedStartIndex));
 
+            // Check another preferred location
+            term = _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[#g1]PEK");
+            group = term.TagGroups.Single();
+            Assert.AreEqual(1, group.PreferredLocation);
+
             // The following example is not valid because a single preferred location must be chosen for a modification:
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK"));
         }
