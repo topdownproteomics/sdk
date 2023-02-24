@@ -53,22 +53,40 @@ namespace TopDownProteomics.ProForma
             var tag = new StringBuilder();
             bool inTag = false;
             bool inGlobalTag = false;
+            bool inSequenceAmbiguity = false;
             bool inCTerminalTag = false;
             int openLeftBrackets = 0;
             int openLeftBraces = 0;
             int? startRange = null;
             int? endRange = null;
 
-            // Don't love doing a global index of performance wise, but would need to restructure things to handle multiple unlocalized tags
-            int unlocalizedIndex = proFormaString.IndexOf('?');
+            // Keep track of if an unlocalized modification is processed and if the '?' is ever seen
+            bool isUnlocalizedMarkerRequired = false;
+            bool foundUnlocalizedMarker = false;
 
             for (int i = 0; i < proFormaString.Length; i++)
             {
-                if (unlocalizedIndex == i) continue; // Skip unlocalized separator
-
                 char current = proFormaString[i];
 
-                if (current == '<')
+                if (current == '?')
+                {
+                    if (i == 0)
+                        throw new ProFormaParseException("ProForma string cannot begin with '?'.");
+
+                    if (proFormaString[i - 1] == '(' && !inTag) //if sequence ambiguity
+                    {
+                        inSequenceAmbiguity = true;
+
+                        // Adjust start to skip the question mark
+                        startRange = sequence.Length;
+                    }
+                    else
+                    {
+                        foundUnlocalizedMarker = true;
+                        continue;
+                    }
+                }
+                else if (current == '<')
                 {
                     inGlobalTag = true;
                 }
@@ -76,8 +94,8 @@ namespace TopDownProteomics.ProForma
                 {
                     string tagText = tag.ToString();
 
-                    // Make sure nothing happen before this global mod
-                    if (sequence.Length > 0 || unlocalizedTags?.Count > 0 || nTerminalDescriptors?.Count > 0 || tagGroups?.Count > 0)
+                    // Make sure nothing happens before this global mod
+                    if (sequence.Length > 0 || labileDescriptors?.Count > 0 || unlocalizedTags?.Count > 0 || nTerminalDescriptors?.Count > 0 || tagGroups?.Count > 0)
                         throw new ProFormaParseException("Global modifications must be the first element in ProForma string.");
 
                     this.HandleGlobalModification(ref tagGroups, ref globalModifications, sequence, startRange, endRange, tagText);
@@ -97,8 +115,19 @@ namespace TopDownProteomics.ProForma
                     endRange = sequence.Length;
 
                     // Ensure a tag comes next
-                    if (proFormaString[i + 1] != '[')
-                        throw new ProFormaParseException("Ranges must end next to a tag.");
+                    if (i + 1 >= proFormaString.Length || proFormaString[i + 1] != '[')
+                    {
+                        if (inSequenceAmbiguity && startRange.HasValue && endRange.HasValue)
+                        {
+                            // Handle case where sequence ambiguity doesn't have a tag
+                            tags ??= new List<ProFormaTag>();
+                            tags.Add(new ProFormaTag(startRange.Value, endRange.Value - 1, Array.Empty<ProFormaDescriptor>(), true));
+
+                            inSequenceAmbiguity = false;
+                        }
+                        else
+                            throw new ProFormaParseException("Ranges must end next to a tag.");
+                    }
                 }
                 else if (current == '{' && openLeftBraces++ == 0)
                 {
@@ -119,10 +148,6 @@ namespace TopDownProteomics.ProForma
                 }
                 else if (!inGlobalTag && current == ']' && --openLeftBrackets == 0)
                 {
-                    // Don't allow 2 tags right next to eachother in the sequence
-                    if (sequence.Length > 0 && proFormaString.Length > i + 1 && proFormaString[i + 1] == '[')
-                        throw new ProFormaParseException("Two tags next to eachother are not allowed.");
-
                     string tagText = tag.ToString();
 
                     // Handle terminal modifications and prefix tags
@@ -135,8 +160,14 @@ namespace TopDownProteomics.ProForma
                         nTerminalDescriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
                         i++; // Skip the - character
                     }
-                    else if (unlocalizedIndex >= i)
+                    else if (sequence.Length > 0)
                     {
+                        this.ProcessTag(tagText, endRange.HasValue ? startRange : null, sequence.Length - 1, inSequenceAmbiguity, ref tags, ref tagGroups);
+                    }
+                    else // Assume unlocalized
+                    {
+                        isUnlocalizedMarkerRequired = true;
+
                         // Make sure the prefix came before the N-terminal modification
                         if (nTerminalDescriptors != null)
                             throw new ProFormaParseException($"Unlocalized modification must come before an N-terminal modification.");
@@ -164,32 +195,13 @@ namespace TopDownProteomics.ProForma
                                 i = j - 1; // Point i at the last digit
                             }
 
-                            if (unlocalizedTags == null)
-                                unlocalizedTags = new List<ProFormaUnlocalizedTag>();
-
+                            unlocalizedTags ??= new List<ProFormaUnlocalizedTag>();
                             unlocalizedTags.Add(new ProFormaUnlocalizedTag(count, descriptors));
                         }
-
-                        //i++; // skip the ? character
-                    }
-                    else if (sequence.Length == 0)
-                    {
-                        throw new ProFormaParseException($"Invalid n terminal descriptor.");
-                    }
-                    else
-                    {
-                        this.ProcessTag(tagText, endRange.HasValue ? startRange : null, sequence.Length - 1, ref tags, ref tagGroups);
                     }
 
                     inTag = false;
                     tag.Clear();
-
-                    // Reset the range if we have processed the tag on the end of it
-                    if (endRange.HasValue)
-                    {
-                        startRange = null;
-                        endRange = null;
-                    }
                 }
                 else if (inTag || inGlobalTag)
                 {
@@ -207,12 +219,21 @@ namespace TopDownProteomics.ProForma
                     // Validate amino acid character
                     if (!char.IsUpper(current))
                         throw new ProFormaParseException($"{current} is not an upper case letter.");
-                    //else if (current == 'X')
-                    //    throw new ProFormaParseException("X is not allowed.");
+
+                    // Reset the range as soon as we see an amino acid
+                    if (endRange.HasValue)
+                    {
+                        startRange = null;
+                        endRange = null;
+                    }
 
                     sequence.Append(current);
                 }
             }
+
+            // Final validation checks
+            if (isUnlocalizedMarkerRequired && !foundUnlocalizedMarker)
+                throw new ProFormaParseException($"Unlocalized modification not found as expected.");
 
             if (openLeftBrackets != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBrackets)} open brackets in ProForma string {proFormaString.ToString()}");
@@ -264,17 +285,17 @@ namespace TopDownProteomics.ProForma
             }
         }
 
-        private void ProcessTag(string tag, int? startIndex, int index, ref IList<ProFormaTag>? tags, ref IDictionary<string, ProFormaTagGroup>? tagGroups)
+        private void ProcessTag(string tag, int? startIndex, int index, bool inSequenceAmbiguity, ref IList<ProFormaTag>? tags, ref IDictionary<string, ProFormaTagGroup>? tagGroups)
         {
             var descriptors = this.ProcessTag(tag, startIndex, index, ref tagGroups);
 
             // Only add a tag if descriptors come back
             if (descriptors != null)
             {
-                if (tags == null) tags = new List<ProFormaTag>();
+                tags ??= new List<ProFormaTag>();
 
                 if (startIndex.HasValue)
-                    tags.Add(new ProFormaTag(startIndex.Value, index, descriptors));
+                    tags.Add(new ProFormaTag(startIndex.Value, index, descriptors, inSequenceAmbiguity));
                 else
                     tags.Add(new ProFormaTag(index, descriptors));
             }
@@ -291,34 +312,35 @@ namespace TopDownProteomics.ProForma
 
                 if (!string.IsNullOrEmpty(group))
                 {
-                    if (tagGroups == null) tagGroups = new Dictionary<string, ProFormaTagGroup>();
+                    tagGroups ??= new Dictionary<string, ProFormaTagGroup>();
 
                     if (!tagGroups.ContainsKey(group))
                     {
-                        tagGroups.Add(group, new ProFormaTagGroupChangingValue(group, key, evidence, new List<ProFormaMembershipDescriptor>()));
+                        tagGroups.Add(group, new ProFormaTagGroup(group, key, evidence, string.Empty, new List<ProFormaMembershipDescriptor>()));
                     }
 
                     var currentGroup = tagGroups[group];
 
                     // Fix up name of TagGroup
-                    if (!string.IsNullOrEmpty(value) && currentGroup is ProFormaTagGroupChangingValue x)
+                    if (!string.IsNullOrEmpty(value) && currentGroup is ProFormaTagGroup x)
                     {
                         // Only allow the value of the group to be set once
                         if (!string.IsNullOrEmpty(x.Value))
                             throw new ProFormaParseException($"You may only set the value of the group {group} once.");
 
-                        x.ValueFlux = value;
+                        x.Value = value;
                         x.Key = key;
                         x.EvidenceType = evidence;
+                        x.PreferredLocation = currentGroup.Members.Count;
                     }
 
                     // If the group was defined before the sequence, don't include it in the membership
                     if (index >= 0)
                     {
                         if (startIndex.HasValue)
-                            tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(startIndex.Value, index, weight));
+                            currentGroup.Members.Add(new ProFormaMembershipDescriptor(startIndex.Value, index, weight));
                         else
-                            tagGroups[group].Members.Add(new ProFormaMembershipDescriptor(index, weight));
+                            currentGroup.Members.Add(new ProFormaMembershipDescriptor(index, weight));
                     }
                 }
                 else if (key != ProFormaKey.None) // typical descriptor
@@ -340,44 +362,6 @@ namespace TopDownProteomics.ProForma
             }
 
             return descriptors;
-        }
-
-        private class ProFormaTagGroupChangingValue : ProFormaTagGroup
-        {
-            public ProFormaTagGroupChangingValue(string name, ProFormaKey key, ProFormaEvidenceType evidenceType,
-                IList<ProFormaMembershipDescriptor> members) : base(name, key, evidenceType, string.Empty, members)
-            {
-            }
-
-            public string? ValueFlux
-            {
-                get => this.Value;
-                set
-                {
-                    if (value != null)
-                        this.Value = value;
-                }
-            }
-
-            public ProFormaKey? KeyFlux
-            {
-                get => this.Key;
-                set
-                {
-                    if (value.HasValue)
-                        this.Key = value.Value;
-                }
-            }
-
-            public ProFormaEvidenceType? EvidenceFlux
-            {
-                get => this.EvidenceType;
-                set
-                {
-                    if (value.HasValue)
-                        this.EvidenceType = value.Value;
-                }
-            }
         }
 
         private Tuple<ProFormaKey, ProFormaEvidenceType, string, string?, double> ParseDescriptor(string text)

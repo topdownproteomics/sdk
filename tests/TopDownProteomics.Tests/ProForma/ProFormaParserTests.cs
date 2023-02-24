@@ -799,6 +799,12 @@ namespace TopDownProteomics.Tests
 
 
             // Check ^{count} format
+            term = _parser.ParseString("[Phospho]^2?[Acetyl]-EM[Oxidation]EVTSESPEK");
+            Assert.AreEqual(1, term.Tags?.Count);
+            Assert.IsNull(term.CTerminalDescriptors);
+            Assert.AreEqual(1, term.NTerminalDescriptors?.Count);
+            Assert.AreEqual(1, term.UnlocalizedTags?.Count);
+
             term = _parser.ParseString("[Phospho]^2[Methyl]?[Acetyl]-EM[Hydroxylation]EVTSESPEK");
             Assert.AreEqual(1, term.Tags?.Count);
             Assert.IsNull(term.CTerminalDescriptors);
@@ -832,10 +838,16 @@ namespace TopDownProteomics.Tests
             var group = term.TagGroups.Single();
             Assert.AreEqual("g1", group.Name);
             Assert.AreEqual("Phospho", group.Value);
+            Assert.AreEqual(2, group.PreferredLocation);
             Assert.AreEqual(ProFormaKey.Name, group.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, group.EvidenceType);
             Assert.AreEqual(3, group.Members?.Count);
             CollectionAssert.AreEquivalent(new[] { 4, 5, 7 }, group.Members.Select(x => x.ZeroBasedStartIndex));
+
+            // Check another preferred location
+            term = _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[#g1]PEK");
+            group = term.TagGroups.Single();
+            Assert.AreEqual(1, group.PreferredLocation);
 
             // The following example is not valid because a single preferred location must be chosen for a modification:
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation]EVT[#g1]S[Phospho#g1]ES[Phospho#g1]PEK"));
@@ -945,11 +957,24 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void NoMultipleModificationsSameSite_4_5()
+        public void MultipleModificationsSameSite_4_5()
         {
-            // Currently, there is no need to chain two mods together on the same residue, since complex glycans are not explicitly supported (see Section 3.4).
-            //  The solution in those rare cases not involving glycans is to have a single PSI-MOD/RESID  entry for the combination of mods.
-            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("EM[Oxidation][Phospho]EVTSESPEK"));
+            // It is possible to represent two or more modifications on the same amino acid or group of amino acids.
+
+            var term = _parser.ParseString("EM[Oxidation][Phospho]EVTSESPEK");
+            Assert.AreEqual(2, term.Tags?.Count);
+            Assert.AreEqual(2, term.Tags?.Count(x => x.ZeroBasedStartIndex == 1));
+
+            term = _parser.ParseString("MPGLVDSNPAPPESQEKKPLK(PCCACPETKKARDACIIEKGEEHCGHLIEAHKECMRALGFKI)[Oxidation][Oxidation][half cystine][half cystine]");
+            Assert.AreEqual(4, term.Tags?.Count);
+            Assert.AreEqual(4, term.Tags?.Count(x => x.ZeroBasedStartIndex == 21));
+            Assert.AreEqual(4, term.Tags?.Count(x => x.ZeroBasedEndIndex == 62));
+
+            // The caret symbol(^), which can be used to represent multiple instances of
+            // the same unlocalized modification before the N-terminal end of the amino acid sequence
+            // (Section 4.4.1.) is however not allowed within the amino acid sequence. No extra
+            // character is required.
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("MPGLVDSNPAPPESQEKKPLK(PCCACPETKKARDACIIEKGEEHCGHLIEAHKECMRALGFKI)[Oxidation]^2[half cystine][half cystine]"));
         }
 
         [Test]
@@ -1006,14 +1031,64 @@ namespace TopDownProteomics.Tests
             Assert.IsNotNull(term.GlobalModifications.Single().TargetAminoAcids);
             CollectionAssert.AreEquivalent(new[] { 'C', 'M' }, term.GlobalModifications.Single().TargetAminoAcids);
 
-            // Fixed modifications MUST be written prior to ambiguous modifications, and similar to ambiguity notation, 
+            // Fixed modifications MUST be written prior to ambiguous and labile modifications, and similar to ambiguity notation, 
             //  N-terminal modifications MUST be the last ones written, just next to the sequence.
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Phospho]?<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK"));
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("{Oxidation}<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK"));
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Acetyl]-<[MOD:01090]@C>EM[Hydroxylation]EVTSESPEK"));
         }
 
         [Test]
-        public void InfoTag_4_7()
+        public void SequenceAmbiguity_4_7()
+        {
+            // Check multiple characters at start and end
+            var term = _parser.ParseString("(?DQ)NGTWEM[Oxidation]ESNENFEGYM[Oxidation]K(?DQ)");
+            Assert.AreEqual(4, term.Tags.Count);
+
+            var amb = term.Tags.First();
+            Assert.IsTrue(amb.HasAmbiguousSequence);
+            Assert.AreEqual(0, amb.ZeroBasedStartIndex);
+            Assert.AreEqual(1, amb.ZeroBasedEndIndex);
+            Assert.AreEqual(0, amb.Descriptors.Count);
+
+            amb = term.Tags.Last();
+            Assert.IsTrue(amb.HasAmbiguousSequence);
+            Assert.AreEqual(19, amb.ZeroBasedStartIndex);
+            Assert.AreEqual(20, amb.ZeroBasedEndIndex);
+            Assert.AreEqual(0, amb.Descriptors.Count);
+
+            // Check single character at start and end
+            term = _parser.ParseString("(?N)NGTWEM[Oxidation]ESNENFEGYM[Oxidation]K(?N)");
+            Assert.AreEqual(4, term.Tags.Count);
+
+            amb = term.Tags.First();
+            Assert.IsTrue(amb.HasAmbiguousSequence);
+            Assert.AreEqual(0, amb.ZeroBasedStartIndex);
+            Assert.AreEqual(0, amb.ZeroBasedEndIndex);
+            Assert.AreEqual(0, amb.Descriptors.Count);
+
+            amb = term.Tags.Last();
+            Assert.IsTrue(amb.HasAmbiguousSequence);
+            Assert.AreEqual(18, amb.ZeroBasedStartIndex);
+            Assert.AreEqual(18, amb.ZeroBasedEndIndex);
+            Assert.AreEqual(0, amb.Descriptors.Count);
+
+            // Check internal with a tag
+            term = _parser.ParseString("AAA(?DQ)[Oxidation]NGTWEM[Oxidation]ESNENFEGYM[Oxidation]K");
+            Assert.AreEqual(3, term.Tags.Count);
+
+            amb = term.Tags.First();
+            Assert.IsTrue(amb.HasAmbiguousSequence);
+            Assert.AreEqual(3, amb.ZeroBasedStartIndex);
+            Assert.AreEqual(4, amb.ZeroBasedEndIndex);
+            Assert.AreEqual(1, amb.Descriptors.Count);
+
+            var desc = amb.Descriptors.Single();
+            Assert.AreEqual("Oxidation", desc.Value);
+        }
+
+        [Test]
+        public void InfoTag_4_8()
         {
             // Simple info tag.
             var term = _parser.ParseString("ELV[INFO:AnyString]IS");
@@ -1044,7 +1119,7 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void JointRepresentation_4_8()
+        public void JointRepresentation_4_9()
         {
             // Alternative theoretical values
             // ELVIS[U:Phospho|+79.966331]K

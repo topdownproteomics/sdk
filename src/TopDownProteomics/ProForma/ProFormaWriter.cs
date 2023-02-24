@@ -17,6 +17,27 @@ namespace TopDownProteomics.ProForma
         /// <returns></returns>
         public string WriteString(ProFormaTerm term)
         {
+            void WriteTagOrGroup(object obj, StringBuilder sb, bool displayValue, double weight)
+            {
+                if (obj is ProFormaTag tag)
+                {
+                    if (tag.Descriptors.Count > 0)
+                        sb.Append($"[{this.CreateDescriptorsText(tag.Descriptors)}]");
+                }
+                else if (obj is ProFormaTagGroup group)
+                {
+                    if (displayValue)
+                        sb.Append($"[{this.CreateDescriptorText(group)}#{group.Name}");
+                    else
+                        sb.Append($"[#{group.Name}");
+
+                    if (weight > 0.0)
+                        sb.Append($"({weight})]");
+                    else
+                        sb.Append(']');
+                }
+            };
+
             var sb = new StringBuilder();
 
             // Check global modifications
@@ -67,7 +88,7 @@ namespace TopDownProteomics.ProForma
             if (term.TagGroups != null)
                 tagsAndGroups.AddRange(term.TagGroups
                     .SelectMany(x => x.Members
-                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members.FirstOrDefault(), member.Weight))));
+                    .Select(member => ValueTuple.Create((object)x, member.ZeroBasedStartIndex, member.ZeroBasedEndIndex, member == x.Members[x.PreferredLocation], member.Weight))));
 
             // Check indexed modifications
             if (tagsAndGroups.Count > 0)
@@ -76,9 +97,13 @@ namespace TopDownProteomics.ProForma
                 tagsAndGroups.Sort((x, y) => x.Item2.CompareTo(y.Item2));
 
                 int currentIndex = 0;
-                foreach (var (obj, startIndex, endIndex, displayValue, weight) in tagsAndGroups)
+                for (int i = 0; i < tagsAndGroups.Count; i++)
                 {
-                    if (startIndex == endIndex)
+                    var (obj, startIndex, endIndex, displayValue, weight) = tagsAndGroups[i];
+
+                    bool hasAmbiguousSequence = obj is ProFormaTag tag2 && tag2.HasAmbiguousSequence;
+
+                    if (startIndex == endIndex && !hasAmbiguousSequence)
                     {
                         // Write sequence up to tag
                         sb.Append(term.Sequence.Substring(currentIndex, startIndex - currentIndex + 1));
@@ -86,34 +111,43 @@ namespace TopDownProteomics.ProForma
                     }
                     else // Handle ambiguity range
                     {
-                        // Write sequence up to range
-                        sb.Append(term.Sequence.Substring(currentIndex, startIndex - currentIndex));
+                        // Write sequence up to range (checking for internal tags)
+                        sb.Append(term.Sequence[currentIndex..startIndex]);
+                        currentIndex = startIndex;
 
-                        // Write sequence in range
-                        sb.Append($"({term.Sequence.Substring(startIndex, endIndex - startIndex + 1)})");
+                        // Start sequence in range
+                        sb.Append("(");
+
+                        if (hasAmbiguousSequence)
+                            sb.Append('?');
+
+                        // Check for other tags that might be inside this range
+                        int j = i + 1;
+                        while (j < tagsAndGroups.Count && tagsAndGroups[j].Item2 <= endIndex)
+                        {
+                            (object, int, int, bool, double) internalTag = tagsAndGroups[j];
+
+                            if (internalTag.Item2 != internalTag.Item3)
+                                throw new ProFormaParseException("Can't nest ranges within each other.");
+
+                            sb.Append(term.Sequence[currentIndex..(internalTag.Item2 + 1)]);
+                            currentIndex = internalTag.Item2 + 1;
+
+                            WriteTagOrGroup(internalTag.Item1, sb, internalTag.Item4, internalTag.Item5);
+
+                            j++;
+                            i++;
+                        }
+
+                        sb.Append($"{term.Sequence.Substring(currentIndex, endIndex - currentIndex + 1)})");
                         currentIndex = endIndex + 1;
                     }
 
-                    if (obj is ProFormaTag tag)
-                    {
-                        sb.Append($"[{this.CreateDescriptorsText(tag.Descriptors)}]");
-                    }
-                    else if (obj is ProFormaTagGroup group)
-                    {
-                        if (displayValue)
-                            sb.Append($"[{this.CreateDescriptorText(group)}#{group.Name}");
-                        else
-                            sb.Append($"[#{group.Name}");
-
-                        if (weight > 0.0)
-                            sb.Append($"({weight})]");
-                        else
-                            sb.Append(']');
-                    }
+                    WriteTagOrGroup(obj, sb, displayValue, weight);
                 }
 
                 // Write the rest of the sequence
-                sb.Append(term.Sequence.Substring(currentIndex));
+                sb.Append(term.Sequence[currentIndex..]);
             }
             else
             {
