@@ -314,6 +314,8 @@ namespace TopDownProteomics.Chemistry
 
                     for (int i = 0; i < newCommonElements.Length; i++)
                         newCommonElements[i] = -otherCommonElements[i];
+
+                    formula._commonElements = newCommonElements;
                 }
 
                 formula._commonElementEntities = otherFormula._commonElementEntities;
@@ -380,7 +382,8 @@ namespace TopDownProteomics.Chemistry
         /// <returns></returns>
         public ChemicalFormula Multiply(int multiplier)
         {
-            if (multiplier == 0)
+            // If either side is '0' just return Empty
+            if (this == Empty || multiplier == 0)
                 return Empty;
 
             if (multiplier == 1)
@@ -412,6 +415,32 @@ namespace TopDownProteomics.Chemistry
 
             return formula;
         }
+
+        #region Operator Overloads
+        /// <summary>Implements the operator +.</summary>
+        /// <param name="c1">The c1.</param>
+        /// <param name="c2">The c2.</param>
+        public static ChemicalFormula operator +(ChemicalFormula c1, ChemicalFormula c2) => c1.Merge(c2, true);
+
+        /// <summary>Implements the operator -.</summary>
+        /// <param name="c1">The c1.</param>
+        /// <param name="c2">The c2.</param>
+        public static ChemicalFormula operator -(ChemicalFormula c1, ChemicalFormula c2) => c1.Merge(c2, false);
+
+        /// <summary>Implements the operator - (negation).</summary>
+        /// <param name="c1">The c1.</param>
+        public static ChemicalFormula operator -(ChemicalFormula c1) => c1.Multiply(-1);
+
+        /// <summary>Implements the operator *.</summary>
+        /// <param name="c1">The c1.</param>
+        /// <param name="multiplier">The multiplier.</param>
+        public static ChemicalFormula operator *(ChemicalFormula c1, int multiplier) => c1.Multiply(multiplier);
+
+        /// <summary>Implements the operator *.</summary>
+        /// <param name="multiplier">The multiplier.</param>
+        /// <param name="c1">The c1.</param>
+        public static ChemicalFormula operator *(int multiplier, ChemicalFormula c1) => c1.Multiply(multiplier);
+        #endregion
 
         /// <summary>Parses the string into a chemical formula.</summary>
         /// <param name="formula">The formula.</param>

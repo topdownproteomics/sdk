@@ -420,6 +420,49 @@ namespace TopDownProteomics.Tests.Chemistry
         }
 
         [Test]
+        public void WorkingWithEmptyTest()
+        {
+            var a = ChemicalFormula.Empty;
+            var b = ChemicalFormula.ParseString("CH2".AsSpan(), _elementProvider);
+
+            var diff = a.Add(b);
+
+            this.SimpleParseTest(diff, new[]
+            {
+                Tuple.Create("C", 1),
+                Tuple.Create("H", 2),
+            });
+
+            diff = a.Subtract(b);
+
+            this.SimpleParseTest(diff, new[]
+            {
+                Tuple.Create("C", -1),
+                Tuple.Create("H", -2),
+            });
+
+            diff = a.Multiply(12);
+
+            Assert.AreEqual(ChemicalFormula.Empty, diff);
+        }
+
+        [Test]
+        public void OperatorOverloadsTest()
+        {
+            var a = ChemicalFormula.ParseString("C2H4".AsSpan(), _elementProvider);
+            var b = ChemicalFormula.ParseString("CH2".AsSpan(), _elementProvider);
+
+            this.SimpleParseTest(a + b, new[] { Tuple.Create("C", 3), Tuple.Create("H", 6), });
+            this.SimpleParseTest(a - b, new[] { Tuple.Create("C", 1), Tuple.Create("H", 2), });
+            this.SimpleParseTest(a * 3, new[] { Tuple.Create("C", 6), Tuple.Create("H", 12), });
+            this.SimpleParseTest(3 * a, new[] { Tuple.Create("C", 6), Tuple.Create("H", 12), });
+            this.SimpleParseTest(-a, new[] { Tuple.Create("C", -2), Tuple.Create("H", -4), });
+
+            Assert.IsFalse(a == b);
+            Assert.IsTrue(a != b);
+        }
+
+        [Test]
         public void HashCodeTest()
         {
             HashSet<ChemicalFormula> set = new();
