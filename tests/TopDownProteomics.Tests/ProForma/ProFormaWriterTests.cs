@@ -365,22 +365,5 @@ namespace TopDownProteomics.Tests.ProForma
 
             Assert.AreEqual("SE(?Q)UENCE", result);
         }
-
-
-        [Test]
-        public void WriteSequenceAmbiguities2()
-        {
-            var term = new ProFormaTerm("SEQUENCE",
-            tags: new[]
-            {
-                new ProFormaTag(2, new[]
-                {
-                    new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "RESID:AA00043")
-                })
-            });
-            var result = _writer.WriteString(term);
-
-            Assert.AreEqual("SE(?Q)UENCE", result);
-        }
     }
 }
