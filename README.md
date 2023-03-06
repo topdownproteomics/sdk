@@ -27,7 +27,7 @@ var residLookup = ResidModificationLookup.CreateFromModifications(modifications,
 // SEQV[RESID:AA0038]ENCE
 var term = new ProFormaTerm("SEQVENCE", null, null, new List<ProFormaTag>
 {
-    new ProFormaTag(3, new[] { new ProFormaDescriptor("RESID", "AA0038") })
+    new ProFormaTag(3, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "RESID:AA0420") })
 });
 
 // Validate and create proteoform group
