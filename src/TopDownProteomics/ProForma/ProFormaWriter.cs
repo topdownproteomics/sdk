@@ -199,7 +199,7 @@ namespace TopDownProteomics.ProForma
                 ProFormaKey.Identifier => descriptor.EvidenceType switch
                 {
                     ProFormaEvidenceType.Observed => $"Obs:{descriptor.Value}",
-                    ProFormaEvidenceType.Resid => $"RESID:{descriptor.Value}",
+                    ProFormaEvidenceType.Resid => $"{descriptor.Value}",
                     ProFormaEvidenceType.Unimod => $"{descriptor.Value.ToUpper()}",
                     _ => descriptor.Value
                 },
