@@ -245,7 +245,7 @@ namespace TopDownProteomics.Tests.ProForma
             // RESID
             var term = new ProFormaTerm("SEQUENCE", tags: new[]
             {
-                new ProFormaTag(2, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "AA0420") }),
+                new ProFormaTag(2, new[] { new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, "RESID:AA0420") }),
                 new ProFormaTag(4, new[] { new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Resid, "Test") }),
             });
             var result = _writer.WriteString(term);
