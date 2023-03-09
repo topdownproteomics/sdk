@@ -435,11 +435,9 @@ namespace TopDownProteomics.ProForma
 
                 "mod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.PsiMod, text, groupName, weight),
                 "unimod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, text.ToUpper(), groupName, weight),
+                "resid" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, text, groupName, weight),
                 "xlmod" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.XlMod, text, groupName, weight),
                 "gno" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Gno, text, groupName, weight),
-
-                // Special case for RESID id, don't inclue bit with colon
-                "resid" => Tuple.Create(ProFormaKey.Identifier, ProFormaEvidenceType.Resid, text.Substring(colon + 1), groupName, weight),
 
                 // Handle names and masses
                 "u" => Tuple.Create(getKey(isMass), ProFormaEvidenceType.Unimod, text.Substring(colon + 1), groupName, weight),
