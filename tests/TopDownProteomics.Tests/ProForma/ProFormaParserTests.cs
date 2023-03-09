@@ -350,7 +350,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual("N6-(phospho-5'-adenosine)-L-lysine", tag25.Descriptors[1].Value);
             Assert.AreEqual(ProFormaKey.Identifier, tag25.Descriptors[2].Key);
             Assert.AreEqual(ProFormaEvidenceType.Resid, tag25.Descriptors[2].EvidenceType);
-            Assert.AreEqual("AA0227", tag25.Descriptors[2].Value);
+            Assert.AreEqual("RESID:AA0227", tag25.Descriptors[2].Value);
             Assert.AreEqual(ProFormaKey.Identifier, tag25.Descriptors[3].Key);
             Assert.AreEqual(ProFormaEvidenceType.PsiMod, tag25.Descriptors[3].EvidenceType);
             Assert.AreEqual("MOD:00232", tag25.Descriptors[3].Value);
@@ -455,10 +455,10 @@ namespace TopDownProteomics.Tests
         // TODO: 4.2.1.1 -> Validation, not parsing
 
         [Test]
-        [TestCase("EM[MOD:00719]EVEES[MOD:00046]PEK", ProFormaEvidenceType.PsiMod)]
-        [TestCase("EM[UNIMOD:15]EVEES[UNIMOD:56]PEK", ProFormaEvidenceType.Unimod)]
-        [TestCase("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK", ProFormaEvidenceType.Resid)]
-        public void ModificationAccessionNumbers_4_2_2(string proFormaString, ProFormaEvidenceType modType)
+        [TestCase("EM[MOD:00719]EVEES[MOD:00046]PEK", ProFormaEvidenceType.PsiMod, "MOD:00719")]
+        [TestCase("EM[UNIMOD:15]EVEES[UNIMOD:56]PEK", ProFormaEvidenceType.Unimod, "UNIMOD:15")]
+        [TestCase("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK", ProFormaEvidenceType.Resid, "RESID:AA0581")]
+        public void ModificationAccessionNumbers_4_2_2(string proFormaString, ProFormaEvidenceType modType, string expectedFirstValue)
         {
             var term = _parser.ParseString(proFormaString);
 
@@ -470,6 +470,8 @@ namespace TopDownProteomics.Tests
 
             Assert.AreEqual(modType, desc1.EvidenceType);
             Assert.AreEqual(modType, desc2.EvidenceType);
+
+            Assert.AreEqual(expectedFirstValue, desc1.Value);
         }
 
         [Test]
