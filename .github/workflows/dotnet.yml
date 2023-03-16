@@ -32,6 +32,7 @@ jobs:
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV }}
         verbose: true
         files: ./coverage.net6.0.xml
         fail_ci_if_error: true
