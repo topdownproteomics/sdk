@@ -11,11 +11,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with: 
         fetch-depth: 10
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.x
     - name: Restore dependencies
@@ -32,6 +32,7 @@ jobs:
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV }}
         verbose: true
         files: ./coverage.net6.0.xml
         fail_ci_if_error: true
