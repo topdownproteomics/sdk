@@ -182,13 +182,16 @@ namespace TopDownProteomics.Tools
 
         private void Prune(ref double[] mz, ref double[] ab, double limit)
         {
+            if (mz.Length == 0)
+                return;
+
             int start = 0;
             int end = mz.Length - 1;
 
-            //while (ab[start] < limit)
-            //    start++;
+            while (ab[start] < limit && start != end)
+                start++;
 
-            while (ab[end] < limit)
+            while (end >= start && ab[end] < limit)
                 end--;
 
             // See if we need to prune
