@@ -29,10 +29,10 @@ Oxidation,15.994915,M,any,35
 Phospho,79.966331,STY,any,21
 
 # test1
-Test1,00.0000,STY,any,-1
+Test1,59.0000,STY,any,-1
 
 # test2
-Test_2,00.0000,STY,any,-1
+Test_2,59.0000,STY,any,-1
 
 # test3
-Ox_plus1,00.0000,STY,any,-1
+Ox_plus1,17.1230,STY,any,-1

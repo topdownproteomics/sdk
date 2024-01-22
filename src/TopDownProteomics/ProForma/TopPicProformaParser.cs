@@ -11,13 +11,13 @@ namespace TopDownProteomics.ProForma;
 /// </summary>
 public class TopPicProformaParser
 {
-    IDictionary<string, ProFormaDescriptor>? _modLookup = null;
+    IDictionary<string, IList<ProFormaDescriptor>>? _modLookup = null;
 
     #region Regex strings
-    Regex _modRx = new(@"\(([A-Z]{1,})\)(\[[^]^[]+\]|[()])+");
+    Regex _modRx = new(@"\(([A-Z]{1,})\)(\[.+?\]|[()])+");
     Regex _numberRx = new(@"(-?\+?[0-9]+.[0-9]+)");
     Regex _terminalAaRx = new(@"\P{N}(\.)\P{N}??|\P{N}??(\.)\P{N}");
-    Regex _strippedSequenceRx = new(@"\[[^]^[]+\]|[()]");
+    Regex _strippedSequenceRx = new(@"\[.+?\]|[()]");
     #endregion
 
     /// <summary>
@@ -44,12 +44,12 @@ public class TopPicProformaParser
         //first remove terminal AA tags if there!
         sequence = RemoveTerminalAAs(sequence);
         var (nTerms, cTerms, tags) = FindPTMs(sequence);
-        return new ProFormaTerm(GetFullyStrippedSequence(sequence),tags, nTerms, cTerms);
+        return new ProFormaTerm(GetFullyStrippedSequence(sequence), tags, nTerms, cTerms);
     }
 
-    private IDictionary<string, ProFormaDescriptor> ParseModFile(string modFile)
+    private IDictionary<string, IList<ProFormaDescriptor>> ParseModFile(string modFile)
     {
-        IDictionary<string, ProFormaDescriptor> modLookup = new Dictionary<string, ProFormaDescriptor>();
+        IDictionary<string, IList<ProFormaDescriptor>> modLookup = new Dictionary<string, IList<ProFormaDescriptor>>();
 
         using StreamReader reader = new StreamReader(modFile);
 
@@ -57,7 +57,7 @@ public class TopPicProformaParser
         {
             var line = reader.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(line)| line.StartsWith("#"))
+            if (string.IsNullOrWhiteSpace(line) | line.StartsWith("#"))
                 continue;
 
             //# To input a modification, use the following format:
@@ -69,14 +69,22 @@ public class TopPicProformaParser
 
             var name = splitLine[0];
 
-            if (Int32.TryParse(splitLine[4], out var uniModNumber))
+            if (int.TryParse(splitLine[4], out var uniModNumber))
             {
                 if (uniModNumber > 0)
-                    modLookup.Add(name, new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, $"UNIMOD:{uniModNumber}"));
-                else if (uniModNumber == -1)
-                    modLookup.Add(name, new ProFormaDescriptor(ProFormaKey.None, name)); // maybe could do mass instead?
+                    modLookup.Add(name, new List<ProFormaDescriptor>()
+                    {   
+                        new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, $"UNIMOD:{uniModNumber}"),
+                        new ProFormaDescriptor(ProFormaKey.Info, name)          
+                    });
+                else if (uniModNumber == -1 && double.TryParse(splitLine[1], out var mass))
+                    modLookup.Add(name, new List<ProFormaDescriptor>()
+                    {
+                        new ProFormaDescriptor(ProFormaKey.Mass, $"{mass:+#.000000;-#.000000}"),
+                        new ProFormaDescriptor(ProFormaKey.Info, name)                   
+                    });
                 else
-                    throw new Exception($"invalid UniMod Id");
+                    throw new Exception($"invalid UniMod Id or mass");
             }
             else
                 throw new Exception($"Failed to parse UniMod Id {splitLine[1]}");
@@ -147,19 +155,19 @@ public class TopPicProformaParser
         var proformaList = new List<ProFormaDescriptor>();
 
         foreach (var ptm in ptms)
-            proformaList.Add(ParsePtmString(ptm.ToString()));
+            proformaList.AddRange(ParsePtmString(ptm.ToString()));
 
         return proformaList;
     }
 
-    private ProFormaDescriptor ParsePtmString(string ptmString)
+    private IList<ProFormaDescriptor> ParsePtmString(string ptmString)
     {
         //strip []
         ptmString = ptmString.Substring(1, ptmString.Length - 2);
         var numberMatch = _numberRx.Match(ptmString);
 
         if (numberMatch.Success)
-            return new ProFormaDescriptor(ProFormaKey.Mass, numberMatch.Value);
+            return new List<ProFormaDescriptor>() { new ProFormaDescriptor(ProFormaKey.Mass, $"{numberMatch.Value:+#.000000;-#.000000}") };
 
         // Find and throw exception if there is a *
         if (ptmString.Contains('*'))
@@ -168,7 +176,7 @@ public class TopPicProformaParser
         if (_modLookup?.ContainsKey(ptmString) == true)
             return _modLookup[ptmString];
         else
-            return new ProFormaDescriptor(ptmString);
+            return new List<ProFormaDescriptor>() { new ProFormaDescriptor(ptmString) };
     }
 
     private string RemoveTerminalAAs(string sequence)
