@@ -65,8 +65,8 @@ public class TopPicProformaParser
             var splitLine = line.Split(',');
 
             if (splitLine.Length != 5)
-                throw new Exception("Failed to parse mod file");
-
+                throw new TopPicParserException("Failed to parse mod file");
+                
             var name = splitLine[0];
 
             if (int.TryParse(splitLine[4], out var uniModNumber))
@@ -84,10 +84,10 @@ public class TopPicProformaParser
                         new ProFormaDescriptor(ProFormaKey.Info, name)                   
                     });
                 else
-                    throw new Exception($"invalid UniMod Id or mass");
+                    throw new TopPicParserException($"invalid UniMod Id or mass");
             }
             else
-                throw new Exception($"Failed to parse UniMod Id {splitLine[1]}");
+                throw new TopPicParserException($"Failed to parse UniMod Id {splitLine[1]}");
         }
         return modLookup;
     }
@@ -129,7 +129,7 @@ public class TopPicProformaParser
             var ptms = match.Groups[2].Captures;
 
             if (ptms.Count > 1)
-                throw new Exception("multiple mods are not currently accepted");
+                throw new TopPicParserException("multiple mods are not currently accepted");
 
             if (startIndex == 0 && match.Groups[1].Length == 1)  // check for ambiguous mods that include the start -> just make tags
             {
@@ -171,7 +171,7 @@ public class TopPicProformaParser
 
         // Find and throw exception if there is a *
         if (ptmString.Contains('*'))
-            throw new Exception("multiple mods are not currently supported");
+            throw new TopPicParserException("multiple mods are not currently supported");
 
         if (_modLookup?.ContainsKey(ptmString) == true)
             return _modLookup[ptmString];
@@ -191,4 +191,17 @@ public class TopPicProformaParser
         }
         return sequence;
     }
+}
+
+/// <summary>
+/// An exception for the TopPIC to ProForma parser.
+/// </summary>
+/// <seealso cref="System.Exception" />
+public class TopPicParserException : Exception 
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TopPicParserException"/> class.
+    /// </summary>
+    /// <param name="message">The message that describes the error.</param>
+    public TopPicParserException(string message) : base(message) { }
 }

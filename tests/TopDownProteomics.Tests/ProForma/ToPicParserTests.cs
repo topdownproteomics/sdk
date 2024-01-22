@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.Linq;
 using TopDownProteomics.ProForma;
 
@@ -34,4 +35,43 @@ public class ToPicParserTests
 
         Assert.AreEqual(proForma, writer.WriteString(term));
     }
+
+
+    /// <summary>
+    /// Tests the TopPic Proforma Parser with no mod file.
+    /// </summary>
+    [Test]
+    [TestCase("M.A(AAA)[Phospho]AAA.C", "A(AAA)[Phospho]AAA")]
+    [TestCase("W.(G)[Oxidation]DGCAQKNKPGVYTK(V)[Phospho]YNYVKWIKNTIAANS.", "[Oxidation]-GDGCAQKNKPGVYTKV[Phospho]YNYVKWIKNTIAANS")]
+    [TestCase("W.(G)[asdf4fdfsd6!]DGCAQKNKPGVYTKYNYVKWIKNTIAANS.", "[asdf4fdfsd6!]-GDGCAQKNKPGVYTKYNYVKWIKNTIAANS")]
+
+    public void CompareToProFormaNoModFile(string topPIC, string proForma)
+    {
+        var topicParser = new TopPicProformaParser();
+        var term = topicParser.ParseTopPicString(topPIC);
+
+        var writer = new ProFormaWriter();
+
+        Assert.AreEqual(proForma, writer.WriteString(term));
+    }
+
+    /// <summary>
+    /// Testing Exceptions.
+    /// </summary>
+    /// <param name="topPIC">The top pic.</param>
+    [Test]
+    [TestCase("M.A(AAA)[Phospho*4]AAA.C", "multiple mods are not currently supported")]
+    public void ExceptionTesting(string topPIC, string exMessage)
+    {
+        var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
+
+        TestDelegate throwTest = () =>
+        {
+            var term = topicParser.ParseTopPicString(topPIC);
+        };
+
+        TopPicParserException ex = Assert.Throws<TopPicParserException>(throwTest);
+        Assert.AreEqual(exMessage, ex.Message);
+    }
+
 }
