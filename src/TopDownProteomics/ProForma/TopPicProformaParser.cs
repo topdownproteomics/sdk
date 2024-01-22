@@ -41,10 +41,10 @@ public class TopPicProformaParser
     /// <returns></returns>
     public ProFormaTerm ParseTopPicString(string sequence)
     {
-        //first remove terminaltags if there!
+        //first remove terminal AA tags if there!
         sequence = RemoveTerminalAAs(sequence);
-        var ptms = FindPTMs(sequence);
-        return new ProFormaTerm(GetFullyStrippedSequence(sequence), ptms.Item3, ptms.Item1, ptms.Item2);
+        var (nTerms, cTerms, tags) = FindPTMs(sequence);
+        return new ProFormaTerm(GetFullyStrippedSequence(sequence),tags, nTerms, cTerms);
     }
 
     private IDictionary<string, ProFormaDescriptor> ParseModFile(string modFile)
@@ -57,12 +57,16 @@ public class TopPicProformaParser
         {
             var line = reader.ReadLine();
 
-            if (line.Length == 0 | line.StartsWith("#"))
+            if (string.IsNullOrWhiteSpace(line)| line.StartsWith("#"))
                 continue;
 
             //# To input a modification, use the following format:
             //# Name,Mass,Residues,Position,UnimodID
             var splitLine = line.Split(',');
+
+            if (splitLine.Length != 5)
+                throw new Exception("Failed to parse mod file");
+
             var name = splitLine[0];
 
             if (Int32.TryParse(splitLine[4], out var uniModNumber))
@@ -103,7 +107,7 @@ public class TopPicProformaParser
         return indexLookup;
     }
 
-    private Tuple<List<ProFormaDescriptor>, List<ProFormaDescriptor>, List<ProFormaTag>> FindPTMs(string sequence)
+    private Tuple<IList<ProFormaDescriptor>, IList<ProFormaDescriptor>, IList<ProFormaTag>> FindPTMs(string sequence)
     {
         var indexLookup = GetIndexLookup(sequence);
 
@@ -135,7 +139,7 @@ public class TopPicProformaParser
             else
                 tags.Add(new ProFormaTag(startIndex, ParsePtms(ptms)));
         }
-        return new Tuple<List<ProFormaDescriptor>, List<ProFormaDescriptor>, List<ProFormaTag>>(nTerms, cTerms, tags);
+        return new Tuple<IList<ProFormaDescriptor>, IList<ProFormaDescriptor>, IList<ProFormaTag>>(nTerms, cTerms, tags);
     }
 
     private List<ProFormaDescriptor> ParsePtms(CaptureCollection ptms)
