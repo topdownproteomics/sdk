@@ -53,7 +53,19 @@ public class ToPicParserTests
         else
         {
             Assert.IsNull(firstTagAccession);
-            Assert.IsNull (firstTagIndex);
+            Assert.IsNull(firstTagIndex);
         }
+    }
+
+    [Test]
+    [TestCase("M.A(AAA)[Phospho]AAA.C", "A(AAA)[UNIMOD:21]AAA")]
+    public void CompareToProForma(string topPIC, string proForma)
+    {
+        var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
+        var term = topicParser.ParseTopPicString(topPIC);
+
+        var writer = new ProFormaWriter();
+
+        Assert.AreEqual(proForma, writer.WriteString(term));
     }
 }
