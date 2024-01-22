@@ -1,11 +1,6 @@
 ﻿using NUnit.Framework;
-using System.IO;
 using System.Linq;
-using TopDownProteomics.Chemistry;
-using TopDownProteomics.Chemistry.Unimod;
-using TopDownProteomics.IO.Unimod;
 using TopDownProteomics.ProForma;
-using TopDownProteomics.Tests.IO;
 
 namespace TopDownProteomics.Tests.ProForma
 {
@@ -59,8 +54,6 @@ namespace TopDownProteomics.Tests.ProForma
                 Assert.IsNull(firstTagAccession);
                 Assert.IsNull (firstTagIndex);
             }
-          
-
         }
     }
 }

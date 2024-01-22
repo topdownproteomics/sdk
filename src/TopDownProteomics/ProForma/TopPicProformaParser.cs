@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using TopDownProteomics.Chemistry;
-using TopDownProteomics.Chemistry.Unimod;
-using TopDownProteomics.IO.Unimod;
-using TopDownProteomics.ProForma.Validation;
 
 namespace TopDownProteomics.ProForma
 {
@@ -140,9 +136,7 @@ namespace TopDownProteomics.ProForma
                     Tags.Add(new ProFormaTag(startIndex, EndIndex, ParsePTMs(ptms)));
                 }
                 else
-
                     Tags.Add(new ProFormaTag(startIndex, ParsePTMs(ptms)));
-
             }
             return new Tuple<List<ProFormaDescriptor>, List<ProFormaDescriptor>, List<ProFormaTag>>(N_terms, C_terms, Tags);
         }
