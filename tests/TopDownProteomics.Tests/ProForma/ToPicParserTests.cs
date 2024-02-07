@@ -81,7 +81,6 @@ public class ToPicParserTests
     [TestCase(@"Phospho,79.966331,STY,any,2O", "Failed to parse UniMod Id 2O")]
     [TestCase(@"Phospho,79b.966331,STY,any,-1", "invalid UniMod Id or mass")]
     [TestCase(@"Phospho,79.966331,STY,any,-5", "invalid UniMod Id or mass")]
-
     public void ModFilePArsingExceptionTesting(string modFileString, string exMessage)
     {
         MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(modFileString));
