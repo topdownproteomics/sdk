@@ -25,7 +25,6 @@ public class ToPicParserTests
     [TestCase("W.(G)[Test_2]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+59.000000|Info:Test_2]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[Ox_plus1]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+17.123000|Info:Ox_plus1]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[+23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
-
     public void CompareToProForma(string topPIC, string proForma)
     {
         var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
@@ -36,7 +35,6 @@ public class ToPicParserTests
         Assert.AreEqual(proForma, writer.WriteString(term));
     }
 
-
     /// <summary>
     /// Tests the TopPic Proforma Parser with no mod file.
     /// </summary>
@@ -44,7 +42,6 @@ public class ToPicParserTests
     [TestCase("M.A(AAA)[Phospho]AAA.C", "A(AAA)[Phospho]AAA")]
     [TestCase("W.(G)[Oxidation]DGCAQKNKPGVYTK(V)[Phospho]YNYVKWIKNTIAANS.", "[Oxidation]-GDGCAQKNKPGVYTKV[Phospho]YNYVKWIKNTIAANS")]
     [TestCase("W.(G)[asdf4fdfsd6!]DGCAQKNKPGVYTKYNYVKWIKNTIAANS.", "[asdf4fdfsd6!]-GDGCAQKNKPGVYTKYNYVKWIKNTIAANS")]
-
     public void CompareToProFormaNoModFile(string topPIC, string proForma)
     {
         var topicParser = new TopPicProformaParser();
@@ -73,5 +70,4 @@ public class ToPicParserTests
         TopPicParserException ex = Assert.Throws<TopPicParserException>(throwTest);
         Assert.AreEqual(exMessage, ex.Message);
     }
-
 }

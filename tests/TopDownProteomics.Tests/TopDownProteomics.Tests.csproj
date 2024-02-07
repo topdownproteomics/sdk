@@ -18,7 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="TestData\topPicTestMods.txt" />
     <None Remove="TopDownProteomics.Tests.xml" />
   </ItemGroup>
 
