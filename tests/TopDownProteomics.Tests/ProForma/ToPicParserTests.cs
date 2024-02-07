@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Linq;
+using System.IO;
+using System.Text;
 using TopDownProteomics.ProForma;
 
 namespace TopDownProteomics.Tests.ProForma;
@@ -58,13 +58,37 @@ public class ToPicParserTests
     /// <param name="topPIC">The top pic.</param>
     [Test]
     [TestCase("M.A(AAA)[Phospho*4]AAA.C", "multiple mods are not currently supported")]
-    public void ExceptionTesting(string topPIC, string exMessage)
+    [TestCase("M.A(AAA)[Phospho][Phospho]AAA.C", "multiple mods are not currently supported")]
+    public void ParsingExceptionTesting(string topPIC, string exMessage)
     {
         var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
 
         TestDelegate throwTest = () =>
         {
             var term = topicParser.ParseTopPicString(topPIC);
+        };
+
+        TopPicParserException ex = Assert.Throws<TopPicParserException>(throwTest);
+        Assert.AreEqual(exMessage, ex.Message);
+    }
+
+    /// <summary>
+    /// Testing Exceptions.
+    /// </summary>
+    /// <param name="topPIC">The top pic.</param>
+    [Test]
+    [TestCase(@"Phospho,79.966331,STY,any,21,54", "Failed to parse mod file")]
+    [TestCase(@"Phospho,79.966331,STY,any,2O", "Failed to parse UniMod Id 2O")]
+    [TestCase(@"Phospho,79b.966331,STY,any,-1", "invalid UniMod Id or mass")]
+    [TestCase(@"Phospho,79.966331,STY,any,-5", "invalid UniMod Id or mass")]
+
+    public void ModFilePArsingExceptionTesting(string modFileString, string exMessage)
+    {
+        MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(modFileString));
+
+        TestDelegate throwTest = () =>
+        {     
+            var topicParser = new TopPicProformaParser(stream);
         };
 
         TopPicParserException ex = Assert.Throws<TopPicParserException>(throwTest);

@@ -31,7 +31,16 @@ public class TopPicProformaParser
     /// <param name="modFile">The mod.txt file for mapping modifications.</param>
     public TopPicProformaParser(string modFile)
     {
-        _modLookup = ParseModFile(modFile);
+        _modLookup = ParseModFile(new FileInfo(modFile).OpenRead()); ;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TopPicProformaParser"/> class.
+    /// </summary>
+    /// <param name="modStream">The mod stream.</param>
+    public TopPicProformaParser(Stream modStream)
+    {
+        _modLookup = ParseModFile(modStream);
     }
 
     /// <summary>
@@ -47,11 +56,11 @@ public class TopPicProformaParser
         return new ProFormaTerm(GetFullyStrippedSequence(sequence), tags, nTerms, cTerms);
     }
 
-    private IDictionary<string, IList<ProFormaDescriptor>> ParseModFile(string modFile)
+    private IDictionary<string, IList<ProFormaDescriptor>> ParseModFile(Stream modStream)
     {
         IDictionary<string, IList<ProFormaDescriptor>> modLookup = new Dictionary<string, IList<ProFormaDescriptor>>();
 
-        using StreamReader reader = new StreamReader(modFile);
+        using StreamReader reader = new StreamReader(modStream);
 
         while (!reader.EndOfStream)
         {
@@ -66,28 +75,28 @@ public class TopPicProformaParser
 
             if (splitLine.Length != 5)
                 throw new TopPicParserException("Failed to parse mod file");
-                
+
             var name = splitLine[0];
 
             if (int.TryParse(splitLine[4], out var uniModNumber))
             {
                 if (uniModNumber > 0)
                     modLookup.Add(name, new List<ProFormaDescriptor>()
-                    {   
+                    {
                         new ProFormaDescriptor(ProFormaKey.Identifier, ProFormaEvidenceType.Unimod, $"UNIMOD:{uniModNumber}"),
-                        new ProFormaDescriptor(ProFormaKey.Info, name)          
+                        new ProFormaDescriptor(ProFormaKey.Info, name)
                     });
                 else if (uniModNumber == -1 && double.TryParse(splitLine[1], out var mass))
                     modLookup.Add(name, new List<ProFormaDescriptor>()
                     {
                         new ProFormaDescriptor(ProFormaKey.Mass, $"{mass:+#.000000;-#.000000}"),
-                        new ProFormaDescriptor(ProFormaKey.Info, name)                   
+                        new ProFormaDescriptor(ProFormaKey.Info, name)
                     });
                 else
                     throw new TopPicParserException($"invalid UniMod Id or mass");
             }
             else
-                throw new TopPicParserException($"Failed to parse UniMod Id {splitLine[1]}");
+                throw new TopPicParserException($"Failed to parse UniMod Id {splitLine[4]}".Trim());
         }
         return modLookup;
     }
@@ -129,7 +138,7 @@ public class TopPicProformaParser
             var ptms = match.Groups[2].Captures;
 
             if (ptms.Count > 1)
-                throw new TopPicParserException("multiple mods are not currently accepted");
+                throw new TopPicParserException("multiple mods are not currently supported");
 
             if (startIndex == 0 && match.Groups[1].Length == 1)  // check for ambiguous mods that include the start -> just make tags
             {
@@ -197,7 +206,7 @@ public class TopPicProformaParser
 /// An exception for the TopPIC to ProForma parser.
 /// </summary>
 /// <seealso cref="System.Exception" />
-public class TopPicParserException : Exception 
+public class TopPicParserException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TopPicParserException"/> class.
