@@ -28,6 +28,7 @@ public class ToPicParserTests
     [TestCase(".(G)[Ox_plus1]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+17.123000|Info:Ox_plus1]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[+23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
+    [TestCase(".(G)[-23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[-23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     public void CompareToProForma(string topPIC, string proForma)
     {
         var topicParser = new TopPicProformaParser(GetTestDataFile("topPicTestMods.txt"));
