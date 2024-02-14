@@ -11,6 +11,8 @@ namespace TopDownProteomics.Tests.ProForma;
 [TestFixture]
 public class ToPicParserTests
 {
+    private static string GetTestDataFile(string name) => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", name);
+
     /// <summary>
     /// Tests the TopPic Proforma Parser.
     /// </summary>
@@ -25,9 +27,10 @@ public class ToPicParserTests
     [TestCase("W.(G)[Test_2]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+59.000000|Info:Test_2]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[Ox_plus1]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+17.123000|Info:Ox_plus1]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     [TestCase(".(G)[+23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
+    [TestCase(".(G)[23.9987]DGCAQKNKPGVYTKVYNYVKWIKNTIAANS.", "[+23.9987]-GDGCAQKNKPGVYTKVYNYVKWIKNTIAANS")]
     public void CompareToProForma(string topPIC, string proForma)
     {
-        var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
+        var topicParser = new TopPicProformaParser(GetTestDataFile("topPicTestMods.txt"));
         var term = topicParser.ParseTopPicString(topPIC);
 
         var writer = new ProFormaWriter();
@@ -61,7 +64,7 @@ public class ToPicParserTests
     [TestCase("M.A(AAA)[Phospho][Phospho]AAA.C", "multiple mods are not currently supported")]
     public void ParsingExceptionTesting(string topPIC, string exMessage)
     {
-        var topicParser = new TopPicProformaParser(@".\TestData\topPicTestMods.txt");
+        var topicParser = new TopPicProformaParser(GetTestDataFile("topPicTestMods.txt"));
 
         TestDelegate throwTest = () =>
         {

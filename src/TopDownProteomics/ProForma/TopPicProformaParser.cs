@@ -14,7 +14,7 @@ public class TopPicProformaParser
     IDictionary<string, IList<ProFormaDescriptor>>? _modLookup = null;
 
     #region Regex strings
-    Regex _modRx = new(@"\(([A-Z]{1,})\)(\[.+?\]|[()])+");
+    Regex _modRx = new(@"\(([A-Z]{1,})\)(\[.+?\])+");
     Regex _numberRx = new(@"(-?\+?[0-9]+.[0-9]+)");
     Regex _terminalAaRx = new(@"\P{N}(\.)\P{N}??|\P{N}??(\.)\P{N}");
     Regex _strippedSequenceRx = new(@"\[.+?\]|[()]");
@@ -175,9 +175,9 @@ public class TopPicProformaParser
         ptmString = ptmString.Substring(1, ptmString.Length - 2);
         var numberMatch = _numberRx.Match(ptmString);
 
-        if (numberMatch.Success)
-            return new List<ProFormaDescriptor>() { new ProFormaDescriptor(ProFormaKey.Mass, $"{numberMatch.Value:+#.000000;-#.000000}") };
-
+        if (numberMatch.Success && Double.TryParse(numberMatch.Value, out double val))
+            return new List<ProFormaDescriptor>() { new ProFormaDescriptor(ProFormaKey.Mass, $"{val:+#.0000;-#.0000;0}")};
+        
         // Find and throw exception if there is a *
         if (ptmString.Contains('*'))
             throw new TopPicParserException("multiple mods are not currently supported");
