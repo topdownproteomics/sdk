@@ -18,17 +18,21 @@ namespace TopDownProteomics.MassSpectrometry
         /// <param name="mz">The mz.</param>
         /// <param name="intensity">The intensity.</param>
         /// <param name="charge">The charge.</param>
-        public ChargedIsotopicDistribution(double[] mz, double[] intensity, int charge)
+        /// <param name="chargeCarrier">The charge carrier.</param>
+        public ChargedIsotopicDistribution(double[] mz, double[] intensity, int charge, double chargeCarrier)
         {
             _intensity = intensity;
             _mz = mz;
+
             this.Charge = charge;
+            this.ChargeCarrier = chargeCarrier;
         }
 
-        /// <summary>
-        /// Gets the charge.
-        /// </summary>
+        /// <summary>The charge.</summary>
         public int Charge { get; }
+
+        /// <summary>The mass of the charge carrier.</summary>
+        public double ChargeCarrier { get; }
 
         /// <summary>
         /// Gets the mz.
@@ -68,7 +72,7 @@ namespace TopDownProteomics.MassSpectrometry
                 {
                     // Moving any more would only make things less intense ... stop
                     return new ChargedIsotopicDistribution(_mz.SubSequence(i, i + numberOfPoints - 1).ToArray(),
-                        _intensity.SubSequence(i, i + numberOfPoints - 1).ToArray(), this.Charge);
+                        _intensity.SubSequence(i, i + numberOfPoints - 1).ToArray(), this.Charge, this.ChargeCarrier);
                 }
             }
 
@@ -89,7 +93,7 @@ namespace TopDownProteomics.MassSpectrometry
                 mz[i] = _mz[i] + shiftMz;
             }
 
-            return new ChargedIsotopicDistribution(mz, (double[])_intensity.Clone(), this.Charge);
+            return new ChargedIsotopicDistribution(mz, (double[])_intensity.Clone(), this.Charge, this.ChargeCarrier);
         }
     }
 }

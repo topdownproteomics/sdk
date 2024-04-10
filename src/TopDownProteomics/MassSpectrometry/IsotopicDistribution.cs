@@ -83,7 +83,7 @@ namespace TopDownProteomics.MassSpectrometry
         {
             Debug.Assert(charge > 0, "Charge must be greater than 0.");
 
-            return new ChargedIsotopicDistribution(this.GetMz(charge, positiveCharge), _abundances, charge);
+            return new ChargedIsotopicDistribution(this.GetMz(charge, positiveCharge), _abundances, charge, Utility.Proton);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace TopDownProteomics.MassSpectrometry
         {
             Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
 
-            return new ChargedIsotopicDistribution(this.GetMz(charge, chargeCarrier), _abundances, charge);
+            return new ChargedIsotopicDistribution(this.GetMz(charge, chargeCarrier), _abundances, charge, chargeCarrier);
         }
 
         /// <summary>

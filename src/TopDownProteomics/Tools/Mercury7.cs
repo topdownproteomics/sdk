@@ -73,25 +73,15 @@ public class Mercury7 : IIsotopicDistributionGenerator
     }
     private List<IChargedIsotopicDistribution> Mercury(ChemicalFormula cf, int firstCharge, int lastCharge, double limit)
     {
-        IIsotopicDistribution dist = this.Mercury(cf, limit);
-        var mercury7ResultList = new List<IChargedIsotopicDistribution>();
+        IIsotopicDistribution distribution = this.Mercury(cf, limit);
+        var results = new List<IChargedIsotopicDistribution>();
 
-        if (firstCharge > 0)
-        {
-            for (int j = firstCharge; j < lastCharge + 1; j++)
-            {
-                mercury7ResultList.Add(dist.CreateChargedDistribution(j, _chargeCarrier));
-            }
-        }
-        else if (firstCharge < 0)
-        {
-            for (int j = firstCharge; j > lastCharge - 1; j--)
-            {
-                mercury7ResultList.Add(dist.CreateChargedDistribution(j, _chargeCarrier));
-            }
-        }
+        var (start, end) = Utility.OrderPair(firstCharge, lastCharge);
 
-        return mercury7ResultList;
+        for (int j = start; j <= end; j++)
+            results.Add(distribution.CreateChargedDistribution(j, _chargeCarrier));
+
+        return results;
     }
     private IIsotopicDistribution Mercury(ChemicalFormula cf, double limit)
     {

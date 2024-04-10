@@ -5,10 +5,11 @@
     /// </summary>
     public interface IChargedIsotopicDistribution : IMzIntensityData
     {
-        /// <summary>
-        /// Gets the charge.
-        /// </summary>
+        /// <summary>The charge.</summary>
         int Charge { get; }
+
+        /// <summary>The mass of the charge carrier.</summary>
+        double ChargeCarrier { get; }
 
         /// <summary>
         /// Clones the distribution with a subset of the most intense points.
@@ -20,7 +21,7 @@
         /// <summary>
         /// Clones the distribution and shifts it by an m/z (Th) value.
         /// </summary>
-        /// <param name="shiftMz">The shift m/z in thomsons (Th).</param>
+        /// <param name="shiftMz">The shift m/z in Thomsons (Th).</param>
         /// <returns></returns>
         IChargedIsotopicDistribution CloneAndShift(double shiftMz);
     }
