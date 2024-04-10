@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TopDownProteomics
@@ -111,7 +112,8 @@ namespace TopDownProteomics
             return result;
         }
 
-        private const double Proton = 1.007276466;
+        /// <summary>The mass of a proton</summary>
+        public const double Proton = 1.007276466;
 
         /// <summary>
         /// Converts the m/z to mass.
@@ -120,8 +122,11 @@ namespace TopDownProteomics
         /// <param name="charge">The charge.</param>
         /// <param name="positiveCharge">if set to <c>true</c> [positive charge].</param>
         /// <returns></returns>
-        public static double ConvertMzToMass(double mz, int charge, bool positiveCharge = true)
+        [Obsolete("Use ConvertMzToMass(double, int, double) instead.")]
+        public static double ConvertMzToMass(double mz, int charge, bool positiveCharge)
         {
+            Debug.Assert(charge > 0, "Charge must be greater than 0.");
+
             if (positiveCharge)
             {
                 return charge * (mz - Proton);
@@ -131,20 +136,55 @@ namespace TopDownProteomics
         }
 
         /// <summary>
+        /// Converts the m/z to mass.
+        /// </summary>
+        /// <param name="mz">The m/z.</param>
+        /// <param name="charge">The charge.</param>
+        /// <param name="chargeCarrier">The charge carrier. Default value is Proton.</param>
+        /// <returns>The mass.</returns>
+        public static double ConvertMzToMass(double mz, int charge, double chargeCarrier = Proton)
+        {
+            Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
+
+            if (charge > 0)
+                return charge * (mz - chargeCarrier);
+
+            return -charge * (mz + chargeCarrier);
+        }
+
+        /// <summary>
         /// Converts the mass to m/z.
         /// </summary>
         /// <param name="mass">The mass.</param>
         /// <param name="charge">The charge.</param>
         /// <param name="positiveCharge">if set to <c>true</c> [positive charge].</param>
         /// <returns></returns>
-        public static double ConvertMassToMz(double mass, int charge, bool positiveCharge = true)
+        [Obsolete("Use ConvertMassToMz(double, int, double) instead.")]
+        public static double ConvertMassToMz(double mass, int charge, bool positiveCharge)
         {
+            Debug.Assert(charge > 0, "Charge must be greater than 0.");
+
             if (positiveCharge)
-            {
                 return mass / charge + Proton;
-            }
 
             return mass / charge - Proton;
+        }
+
+        /// <summary>
+        /// Converts the mass to m/z.
+        /// </summary>
+        /// <param name="mass">The mass.</param>
+        /// <param name="charge">The charge.</param>
+        /// <param name="chargeCarrier">The charge carrier. Default value is Proton.</param>
+        /// <returns></returns>
+        public static double ConvertMassToMz(double mass, int charge, double chargeCarrier = Proton)
+        {
+            Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
+
+            if (charge > 0)
+                return mass / charge + chargeCarrier;
+
+            return mass / -charge - chargeCarrier;
         }
 
 #if !NETSTANDARD2_1

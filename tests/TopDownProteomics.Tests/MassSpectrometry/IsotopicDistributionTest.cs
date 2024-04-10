@@ -36,12 +36,31 @@ public class IsotopicDistributionTest
     {
         var mercury = new Mercury7(1e-30);
 
-        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider), -1);
+        ChemicalFormula formula = ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider);
+        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(formula, -1);
 
         var mz = result.GetMz();
         var abun = result.GetIntensity();
 
         Assert.IsTrue(mz.Length == abun.Length);
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) - 1.007276466, mz[0], 0.001);
+    }
+
+    [Test]
+    public void MercuryChargeCarrierTest()
+    {
+        var chargeCarrier = 3d;
+        var mercury = new Mercury7(1e-30, chargeCarrier);
+
+        ChemicalFormula formula = ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider);
+        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(formula, 1);
+
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) + chargeCarrier, result.FirstMz, 0.001);
+
+        // Test negative charge
+        result = mercury.GenerateChargedIsotopicDistribution(formula, -1);
+
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) - chargeCarrier, result.FirstMz, 0.001);
     }
 
     [Test]
