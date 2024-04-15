@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TopDownProteomics.MassSpectrometry
@@ -55,7 +56,19 @@ namespace TopDownProteomics.MassSpectrometry
             double[] mz = new double[this.Length];
 
             for (int i = 0; i < this.Length; i++)
+#pragma warning disable CS0618 // Type or member is obsolete
                 mz[i] = Utility.ConvertMassToMz(_masses[i], charge, positiveCharge);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return mz;
+        }
+
+        private double[] GetMz(int charge, double chargeCarrier)
+        {
+            double[] mz = new double[this.Length];
+
+            for (int i = 0; i < this.Length; i++)
+                mz[i] = Utility.ConvertMassToMz(_masses[i], charge, chargeCarrier);
 
             return mz;
         }
@@ -66,9 +79,26 @@ namespace TopDownProteomics.MassSpectrometry
         /// <param name="charge">The charge.</param>
         /// <param name="positiveCharge">if set to <c>true</c> [positive charge].</param>
         /// <returns></returns>
-        public IChargedIsotopicDistribution CreateChargedDistribution(int charge, bool positiveCharge = true)
+        public IChargedIsotopicDistribution CreateChargedDistribution(int charge, bool positiveCharge)
         {
-            return new ChargedIsotopicDistribution(this.GetMz(charge, positiveCharge), _abundances, charge);
+            Debug.Assert(charge > 0, "Charge must be greater than 0.");
+
+            return new ChargedIsotopicDistribution(this.GetMz(charge, positiveCharge), _abundances, charge, Utility.Proton);
+        }
+
+        /// <summary>
+        /// Creates a charged isotopic distribution.
+        /// </summary>
+        /// <param name="charge">The charge.</param>
+        /// <param name="chargeCarrier">The charge carrier.</param>
+        /// <returns>
+        /// A charged isotopic distribution with the same abundances.
+        /// </returns>
+        public IChargedIsotopicDistribution CreateChargedDistribution(int charge, double chargeCarrier = Utility.Proton)
+        {
+            Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
+
+            return new ChargedIsotopicDistribution(this.GetMz(charge, chargeCarrier), _abundances, charge, chargeCarrier);
         }
 
         /// <summary>

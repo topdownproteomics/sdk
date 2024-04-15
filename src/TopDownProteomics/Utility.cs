@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TopDownProteomics
@@ -111,7 +112,25 @@ namespace TopDownProteomics
             return result;
         }
 
-        private const double Proton = 1.007276466;
+        /// <summary>
+        /// Returns a tuple containing the ordered pair of elements.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <param name="a">The first element.</param>
+        /// <param name="b">The second element.</param>
+        /// <returns>A tuple containing the ordered pair of elements.</returns>
+        public static (T, T) OrderPair<T>(T a, T b) where T : IComparable<T>
+        {
+            int comparison = a.CompareTo(b);
+
+            if (comparison > 0)
+                return (b, a);
+
+            return (a, b);
+        }
+
+        /// <summary>The mass of a proton</summary>
+        public const double Proton = 1.007276466;
 
         /// <summary>
         /// Converts the m/z to mass.
@@ -119,9 +138,12 @@ namespace TopDownProteomics
         /// <param name="mz">The m/z.</param>
         /// <param name="charge">The charge.</param>
         /// <param name="positiveCharge">if set to <c>true</c> [positive charge].</param>
-        /// <returns></returns>
-        public static double ConvertMzToMass(double mz, int charge, bool positiveCharge = true)
+        /// <returns>The mass.</returns>
+        [Obsolete("Use ConvertMzToMass(double, int, double) instead.")]
+        public static double ConvertMzToMass(double mz, int charge, bool positiveCharge)
         {
+            Debug.Assert(charge > 0, "Charge must be greater than 0.");
+
             if (positiveCharge)
             {
                 return charge * (mz - Proton);
@@ -131,46 +153,81 @@ namespace TopDownProteomics
         }
 
         /// <summary>
+        /// Converts the m/z to mass.
+        /// </summary>
+        /// <param name="mz">The m/z.</param>
+        /// <param name="charge">The charge.</param>
+        /// <param name="chargeCarrier">The charge carrier. Default value is Proton.</param>
+        /// <returns>The mass.</returns>
+        public static double ConvertMzToMass(double mz, int charge, double chargeCarrier = Proton)
+        {
+            Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
+
+            if (charge > 0)
+                return charge * (mz - chargeCarrier);
+
+            return -charge * (mz + chargeCarrier);
+        }
+
+        /// <summary>
         /// Converts the mass to m/z.
         /// </summary>
         /// <param name="mass">The mass.</param>
         /// <param name="charge">The charge.</param>
         /// <param name="positiveCharge">if set to <c>true</c> [positive charge].</param>
-        /// <returns></returns>
-        public static double ConvertMassToMz(double mass, int charge, bool positiveCharge = true)
+        /// <returns>The m/z.</returns>
+        [Obsolete("Use ConvertMassToMz(double, int, double) instead.")]
+        public static double ConvertMassToMz(double mass, int charge, bool positiveCharge)
         {
+            Debug.Assert(charge > 0, "Charge must be greater than 0.");
+
             if (positiveCharge)
-            {
                 return mass / charge + Proton;
-            }
 
             return mass / charge - Proton;
         }
 
-#if !NETSTANDARD2_1
         /// <summary>
-        /// Split implementation that takes a single char.
+        /// Converts the mass to m/z.
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="separator"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public static string[] Split(this string input, char separator, StringSplitOptions options)
+        /// <param name="mass">The mass.</param>
+        /// <param name="charge">The charge.</param>
+        /// <param name="chargeCarrier">The charge carrier. Default value is Proton.</param>
+        /// <returns>The m/z.</returns>
+        public static double ConvertMassToMz(double mass, int charge, double chargeCarrier = Proton)
         {
-            return input.Split(new[] { separator }, options);
+            Debug.Assert(chargeCarrier > 0, "Charge carrier must be greater than 0.");
+
+            if (charge > 0)
+                return mass / charge + chargeCarrier;
+
+            return mass / -charge - chargeCarrier;
         }
 
-        /// <summary>
-        /// Split implementation that takes a single string.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="separator"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public static string[] Split(this string input, string separator, StringSplitOptions options)
-        {
-            return input.Split(new[] { separator }, options);
-        }
+#if !NETSTANDARD2_1
+            /// <summary>
+            /// Split implementation that takes a single char.
+            /// </summary>
+            /// <param name="input"></param>
+            /// <param name="separator"></param>
+            /// <param name="options"></param>
+            /// <returns></returns>
+            public static string[] Split(this string input, char separator, StringSplitOptions options)
+            {
+                return input.Split(new[] { separator }, options);
+            }
+
+            /// <summary>
+            /// Split implementation that takes a single string.
+            /// </summary>
+            /// <param name="input"></param>
+            /// <param name="separator"></param>
+            /// <param name="options"></param>
+            /// <returns></returns>
+            public static string[] Split(this string input, string separator, StringSplitOptions options)
+            {
+                return input.Split(new[] { separator }, options);
+            }
 #endif
     }
 }

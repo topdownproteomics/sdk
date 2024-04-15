@@ -36,12 +36,31 @@ public class IsotopicDistributionTest
     {
         var mercury = new Mercury7(1e-30);
 
-        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider), -1);
+        ChemicalFormula formula = ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider);
+        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(formula, -1);
 
         var mz = result.GetMz();
         var abun = result.GetIntensity();
 
         Assert.IsTrue(mz.Length == abun.Length);
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) - 1.007276466, mz[0], 0.001);
+    }
+
+    [Test]
+    public void MercuryChargeCarrierTest()
+    {
+        var chargeCarrier = 3d;
+        var mercury = new Mercury7(1e-30, chargeCarrier);
+
+        ChemicalFormula formula = ChemicalFormula.ParseString("C6H12O6".AsSpan(), _elementProvider);
+        IChargedIsotopicDistribution result = mercury.GenerateChargedIsotopicDistribution(formula, 1);
+
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) + chargeCarrier, result.FirstMz, 0.001);
+
+        // Test negative charge
+        result = mercury.GenerateChargedIsotopicDistribution(formula, -1);
+
+        Assert.AreEqual(formula.GetMass(MassType.Monoisotopic) - chargeCarrier, result.FirstMz, 0.001);
     }
 
     [Test]
@@ -50,7 +69,7 @@ public class IsotopicDistributionTest
         double[] mz = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         double[] intensity = { 1.1, 2.1, 3.1, 4.2, 5.1, 6.1, 5.2, 4.1, 3.1, 2.1, 1.1 };
 
-        ChargedIsotopicDistribution result = new ChargedIsotopicDistribution(mz, intensity, 1);
+        ChargedIsotopicDistribution result = new(mz, intensity, 1, Utility.Proton);
         IChargedIsotopicDistribution clone = result.CloneWithMostIntensePoints(1);
 
         double[] cloneMz = clone.GetMz();
