@@ -11,6 +11,9 @@
         /// <summary>The mass of the charge carrier.</summary>
         double ChargeCarrier { get; }
 
+        /// <summary>Gets the monoisotopic m/z.</summary>
+        double MonoisotopicMz { get; }
+
         /// <summary>
         /// Clones the distribution with a subset of the most intense points.
         /// </summary>

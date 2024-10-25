@@ -158,7 +158,9 @@ public class Mercury7 : IIsotopicDistributionGenerator
         if (msaMz == null || msaAbundance == null)
             throw new Exception("msa Arrays must not be empty.");
 
-        return new IsotopicDistribution(msaMz, msaAbundance);
+        double monoMass = cf.GetMass(MassType.Monoisotopic);
+
+        return new IsotopicDistribution(monoMass, msaMz, msaAbundance);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -138,7 +138,9 @@ namespace TopDownProteomics.Tools
                 i++;
             }
 
-            return new IsotopicDistribution(masses, intensities);
+            double monoMass = masses[0]; // No pruning, always the first peak
+
+            return new IsotopicDistribution(monoMass, masses, intensities);
         }
         private List<Polynomial> MultiplyFinePolynomial(List<List<Composition>> elementalComposition, double _fineResolution, double _mwResolution, double _fineMinProb)
         {
