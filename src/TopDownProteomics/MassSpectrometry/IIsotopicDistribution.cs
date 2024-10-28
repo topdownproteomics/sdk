@@ -13,6 +13,9 @@ public interface IIsotopicDistribution
     /// </summary>
     int Length { get; }
 
+    /// <summary>The monoisotopic mass.</summary>
+    double MonoisotopicMass { get; }
+
     /// <summary>
     /// Gets the masses.
     /// </summary>
