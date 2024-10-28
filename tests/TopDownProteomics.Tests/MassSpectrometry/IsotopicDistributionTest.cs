@@ -30,6 +30,10 @@ public class IsotopicDistributionTest
         IChargedIsotopicDistribution charge1 = dist.CreateChargedDistribution(1);
 
         CollectionAssert.AreEquivalent((ICollection)mz, (ICollection)charge1.GetMz());
+
+        // Continue to test obsolete method
+        IChargedIsotopicDistribution charge2 = dist.CreateChargedDistribution(1, true);
+        CollectionAssert.AreEquivalent((ICollection)mz, (ICollection)charge2.GetMz());
     }
 
     [Test]
@@ -154,6 +158,7 @@ public class IsotopicDistributionTest
 
         Assert.False(Math.Abs(expectedMonoMz - result.FirstMz) < 0.0001); // shouldn't match the mono m/z
         Assert.AreEqual(expectedMonoMz, result.MonoisotopicMz, 0.0001);
+        Assert.IsTrue(result.LastMz > result.FirstMz);
     }
 
     [Test]
