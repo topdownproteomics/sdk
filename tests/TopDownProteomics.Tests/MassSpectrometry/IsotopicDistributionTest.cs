@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections;
+using System.Linq;
 using TopDownProteomics.Chemistry;
 using TopDownProteomics.MassSpectrometry;
 using TopDownProteomics.Tools;
@@ -153,5 +154,27 @@ public class IsotopicDistributionTest
 
         Assert.False(Math.Abs(expectedMonoMz - result.FirstMz) < 0.0001); // shouldn't match the mono m/z
         Assert.AreEqual(expectedMonoMz, result.MonoisotopicMz, 0.0001);
+    }
+
+    [Test]
+    public void CloneAndShiftTest()
+    {
+        const int shift = 42;
+        double[] mass = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+        double[] intensity = { 1.1, 2.1, 3.1, 4.2, 5.1, 6.1, 5.2, 4.1, 3.1, 2.1, 1.1 };
+
+        var isotopicDistribution = new IsotopicDistribution(mass[0], mass, intensity);
+
+        var shift42 = isotopicDistribution.CloneAndShift(shift);
+
+        Assert.AreEqual(isotopicDistribution.MonoisotopicMass + shift, shift42.MonoisotopicMass);
+        CollectionAssert.AreEquivalent((ICollection)mass.Select(x => x + shift).ToArray(), (ICollection)shift42.Masses);
+
+        var chargedIsotopicDistribution = isotopicDistribution.CreateChargedDistribution(1);
+        var chargedShift42 = chargedIsotopicDistribution.CloneAndShift(shift);
+
+        Assert.AreEqual(chargedIsotopicDistribution.MonoisotopicMz + shift, chargedShift42.MonoisotopicMz);
+        CollectionAssert.AreEquivalent((ICollection)chargedIsotopicDistribution.GetMz().Select(x => x + shift).ToArray(),
+            (ICollection)chargedShift42.GetMz());
     }
 }
