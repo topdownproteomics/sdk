@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -158,6 +159,34 @@ namespace TopDownProteomics.ProForma
             if (term.CTerminalDescriptors != null && term.CTerminalDescriptors.Count > 0)
             {
                 sb.Append($"-[{this.CreateDescriptorsText(term.CTerminalDescriptors)}]");
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes a <see cref="ProFormaProteoformGroup"/> to its canonical ProForma 2.0 string,
+        /// rejoining chains with <c>//</c>, the charge with <c>/z[adducts]</c>, and chimeric
+        /// peptidoforms with <c>+</c>. Each chain is serialized by <see cref="WriteString(ProFormaTerm)"/>.
+        /// </summary>
+        /// <param name="proteoformGroup">The proteoform group.</param>
+        /// <returns>The canonical ProForma string.</returns>
+        public string WriteString(ProFormaProteoformGroup proteoformGroup)
+        {
+            return string.Join("+", proteoformGroup.Peptidoforms.Select(this.WritePeptidoform));
+        }
+
+        private string WritePeptidoform(ProFormaPeptidoform peptidoform)
+        {
+            var sb = new StringBuilder();
+            sb.Append(string.Join("//", peptidoform.Chains.Select(chain => this.WriteString(chain))));
+
+            if (peptidoform.Charge.HasValue)
+            {
+                sb.Append('/').Append(peptidoform.Charge.Value.ToString(CultureInfo.InvariantCulture));
+
+                if (peptidoform.IonAdducts != null)
+                    sb.Append('[').Append(peptidoform.IonAdducts).Append(']');
             }
 
             return sb.ToString();

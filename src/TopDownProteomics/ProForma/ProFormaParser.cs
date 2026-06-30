@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace TopDownProteomics.ProForma
@@ -450,6 +451,143 @@ namespace TopDownProteomics.ProForma
 
                 _ => Tuple.Create(ProFormaKey.Name, ProFormaEvidenceType.None, text, groupName, weight)
             };
+        }
+
+        /// <summary>
+        /// Parses a ProForma 2.0 string that may contain constructs above a single term: chimeric
+        /// peptidoforms (<c>+</c>, section 7.2), charge states (<c>/z[adducts]</c>, section 7.1), and
+        /// multi-chain / branch chains (<c>//</c>, sections 4.2.3.2 and 4.2.4). The string is split on
+        /// these top-level operators (respecting bracket nesting) and each chain is parsed by the
+        /// single-term parser. A plain single-term string yields a group of one peptidoform of one chain.
+        /// </summary>
+        /// <param name="proFormaString">The ProForma string.</param>
+        /// <returns>The parsed <see cref="ProFormaProteoformGroup"/>.</returns>
+        /// <exception cref="ArgumentNullException">proFormaString</exception>
+        /// <exception cref="ProFormaParseException">If a chain or charge state is not valid.</exception>
+        public ProFormaProteoformGroup ParseProteoformGroupString(string proFormaString)
+        {
+            if (proFormaString == null)
+                throw new ArgumentNullException(nameof(proFormaString));
+
+            var peptidoforms = new List<ProFormaPeptidoform>();
+            foreach (string peptidoform in SplitTopLevel(proFormaString, '+'))
+                peptidoforms.Add(this.ParsePeptidoform(peptidoform));
+
+            return new ProFormaProteoformGroup(peptidoforms);
+        }
+
+        private ProFormaPeptidoform ParsePeptidoform(string peptidoform)
+        {
+            int chargeSlash = FindChargeSlash(peptidoform);
+            string chainsPart = chargeSlash < 0 ? peptidoform : peptidoform.Substring(0, chargeSlash);
+
+            int? charge = null;
+            string? ionAdducts = null;
+            if (chargeSlash >= 0)
+                (charge, ionAdducts) = ParseChargeState(peptidoform.Substring(chargeSlash + 1));
+
+            var chains = new List<ProFormaTerm>();
+            foreach (string chain in SplitDoubleSlash(chainsPart))
+                chains.Add(this.ParseString(chain));
+
+            return new ProFormaPeptidoform(chains, charge, ionAdducts);
+        }
+
+        private static (int charge, string? adducts) ParseChargeState(string text)
+        {
+            int bracket = text.IndexOf('[');
+            string number = bracket < 0 ? text : text.Substring(0, bracket);
+            string? adducts = null;
+
+            if (bracket >= 0)
+            {
+                int close = text.LastIndexOf(']');
+                if (close <= bracket)
+                    throw new ProFormaParseException($"Unterminated charge adduct bracket in '{text}'.");
+                adducts = text.Substring(bracket + 1, close - bracket - 1);
+            }
+
+            if (!int.TryParse(number, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int charge))
+                throw new ProFormaParseException($"Invalid charge value '{number}'.");
+
+            return (charge, adducts);
+        }
+
+        private static bool IsBracketOpen(char c) => c == '[' || c == '(' || c == '{' || c == '<';
+
+        private static bool IsBracketClose(char c) => c == ']' || c == ')' || c == '}' || c == '>';
+
+        /// <summary>Splits on a single delimiter that occurs at bracket depth 0.</summary>
+        private static IEnumerable<string> SplitTopLevel(string text, char delimiter)
+        {
+            var parts = new List<string>();
+            var sb = new StringBuilder();
+            int depth = 0;
+
+            foreach (char c in text)
+            {
+                if (IsBracketOpen(c)) depth++;
+                else if (IsBracketClose(c)) depth--;
+
+                if (depth == 0 && c == delimiter)
+                {
+                    parts.Add(sb.ToString());
+                    sb.Clear();
+                }
+                else sb.Append(c);
+            }
+
+            parts.Add(sb.ToString());
+            return parts;
+        }
+
+        /// <summary>Splits on <c>//</c> occurring at bracket depth 0 (the inter-chain / branch separator).</summary>
+        private static IEnumerable<string> SplitDoubleSlash(string text)
+        {
+            var parts = new List<string>();
+            var sb = new StringBuilder();
+            int depth = 0;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (IsBracketOpen(c)) depth++;
+                else if (IsBracketClose(c)) depth--;
+
+                if (depth == 0 && c == '/' && i + 1 < text.Length && text[i + 1] == '/')
+                {
+                    parts.Add(sb.ToString());
+                    sb.Clear();
+                    i++; // consume the second '/'
+                }
+                else sb.Append(c);
+            }
+
+            parts.Add(sb.ToString());
+            return parts;
+        }
+
+        /// <summary>
+        /// Returns the index of the depth-0 charge slash — a single <c>/</c> not part of a <c>//</c> —
+        /// or -1 when the peptidoform carries no charge. Chain-separator <c>//</c> pairs are skipped.
+        /// </summary>
+        private static int FindChargeSlash(string text)
+        {
+            int depth = 0;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (IsBracketOpen(c)) depth++;
+                else if (IsBracketClose(c)) depth--;
+                else if (depth == 0 && c == '/')
+                {
+                    if (i + 1 < text.Length && text[i + 1] == '/') { i++; continue; } // chain separator
+                    return i;
+                }
+            }
+
+            return -1;
         }
     }
 }
