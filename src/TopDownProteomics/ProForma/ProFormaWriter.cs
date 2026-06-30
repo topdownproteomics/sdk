@@ -104,13 +104,18 @@ namespace TopDownProteomics.ProForma
 
                     bool hasAmbiguousSequence = obj is ProFormaTag tag2 && tag2.HasAmbiguousSequence;
 
+                    // Additional tags that share this exact range are extra modifications on the same
+                    // range (e.g. "(SEQ)[mod1][mod2]"); they are written after the range closes and are
+                    // not nested ranges.
+                    List<(object, int, int, bool, double)>? sameRangeTags = null;
+
                     if (startIndex == endIndex && !hasAmbiguousSequence)
                     {
                         // Write sequence up to tag
                         sb.Append(term.Sequence.Substring(currentIndex, startIndex - currentIndex + 1));
                         currentIndex = startIndex + 1;
                     }
-                    else // Handle ambiguity range
+                    else // Handle a range (ambiguity range, or a range bearing one or more modifications)
                     {
                         // Write sequence up to range (checking for internal tags)
                         sb.Append(term.Sequence[currentIndex..startIndex]);
@@ -122,19 +127,29 @@ namespace TopDownProteomics.ProForma
                         if (hasAmbiguousSequence)
                             sb.Append('?');
 
-                        // Check for other tags that might be inside this range
+                        // Check for other tags that fall within this range
                         int j = i + 1;
                         while (j < tagsAndGroups.Count && tagsAndGroups[j].Item2 <= endIndex)
                         {
                             (object, int, int, bool, double) internalTag = tagsAndGroups[j];
 
-                            if (internalTag.Item2 != internalTag.Item3)
+                            if (internalTag.Item2 == startIndex && internalTag.Item3 == endIndex)
+                            {
+                                // Another modification on the same range; emit it after the ')'.
+                                (sameRangeTags ??= new List<(object, int, int, bool, double)>()).Add(internalTag);
+                            }
+                            else if (internalTag.Item2 != internalTag.Item3)
+                            {
                                 throw new ProFormaParseException("Can't nest ranges within each other.");
+                            }
+                            else
+                            {
+                                // A single-residue tag located inside the range.
+                                sb.Append(term.Sequence[currentIndex..(internalTag.Item2 + 1)]);
+                                currentIndex = internalTag.Item2 + 1;
 
-                            sb.Append(term.Sequence[currentIndex..(internalTag.Item2 + 1)]);
-                            currentIndex = internalTag.Item2 + 1;
-
-                            WriteTagOrGroup(internalTag.Item1, sb, internalTag.Item4, internalTag.Item5);
+                                WriteTagOrGroup(internalTag.Item1, sb, internalTag.Item4, internalTag.Item5);
+                            }
 
                             j++;
                             i++;
@@ -145,6 +160,12 @@ namespace TopDownProteomics.ProForma
                     }
 
                     WriteTagOrGroup(obj, sb, displayValue, weight);
+
+                    if (sameRangeTags != null)
+                    {
+                        foreach (var extra in sameRangeTags)
+                            WriteTagOrGroup(extra.Item1, sb, extra.Item4, extra.Item5);
+                    }
                 }
 
                 // Write the rest of the sequence
