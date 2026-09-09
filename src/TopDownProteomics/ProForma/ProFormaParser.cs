@@ -22,6 +22,10 @@ namespace TopDownProteomics.ProForma
         /// </summary>
         /// <param name="residueValidator">Determines whether a character is a valid residue.</param>
         /// <exception cref="ArgumentNullException"><paramref name="residueValidator"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        /// For workflows that create a proteoform group or chemical hash, use a matching
+        /// <see cref="TopDownProteomics.Biochemistry.IResidueProvider"/> with the custom residue validator.
+        /// </remarks>
         public ProFormaParser(Func<char, bool> residueValidator)
         {
             _residueValidator = residueValidator ?? throw new ArgumentNullException(nameof(residueValidator));
@@ -231,7 +235,7 @@ namespace TopDownProteomics.ProForma
                 {
                     // Validate amino acid character
                     if (!_residueValidator(current))
-                        throw new ProFormaParseException($"{current} is not an upper case letter.");
+                        throw new ProFormaParseException($"{current} is not a valid residue.");
 
                     // Reset the range as soon as we see an amino acid
                     if (endRange.HasValue)
@@ -275,9 +279,12 @@ namespace TopDownProteomics.ProForma
                 targets = new List<char>();
                 for (int k = atSymbolIndex + 1; k < tagText.Length; k++)
                 {
+                    if (tagText[k] == ',')
+                        continue;
+
                     if (_residueValidator(tagText[k]))
                         targets.Add(tagText[k]);
-                    else if (tagText[k] != ',')
+                    else
                         throw new ProFormaParseException($"Unexpected character {tagText[k]} in global modification target list.");
                 }
             }

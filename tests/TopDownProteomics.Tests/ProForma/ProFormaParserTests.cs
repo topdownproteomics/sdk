@@ -15,6 +15,7 @@ namespace TopDownProteomics.Tests
         {
             Assert.Throws<ArgumentNullException>(() => _parser.ParseString((Span<char>)null));
             Assert.Throws<ArgumentNullException>(() => _parser.ParseString(string.Empty));
+            Assert.Throws<ArgumentNullException>(() => new ProFormaParser(null!));
         }
 
         [Test]
@@ -36,8 +37,13 @@ namespace TopDownProteomics.Tests
 
             Assert.AreEqual("A*", term.Sequence);
             CollectionAssert.AreEquivalent(new[] { '*', 'A' }, term.GlobalModifications.Single().TargetAminoAcids);
-            Assert.Throws<ProFormaParseException>(() => parser.ParseString("AB"));
+            var exception = Assert.Throws<ProFormaParseException>(() => parser.ParseString("AB"));
+            Assert.AreEqual("B is not a valid residue.", exception.Message);
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("A*"));
+
+            var permissiveParser = new ProFormaParser(_ => true);
+            term = permissiveParser.ParseString("<[Oxidation]@A,C>A");
+            CollectionAssert.AreEquivalent(new[] { 'A', 'C' }, term.GlobalModifications.Single().TargetAminoAcids);
         }
 
         [Test]
@@ -794,6 +800,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(ProFormaKey.Name, unlocal.Key);
             Assert.AreEqual(ProFormaEvidenceType.None, unlocal.EvidenceType);
 
+
             // Check multiple unlocalized mods with a terminal mod
             term = _parser.ParseString("[Phospho][Phospho2]?[Acetyl]-EM[Hydroxylation]EVTSESPEK");
             Assert.AreEqual(1, term.Tags?.Count);
@@ -810,6 +817,7 @@ namespace TopDownProteomics.Tests
             var unlocal2 = term.UnlocalizedTags.Last().Descriptors.Single();
             Assert.AreEqual(1, term.UnlocalizedTags.Last().Count);
             Assert.AreEqual("Phospho2", unlocal2.Value);
+
 
             // Check ^{count} format
             term = _parser.ParseString("[Phospho]^2?[Acetyl]-EM[Oxidation]EVTSESPEK");
@@ -833,6 +841,7 @@ namespace TopDownProteomics.Tests
             unlocal2 = term.UnlocalizedTags.Last().Descriptors.Single();
             Assert.AreEqual(1, term.UnlocalizedTags.Last().Count);
             Assert.AreEqual("Methyl", unlocal2.Value);
+
 
             // INVALID to have terminal mod before unlocalized mods
             Assert.Throws<ProFormaParseException>(() => _parser.ParseString("[Acetyl]-[Phospho]^2?EM[Hydroxylation]EVTSESPEK"));
