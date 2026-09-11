@@ -15,6 +15,7 @@ namespace TopDownProteomics.Tests
         {
             Assert.Throws<ArgumentNullException>(() => _parser.ParseString((Span<char>)null));
             Assert.Throws<ArgumentNullException>(() => _parser.ParseString(string.Empty));
+            Assert.Throws<ArgumentNullException>(() => new ProFormaParser(null!));
         }
 
         [Test]
@@ -25,6 +26,24 @@ namespace TopDownProteomics.Tests
 
             Assert.AreEqual(proFormaString, term.Sequence);
             Assert.IsNull(term.Tags);
+        }
+
+        [Test]
+        public void ResidueValidatorControlsSequenceAndGlobalModificationTargets()
+        {
+            var parser = new ProFormaParser(residue => residue == 'A' || residue == '*');
+
+            var term = parser.ParseString("<[Oxidation]@*,A>A*");
+
+            Assert.AreEqual("A*", term.Sequence);
+            CollectionAssert.AreEquivalent(new[] { '*', 'A' }, term.GlobalModifications.Single().TargetAminoAcids);
+            var exception = Assert.Throws<ProFormaParseException>(() => parser.ParseString("AB"));
+            Assert.AreEqual("B is not a valid residue.", exception.Message);
+            Assert.Throws<ProFormaParseException>(() => _parser.ParseString("A*"));
+
+            var permissiveParser = new ProFormaParser(_ => true);
+            term = permissiveParser.ParseString("<[Oxidation]@A,C>A");
+            CollectionAssert.AreEquivalent(new[] { 'A', 'C' }, term.GlobalModifications.Single().TargetAminoAcids);
         }
 
         [Test]
