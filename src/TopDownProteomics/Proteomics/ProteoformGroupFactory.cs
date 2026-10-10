@@ -54,8 +54,8 @@ namespace TopDownProteomics.Proteomics
             List<IProteoformUnlocalizedModification>? unlocalizedModifications = null;
             List<IProteoformModificationGroup>? modificationGroups = null;
             List<IProteoformGlobalModification>? globalModifications = null;
-            IProteoformMassDelta? nTerminalModification = this.GetModification(term.NTerminalDescriptors, modificationLookup, "Multiple N Terminal Modifications");
-            IProteoformMassDelta? cTerminalModification = this.GetModification(term.CTerminalDescriptors, modificationLookup, "Multiple C Terminal Modifications");
+            IProteoformMassDelta? nTerminalModification = this.GetTerminalModification(term.NTerminalModifications, modificationLookup, "Multiple N Terminal Modifications");
+            IProteoformMassDelta? cTerminalModification = this.GetTerminalModification(term.CTerminalModifications, modificationLookup, "Multiple C Terminal Modifications");
 
             if (term.Tags?.Count > 0)
             {
@@ -215,6 +215,35 @@ namespace TopDownProteomics.Proteomics
             }
 
             public ICollection<char>? TargetAminoAcids { get; }
+        }
+
+        /// <summary>
+        /// The one modification on a terminus. A proteoform group holds one per terminus, so two terminal tags that each
+        /// name a modification (ProForma 2.1 allows [A][B]-SEQUENCE) are refused, as two different modifications described
+        /// in one tag are.
+        /// </summary>
+        private IProteoformMassDelta? GetTerminalModification(IList<IList<ProFormaDescriptor>>? modifications,
+            IProteoformModificationLookup modificationLookup, string multipleModsErrorMessage)
+        {
+            IProteoformMassDelta? terminalModification = null;
+
+            if (modifications != null)
+            {
+                foreach (var descriptors in modifications)
+                {
+                    IProteoformMassDelta? modification = this.GetModification(descriptors, modificationLookup, multipleModsErrorMessage);
+
+                    if (modification == null)
+                        continue;
+
+                    if (terminalModification != null)
+                        throw new ProteoformGroupCreateException(multipleModsErrorMessage);
+
+                    terminalModification = modification;
+                }
+            }
+
+            return terminalModification;
         }
 
         private IProteoformMassDelta? GetModification(IList<ProFormaDescriptor>? descriptors, IProteoformModificationLookup modificationLookup,
