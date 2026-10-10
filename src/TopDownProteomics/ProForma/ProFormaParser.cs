@@ -59,8 +59,8 @@ namespace TopDownProteomics.ProForma
                 throw new ArgumentNullException(nameof(proFormaString));
 
             IList<ProFormaTag>? tags = null;
-            IList<ProFormaDescriptor>? nTerminalDescriptors = null;
-            IList<ProFormaDescriptor>? cTerminalDescriptors = null;
+            IList<IList<ProFormaDescriptor>>? nTerminalModifications = null;
+            IList<IList<ProFormaDescriptor>>? cTerminalModifications = null;
             IList<ProFormaDescriptor>? labileDescriptors = null;
             IList<ProFormaUnlocalizedTag>? unlocalizedTags = null;
             IDictionary<string, ProFormaTagGroup>? tagGroups = null;
@@ -112,7 +112,7 @@ namespace TopDownProteomics.ProForma
                     string tagText = tag.ToString();
 
                     // Make sure nothing happens before this global mod
-                    if (sequence.Length > 0 || labileDescriptors?.Count > 0 || unlocalizedTags?.Count > 0 || nTerminalDescriptors?.Count > 0 || tagGroups?.Count > 0)
+                    if (sequence.Length > 0 || labileDescriptors?.Count > 0 || unlocalizedTags?.Count > 0 || nTerminalModifications?.Count > 0 || tagGroups?.Count > 0)
                         throw new ProFormaParseException("Global modifications must be the first element in ProForma string.");
 
                     this.HandleGlobalModification(ref tagGroups, ref globalModifications, sequence, startRange, endRange, tagText);
@@ -170,12 +170,21 @@ namespace TopDownProteomics.ProForma
                     // Handle terminal modifications and prefix tags
                     if (inCTerminalTag)
                     {
-                        cTerminalDescriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
+                        var descriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
+
+                        if (descriptors != null)
+                            (cTerminalModifications ??= new List<IList<ProFormaDescriptor>>()).Add(descriptors);
                     }
-                    else if (sequence.Length == 0 && proFormaString[i + 1] == '-')
+                    else if (sequence.Length == 0 && IsFollowedByNTerminalDash(proFormaString, i + 1))
                     {
-                        nTerminalDescriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
-                        i++; // Skip the - character
+                        // One of a run of N-terminal modifications, [A][B]-SEQUENCE (ProForma 2.1, section 6.3)
+                        var descriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
+
+                        if (descriptors != null)
+                            (nTerminalModifications ??= new List<IList<ProFormaDescriptor>>()).Add(descriptors);
+
+                        if (proFormaString[i + 1] == '-')
+                            i++; // Skip the - character after the last one
                     }
                     else if (sequence.Length > 0)
                     {
@@ -186,7 +195,7 @@ namespace TopDownProteomics.ProForma
                         isUnlocalizedMarkerRequired = true;
 
                         // Make sure the prefix came before the N-terminal modification
-                        if (nTerminalDescriptors != null)
+                        if (nTerminalModifications != null)
                             throw new ProFormaParseException($"Unlocalized modification must come before an N-terminal modification.");
 
                         var descriptors = this.ProcessTag(tagText, -1, -1, ref tagGroups);
@@ -196,10 +205,10 @@ namespace TopDownProteomics.ProForma
                             int count = 1;
 
                             // Check for higher count
-                            if (proFormaString[i + 1] == '^')
+                            if (i + 1 < proFormaString.Length && proFormaString[i + 1] == '^')
                             {
                                 int j = i + 2;
-                                while (char.IsDigit(proFormaString[j]))
+                                while (j < proFormaString.Length && char.IsDigit(proFormaString[j]))
                                     j++;
 
 #if NETSTANDARD2_1
@@ -233,6 +242,11 @@ namespace TopDownProteomics.ProForma
                 }
                 else
                 {
+                    // The C-terminal modification follows the last residue (section 4.3.1)
+                    if (inCTerminalTag)
+                        throw new ProFormaParseException($"Residue {current} at index {i} follows the C-terminal '-'; the " +
+                            "C-terminal modification must come after the last residue.");
+
                     // Validate amino acid character
                     if (!_residueValidator(current))
                         throw new ProFormaParseException($"{current} is not a valid residue.");
@@ -249,6 +263,9 @@ namespace TopDownProteomics.ProForma
             }
 
             // Final validation checks
+            if (sequence.Length == 0 && openLeftBrackets == 0 && openLeftBraces == 0)
+                throw new ProFormaParseException("ProForma string has no residues.");
+
             if (isUnlocalizedMarkerRequired && !foundUnlocalizedMarker)
                 throw new ProFormaParseException($"Unlocalized modification not found as expected.");
 
@@ -258,8 +275,33 @@ namespace TopDownProteomics.ProForma
             if (openLeftBraces != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBraces)} open braces in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), tags, nTerminalDescriptors, cTerminalDescriptors, labileDescriptors,
-                unlocalizedTags, tagGroups?.Values, globalModifications);
+            return new ProFormaTerm(sequence.ToString(), tags, null, null, labileDescriptors,
+                unlocalizedTags, tagGroups?.Values, globalModifications, nTerminalModifications, cTerminalModifications);
+        }
+
+        /// <summary>
+        /// Whether the bracketed tags starting at <paramref name="start"/> (none or more, each read whole, including any
+        /// brackets nested in a descriptor) are followed by '-': true when the tag that just closed is one of a run of
+        /// N-terminal modifications rather than an unlocalized one.
+        /// </summary>
+        private static bool IsFollowedByNTerminalDash(ReadOnlySpan<char> text, int start)
+        {
+            int i = start;
+            while (i < text.Length && text[i] == '[')
+            {
+                int depth = 0;
+                do
+                {
+                    if (text[i] == '[') depth++;
+                    else if (text[i] == ']') depth--;
+                    i++;
+                } while (i < text.Length && depth > 0);
+
+                if (depth > 0)
+                    return false;
+            }
+
+            return i < text.Length && text[i] == '-';
         }
 
         private void HandleGlobalModification(ref IDictionary<string, ProFormaTagGroup>? tagGroups,

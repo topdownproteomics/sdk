@@ -114,11 +114,11 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
             }
-            if (proteoform.NTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.NTerminalDescriptors))
+            if (proteoform.NTerminalModifications != null && proteoform.NTerminalModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }
-            if (proteoform.CTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.CTerminalDescriptors))
+            if (proteoform.CTerminalModifications != null && proteoform.CTerminalModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }

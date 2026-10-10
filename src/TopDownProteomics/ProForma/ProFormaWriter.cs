@@ -75,10 +75,14 @@ namespace TopDownProteomics.ProForma
                 sb.Append('?');
             }
 
-            // Check N-terminal modifications
-            if (term.NTerminalDescriptors != null && term.NTerminalDescriptors.Count > 0)
+            // Check N-terminal modifications, one tag each: [A][B]-SEQUENCE
+            var nTerminalModifications = term.NTerminalModifications?.Where(x => x != null && x.Count > 0).ToList();
+            if (nTerminalModifications?.Count > 0)
             {
-                sb.Append($"[{this.CreateDescriptorsText(term.NTerminalDescriptors)}]-");
+                foreach (var modification in nTerminalModifications)
+                    sb.Append($"[{this.CreateDescriptorsText(modification)}]");
+
+                sb.Append('-');
             }
 
             var tagsAndGroups = new List<(object, int, int, bool, double)>();
@@ -176,10 +180,14 @@ namespace TopDownProteomics.ProForma
                 sb.Append(term.Sequence);
             }
 
-            // Check C-terminal modifications
-            if (term.CTerminalDescriptors != null && term.CTerminalDescriptors.Count > 0)
+            // Check C-terminal modifications, one tag each: SEQUENCE-[A][B]
+            var cTerminalModifications = term.CTerminalModifications?.Where(x => x != null && x.Count > 0).ToList();
+            if (cTerminalModifications?.Count > 0)
             {
-                sb.Append($"-[{this.CreateDescriptorsText(term.CTerminalDescriptors)}]");
+                sb.Append('-');
+
+                foreach (var modification in cTerminalModifications)
+                    sb.Append($"[{this.CreateDescriptorsText(modification)}]");
             }
 
             return sb.ToString();
