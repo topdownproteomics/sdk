@@ -23,11 +23,14 @@ namespace TopDownProteomics.ProForma
         /// either this or <paramref name="nTerminalDescriptors"/>, not both.</param>
         /// <param name="cTerminalModifications">The C-terminal modifications, one descriptor list per modification. Pass
         /// either this or <paramref name="cTerminalDescriptors"/>, not both.</param>
-        public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null, 
+        /// <param name="labileModifications">The labile modifications, one descriptor list per modification. Pass either
+        /// this or <paramref name="labileDescriptors"/>, not both.</param>
+        public ProFormaTerm(string sequence, IList<ProFormaTag>? tags = null, IList<ProFormaDescriptor>? nTerminalDescriptors = null,
             IList<ProFormaDescriptor>? cTerminalDescriptors = null, IList<ProFormaDescriptor>? labileDescriptors = null,
             IList<ProFormaUnlocalizedTag>? unlocalizedTags = null, ICollection<ProFormaTagGroup>? tagGroups = null,
             IList<ProFormaGlobalModification>? globalModifications = null,
-            IList<IList<ProFormaDescriptor>>? nTerminalModifications = null, IList<IList<ProFormaDescriptor>>? cTerminalModifications = null)
+            IList<IList<ProFormaDescriptor>>? nTerminalModifications = null, IList<IList<ProFormaDescriptor>>? cTerminalModifications = null,
+            IList<IList<ProFormaDescriptor>>? labileModifications = null)
         {
             if (nTerminalDescriptors != null && nTerminalModifications != null)
                 throw new ArgumentException("Pass the N-terminal modifications either as nTerminalDescriptors (one) or as " +
@@ -37,12 +40,17 @@ namespace TopDownProteomics.ProForma
                 throw new ArgumentException("Pass the C-terminal modifications either as cTerminalDescriptors (one) or as " +
                     "cTerminalModifications (any number), not both.", nameof(cTerminalModifications));
 
+            if (labileDescriptors != null && labileModifications != null)
+                throw new ArgumentException("Pass the labile modifications either as labileDescriptors (one group) or as " +
+                    "labileModifications (any number), not both.", nameof(labileModifications));
+
             this.Sequence = sequence;
             this.NTerminalModifications = nTerminalModifications ?? AsModifications(nTerminalDescriptors);
             this.CTerminalModifications = cTerminalModifications ?? AsModifications(cTerminalDescriptors);
             this.NTerminalDescriptors = nTerminalDescriptors ?? First(nTerminalModifications);
             this.CTerminalDescriptors = cTerminalDescriptors ?? First(cTerminalModifications);
-            this.LabileDescriptors = labileDescriptors;
+            this.LabileModifications = labileModifications ?? AsModifications(labileDescriptors);
+            this.LabileDescriptors = labileDescriptors ?? Concatenate(labileModifications);
             this.Tags = tags;
             this.UnlocalizedTags = unlocalizedTags;
             this.TagGroups = tagGroups;
@@ -80,8 +88,17 @@ namespace TopDownProteomics.ProForma
         /// </summary>
         public IList<IList<ProFormaDescriptor>>? CTerminalModifications { get; }
 
-        /// <summary>Labile modifications (not visible in the fragmentation MS2 spectrum) descriptors.</summary>
+        /// <summary>
+        /// Labile modifications (not visible in the fragmentation MS2 spectrum) descriptors: every descriptor of every
+        /// labile modification, in the order written. <see cref="LabileModifications"/> keeps the modifications apart.
+        /// </summary>
         public IList<ProFormaDescriptor>? LabileDescriptors { get; }
+
+        /// <summary>
+        /// Labile modifications in the order written, one descriptor list per modification:
+        /// {Glycan:Hex}{Glycan:NeuAc}EMEVNESPEK has two (ProForma 2.0, section 4.3.2).
+        /// </summary>
+        public IList<IList<ProFormaDescriptor>>? LabileModifications { get; }
 
         /// <summary>All tags on this term.</summary>
         public IList<ProFormaTag>? Tags { get; }
@@ -97,5 +114,18 @@ namespace TopDownProteomics.ProForma
 
         private static IList<ProFormaDescriptor>? First(IList<IList<ProFormaDescriptor>>? modifications) =>
             modifications != null && modifications.Count > 0 ? modifications[0] : null;
+
+        private static IList<ProFormaDescriptor>? Concatenate(IList<IList<ProFormaDescriptor>>? modifications)
+        {
+            if (modifications == null)
+                return null;
+
+            var descriptors = new List<ProFormaDescriptor>();
+            foreach (var modification in modifications)
+                if (modification != null)
+                    descriptors.AddRange(modification);
+
+            return descriptors;
+        }
     }
 }

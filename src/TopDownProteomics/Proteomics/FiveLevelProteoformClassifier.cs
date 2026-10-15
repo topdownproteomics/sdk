@@ -122,7 +122,7 @@ namespace TopDownProteomics.Proteomics
             {
                 return false;
             }
-            if (proteoform.LabileDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.LabileDescriptors))
+            if (proteoform.LabileModifications != null && proteoform.LabileModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }

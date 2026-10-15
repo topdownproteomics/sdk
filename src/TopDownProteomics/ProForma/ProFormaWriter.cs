@@ -53,10 +53,12 @@ namespace TopDownProteomics.ProForma
                 }
             }
 
-            // Check labile modifications
-            if (term.LabileDescriptors != null)
+            // Check labile modifications, one group each: {A}{B}SEQUENCE
+            var labileModifications = term.LabileModifications?.Where(x => x != null && x.Count > 0).ToList();
+            if (labileModifications?.Count > 0)
             {
-                sb.Append($"{{{this.CreateDescriptorsText(term.LabileDescriptors)}}}");
+                foreach (var modification in labileModifications)
+                    sb.Append($"{{{this.CreateDescriptorsText(modification)}}}");
             }
 
             // Check unlocalized modifications

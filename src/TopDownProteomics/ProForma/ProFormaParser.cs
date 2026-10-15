@@ -61,7 +61,7 @@ namespace TopDownProteomics.ProForma
             IList<ProFormaTag>? tags = null;
             IList<IList<ProFormaDescriptor>>? nTerminalModifications = null;
             IList<IList<ProFormaDescriptor>>? cTerminalModifications = null;
-            IList<ProFormaDescriptor>? labileDescriptors = null;
+            IList<IList<ProFormaDescriptor>>? labileModifications = null;
             IList<ProFormaUnlocalizedTag>? unlocalizedTags = null;
             IDictionary<string, ProFormaTagGroup>? tagGroups = null;
             IList<ProFormaGlobalModification>? globalModifications = null;
@@ -112,7 +112,7 @@ namespace TopDownProteomics.ProForma
                     string tagText = tag.ToString();
 
                     // Make sure nothing happens before this global mod
-                    if (sequence.Length > 0 || labileDescriptors?.Count > 0 || unlocalizedTags?.Count > 0 || nTerminalModifications?.Count > 0 || tagGroups?.Count > 0)
+                    if (sequence.Length > 0 || labileModifications?.Count > 0 || unlocalizedTags?.Count > 0 || nTerminalModifications?.Count > 0 || tagGroups?.Count > 0)
                         throw new ProFormaParseException("Global modifications must be the first element in ProForma string.");
 
                     this.HandleGlobalModification(ref tagGroups, ref globalModifications, sequence, startRange, endRange, tagText);
@@ -154,7 +154,11 @@ namespace TopDownProteomics.ProForma
                 {
                     string tagText = tag.ToString();
 
-                    labileDescriptors = this.ProcessTag(tagText, endRange.HasValue ? startRange : null, sequence.Length - 1, ref tagGroups);
+                    // One of any number of labile modifications, {A}{B}SEQUENCE (ProForma 2.0, section 4.3.2)
+                    var descriptors = this.ProcessTag(tagText, endRange.HasValue ? startRange : null, sequence.Length - 1, ref tagGroups);
+
+                    if (descriptors != null)
+                        (labileModifications ??= new List<IList<ProFormaDescriptor>>()).Add(descriptors);
 
                     inTag = false;
                     tag.Clear();
@@ -275,8 +279,9 @@ namespace TopDownProteomics.ProForma
             if (openLeftBraces != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBraces)} open braces in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), tags, null, null, labileDescriptors,
-                unlocalizedTags, tagGroups?.Values, globalModifications, nTerminalModifications, cTerminalModifications);
+            return new ProFormaTerm(sequence.ToString(), tags, null, null, null,
+                unlocalizedTags, tagGroups?.Values, globalModifications, nTerminalModifications, cTerminalModifications,
+                labileModifications);
         }
 
         /// <summary>
