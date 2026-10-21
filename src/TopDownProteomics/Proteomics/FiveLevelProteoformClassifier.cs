@@ -66,7 +66,7 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
                 //check labile (inherently unlocalized)
-                if (proteoform.LabileDescriptors != null && proteoform.LabileDescriptors.Count != 0)
+                if (proteoform.LabileModifications != null && proteoform.LabileModifications.Any(x => x?.Count > 0))
                 {
                     return false;
                 }
@@ -114,15 +114,15 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
             }
-            if (proteoform.NTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.NTerminalDescriptors))
+            if (proteoform.NTerminalModifications != null && proteoform.NTerminalModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }
-            if (proteoform.CTerminalDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.CTerminalDescriptors))
+            if (proteoform.CTerminalModifications != null && proteoform.CTerminalModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }
-            if (proteoform.LabileDescriptors != null && AmbiguousPtmFromDescriptor(proteoform.LabileDescriptors))
+            if (proteoform.LabileModifications != null && proteoform.LabileModifications.Any(AmbiguousPtmFromDescriptor))
             {
                 return false;
             }
