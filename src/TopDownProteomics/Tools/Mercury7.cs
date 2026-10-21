@@ -102,16 +102,22 @@ public class Mercury7 : IIsotopicDistributionGenerator
             if (n == 0)
                 continue;
 
-            int isotopeCount = kvp.Entity.Isotopes.Count;
+            // Mercury's array index represents the number of neutrons added to the
+            // lightest isotope. Keep unoccupied indices for missing neutron counts;
+            // otherwise a gap (for example, Se's missing 41-neutron isotope) shifts
+            // every later molecular peak into the wrong nominal mass bin.
+            var isotopes = kvp.Entity.Isotopes.OrderBy(x => x.NeutronCount).ToArray();
+            int minimumNeutronCount = isotopes[0].NeutronCount;
+            int maximumNeutronCount = isotopes[isotopes.Length - 1].NeutronCount;
+            int isotopeCount = maximumNeutronCount - minimumNeutronCount + 1;
             double[] esaMz = new double[isotopeCount];
             double[] esaAbundance = new double[isotopeCount];
 
-            int i = 0;
-            foreach (var iso in kvp.Entity.Isotopes.OrderBy(x => x.AtomicMass)) // Algorithm requires it to be sorted.
+            foreach (var isotope in isotopes)
             {
-                esaMz[i] = iso.AtomicMass;
-                esaAbundance[i] = iso.RelativeAbundance;
-                i++;
+                int offset = isotope.NeutronCount - minimumNeutronCount;
+                esaMz[offset] = isotope.AtomicMass;
+                esaAbundance[offset] = isotope.RelativeAbundance;
             }
 
             while (true)
@@ -160,7 +166,27 @@ public class Mercury7 : IIsotopicDistributionGenerator
 
         double monoMass = cf.GetMass(MassType.Monoisotopic);
 
-        return new IsotopicDistribution(monoMass, msaMz, msaAbundance);
+        // Zero-abundance bins are needed during convolution to retain neutron
+        // offsets, but they do not represent output peaks. Removing them here also
+        // prevents sparse single-element distributions from exposing placeholder
+        // zero masses.
+        if (Array.IndexOf(msaAbundance, 0.0) < 0)
+            return new IsotopicDistribution(monoMass, msaMz, msaAbundance);
+
+        int nonzeroCount = msaAbundance.Count(abundance => abundance > 0);
+        var masses = new double[nonzeroCount];
+        var abundances = new double[nonzeroCount];
+        int outputIndex = 0;
+        for (int i = 0; i < msaAbundance.Length; i++)
+        {
+            if (msaAbundance[i] <= 0)
+                continue;
+            masses[outputIndex] = msaMz[i];
+            abundances[outputIndex] = msaAbundance[i];
+            outputIndex++;
+        }
+
+        return new IsotopicDistribution(monoMass, masses, abundances);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -183,8 +209,14 @@ public class Mercury7 : IIsotopicDistributionGenerator
         int start = 0;
         int end = mz.Length - 1;
 
-        while (ab[start] < limit && start != end)
+        while (start <= end && ab[start] < limit)
             start++;
+        if (start > end)
+        {
+            mz = Array.Empty<double>();
+            ab = Array.Empty<double>();
+            return;
+        }
 
         while (end >= start && ab[end] < limit)
             end--;
@@ -211,15 +243,18 @@ public class Mercury7 : IIsotopicDistributionGenerator
         int n1 = mz1.Length;
         int n2 = mz2.Length;
 
-        if (n1 + n2 == 0)
+        if (n1 == 0 || n2 == 0)
+        {
+            resultMz = Array.Empty<double>();
+            resultAb = Array.Empty<double>();
             return;
+        }
 
-        // Adaptation of speed optimization from C++...may not do anything similar in C#
-        resultMz = new double[n1 + n2];
-        resultAb = new double[n1 + n2];
+        resultMz = new double[n1 + n2 - 1];
+        resultAb = new double[n1 + n2 - 1];
 
         // For each isotopic peak in the compound...
-        for (int k = 0; k < n1 + n2 - 1; k++)
+        for (int k = 0; k < resultMz.Length; k++)
         {
             double totalAbundance = 0;
             double massExpectation = 0;
