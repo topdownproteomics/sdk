@@ -72,9 +72,10 @@ namespace TopDownProteomics.Proteomics
                 }
             }
 
-            if (term.LabileDescriptors?.Count > 0)
+            // Each labile descriptor is its own modification, in every group: {A}{B}SEQUENCE
+            if (term.LabileModifications?.Count > 0)
             {
-                foreach (var item in term.LabileDescriptors)
+                foreach (var item in term.LabileModifications.Where(x => x != null).SelectMany(x => x))
                 {
                     IProteoformMassDelta? delta = this.GetModification(item, modificationLookup);
 

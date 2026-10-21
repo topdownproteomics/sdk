@@ -66,7 +66,7 @@ namespace TopDownProteomics.Proteomics
                     }
                 }
                 //check labile (inherently unlocalized)
-                if (proteoform.LabileDescriptors != null && proteoform.LabileDescriptors.Count != 0)
+                if (proteoform.LabileModifications != null && proteoform.LabileModifications.Any(x => x?.Count > 0))
                 {
                     return false;
                 }

@@ -26,9 +26,9 @@ namespace TopDownProteomics.Tests
             var term = Parser.ParseString("{Glycan:Hex}{Glycan:NeuAc}EMEVNESPEK");
 
             Assert.AreEqual("EMEVNESPEK", term.Sequence);
-            Assert.IsNotNull(term.LabileDescriptors);
-            CollectionAssert.AreEqual(new[] { "Hex", "NeuAc" }, term.LabileDescriptors!.Select(d => d.Value).ToArray());
-            Assert.IsTrue(term.LabileDescriptors.All(d => d.Key == ProFormaKey.Glycan));
+            Assert.IsNotNull(term.LabileModifications);
+            CollectionAssert.AreEqual(new[] { "Hex", "NeuAc" }, term.LabileModifications!.Select(g => g.Single().Value).ToArray());
+            Assert.IsTrue(term.LabileModifications.All(g => g.Single().Key == ProFormaKey.Glycan));
             Assert.IsNull(term.Tags);
         }
 
@@ -41,7 +41,7 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(2, term.LabileModifications!.Count);
             CollectionAssert.AreEqual(new[] { "Hex", "core" }, term.LabileModifications[0].Select(d => d.Value).ToArray());
             CollectionAssert.AreEqual(new[] { "NeuAc" }, term.LabileModifications[1].Select(d => d.Value).ToArray());
-            CollectionAssert.AreEqual(new[] { "Hex", "core", "NeuAc" }, term.LabileDescriptors!.Select(d => d.Value).ToArray());
+            Assert.AreSame(term.LabileModifications[0], term.LabileDescriptors);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void Constructor_AcceptsEitherForm_NotBoth()
+        public void ConstructorAndCreateFromModifications_WriteTheirGroups()
         {
             var hex = new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Glycan, "Hex") };
             var neuAc = new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Glycan, "NeuAc") };
@@ -64,12 +64,10 @@ namespace TopDownProteomics.Tests
             Assert.AreEqual(1, fromDescriptors.LabileModifications!.Count);
             Assert.AreEqual("{Glycan:Hex|Glycan:NeuAc}PEPTIDE", Writer.WriteString(fromDescriptors));
 
-            var fromModifications = new ProFormaTerm("PEPTIDE", labileModifications: new List<IList<ProFormaDescriptor>> { hex, neuAc });
-            Assert.AreEqual(2, fromModifications.LabileDescriptors!.Count);
+            var fromModifications = ProFormaTerm.CreateFromModifications("PEPTIDE",
+                labileModifications: new List<IList<ProFormaDescriptor>> { hex, neuAc });
+            Assert.AreSame(hex, fromModifications.LabileDescriptors);
             Assert.AreEqual("{Glycan:Hex}{Glycan:NeuAc}PEPTIDE", Writer.WriteString(fromModifications));
-
-            Assert.Throws<System.ArgumentException>(() => new ProFormaTerm("PEPTIDE", labileDescriptors: hex,
-                labileModifications: new List<IList<ProFormaDescriptor>> { hex }));
         }
 
         [TestCase("{Glycan:Hex}{Glycan:NeuAc}EMEVNESPEK")]
@@ -106,6 +104,50 @@ namespace TopDownProteomics.Tests
             Assert.IsNotNull(group.UnlocalizedModifications);
             Assert.AreEqual(2, group.UnlocalizedModifications!.Count);
             Assert.IsTrue(group.UnlocalizedModifications.All(m => m.IsLabile && m.Count == 1));
+        }
+
+        /// <summary>
+        /// LabileDescriptors is the first group itself, not a copy, so a change made through it reaches the writer and the
+        /// proteoform group factory alike.
+        /// </summary>
+        [Test]
+        public void ClearingLabileDescriptors_ReachesTheWriterAndTheFactory()
+        {
+            var elements = new MockElementProvider();
+            var factory = new ProteoformGroupFactory(elements, new IupacAminoAcidProvider(elements));
+            var term = Parser.ParseString("{B:ac}SEQVKENCE");
+
+            term.LabileDescriptors!.Clear();
+
+            Assert.AreEqual("SEQVKENCE", Writer.WriteString(term));
+            Assert.AreEqual(0, factory.CreateProteoformGroup(term, new BrnoModificationLookup(elements)).UnlocalizedModifications?.Count ?? 0);
+        }
+
+        [Test]
+        public void AddingALabileGroup_ReachesTheWriterAndTheFactory()
+        {
+            var elements = new MockElementProvider();
+            var factory = new ProteoformGroupFactory(elements, new IupacAminoAcidProvider(elements));
+            var term = Parser.ParseString("{B:ac}SEQVKENCE");
+
+            term.LabileModifications!.Add(new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, "me1") });
+
+            Assert.AreEqual("{B:ac}{B:me1}SEQVKENCE", Writer.WriteString(term));
+            Assert.AreEqual(2, factory.CreateProteoformGroup(term, new BrnoModificationLookup(elements)).UnlocalizedModifications!.Count);
+            Assert.AreSame(term.LabileModifications[0], term.LabileDescriptors);
+        }
+
+        /// <summary>A term built from one descriptor list keeps that list, as before: a later change to it is written.</summary>
+        [Test]
+        public void LabileDescriptorsPassedIn_StayLive()
+        {
+            var labile = new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Glycan, "Hex") };
+            var term = new ProFormaTerm("PEPTIDE", labileDescriptors: labile);
+
+            labile.Add(new ProFormaDescriptor(ProFormaKey.Glycan, "NeuAc"));
+
+            Assert.AreSame(labile, term.LabileDescriptors);
+            Assert.AreEqual("{Glycan:Hex|Glycan:NeuAc}PEPTIDE", Writer.WriteString(term));
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using TopDownProteomics.Biochemistry;
@@ -157,23 +156,57 @@ namespace TopDownProteomics.Tests
         }
 
         [Test]
-        public void Constructor_AcceptsEitherForm_NotBoth()
+        public void ConstructorAndCreateFromModifications_WriteTheirGroups()
         {
             var acetyl = new List<ProFormaDescriptor> { new ProFormaDescriptor("Acetyl") };
             var carbamyl = new List<ProFormaDescriptor> { new ProFormaDescriptor("Carbamyl") };
 
             var fromDescriptors = new ProFormaTerm("PEPTIDE", nTerminalDescriptors: acetyl);
             Assert.AreEqual(1, fromDescriptors.NTerminalModifications!.Count);
+            Assert.AreSame(acetyl, fromDescriptors.NTerminalDescriptors);
 
-            var fromModifications = new ProFormaTerm("QPEPTIDE",
+            var fromModifications = ProFormaTerm.CreateFromModifications("QPEPTIDE",
                 nTerminalModifications: new List<IList<ProFormaDescriptor>> { acetyl, carbamyl });
             Assert.AreSame(acetyl, fromModifications.NTerminalDescriptors);
             Assert.AreEqual("[Acetyl][Carbamyl]-QPEPTIDE", Writer.WriteString(fromModifications));
+        }
 
-            Assert.Throws<ArgumentException>(() => new ProFormaTerm("PEPTIDE", nTerminalDescriptors: acetyl,
-                nTerminalModifications: new List<IList<ProFormaDescriptor>> { acetyl }));
-            Assert.Throws<ArgumentException>(() => new ProFormaTerm("PEPTIDE", cTerminalDescriptors: acetyl,
-                cTerminalModifications: new List<IList<ProFormaDescriptor>> { acetyl }));
+        /// <summary>
+        /// NTerminalDescriptors and CTerminalDescriptors are read from the modification lists each time, so a change made
+        /// through either property is seen through the other and by the writer.
+        /// </summary>
+        [Test]
+        public void ChangingTerminalModifications_IsSeenThroughEveryProperty()
+        {
+            var carbamyl = new List<ProFormaDescriptor> { new ProFormaDescriptor("Carbamyl") };
+            var term = Parser.ParseString("[Acetyl]-PEPTIDE-[Amidated]");
+
+            term.NTerminalModifications!.Insert(0, carbamyl);
+            Assert.AreSame(carbamyl, term.NTerminalDescriptors);
+            Assert.AreEqual("[Carbamyl][Acetyl]-PEPTIDE-[Amidated]", Writer.WriteString(term));
+
+            term.NTerminalModifications.Clear();
+            Assert.IsNull(term.NTerminalDescriptors);
+
+            term.CTerminalDescriptors!.Clear();
+            Assert.AreEqual("PEPTIDE", Writer.WriteString(term));
+        }
+
+        /// <summary>
+        /// The original constructor is kept as it was, so a library compiled against an earlier release still finds it.
+        /// </summary>
+        [Test]
+        public void OriginalConstructor_IsKept()
+        {
+            var constructor = typeof(ProFormaTerm).GetConstructor(new[]
+            {
+                typeof(string), typeof(IList<ProFormaTag>), typeof(IList<ProFormaDescriptor>), typeof(IList<ProFormaDescriptor>),
+                typeof(IList<ProFormaDescriptor>), typeof(IList<ProFormaUnlocalizedTag>), typeof(ICollection<ProFormaTagGroup>),
+                typeof(IList<ProFormaGlobalModification>)
+            });
+
+            Assert.IsNotNull(constructor);
+            Assert.IsTrue(constructor!.GetParameters().Skip(1).All(p => p.IsOptional));
         }
 
         /// <summary>
@@ -193,14 +226,14 @@ namespace TopDownProteomics.Tests
             IList<ProFormaDescriptor> Brno(string name) =>
                 new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Name, ProFormaEvidenceType.Brno, name) };
 
-            var two = new ProFormaTerm("SEQVKENCE", nTerminalModifications: new List<IList<ProFormaDescriptor>> { Brno("ac"), Brno("me1") });
+            var two = ProFormaTerm.CreateFromModifications("SEQVKENCE", nTerminalModifications: new List<IList<ProFormaDescriptor>> { Brno("ac"), Brno("me1") });
             Assert.Throws<ProteoformGroupCreateException>(() => factory.CreateProteoformGroup(two, lookup));
 
-            var twoC = new ProFormaTerm("SEQVKENCE", cTerminalModifications: new List<IList<ProFormaDescriptor>> { Brno("ac"), Brno("me1") });
+            var twoC = ProFormaTerm.CreateFromModifications("SEQVKENCE", cTerminalModifications: new List<IList<ProFormaDescriptor>> { Brno("ac"), Brno("me1") });
             Assert.Throws<ProteoformGroupCreateException>(() => factory.CreateProteoformGroup(twoC, lookup));
 
             // A second group that names no chemical modification (an Info note) does not count as a second modification.
-            var withInfo = new ProFormaTerm("SEQVKENCE", nTerminalModifications: new List<IList<ProFormaDescriptor>>
+            var withInfo = ProFormaTerm.CreateFromModifications("SEQVKENCE", nTerminalModifications: new List<IList<ProFormaDescriptor>>
             {
                 Brno("ac"),
                 new List<ProFormaDescriptor> { new ProFormaDescriptor(ProFormaKey.Info, "hello!") }

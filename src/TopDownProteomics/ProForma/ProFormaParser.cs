@@ -279,9 +279,8 @@ namespace TopDownProteomics.ProForma
             if (openLeftBraces != 0)
                 throw new ProFormaParseException($"There are {Math.Abs(openLeftBraces)} open braces in ProForma string {proFormaString.ToString()}");
 
-            return new ProFormaTerm(sequence.ToString(), tags, null, null, null,
-                unlocalizedTags, tagGroups?.Values, globalModifications, nTerminalModifications, cTerminalModifications,
-                labileModifications);
+            return ProFormaTerm.CreateFromModifications(sequence.ToString(), tags, nTerminalModifications, cTerminalModifications,
+                labileModifications, unlocalizedTags, tagGroups?.Values, globalModifications);
         }
 
         /// <summary>
